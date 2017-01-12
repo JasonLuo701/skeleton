@@ -22,8 +22,6 @@ set_dbus_property(char *objpath, char *property_name, char *property_type, void 
 		return rc;
 	}
 
-
-
 	if (property_type[0] == 'i') {
 		rc = sd_bus_call_method(bus,
 					"org.openbmc.Sensors",
@@ -46,7 +44,7 @@ set_dbus_property(char *objpath, char *property_name, char *property_type, void 
 					&response,
 					"ssv",
 					"org.openbmc.HwmonSensor", property_name, "s",
-					*((char **)property_value)
+					(char *)property_value
 				       );
 	} else
 		rc = -1;
