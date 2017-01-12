@@ -2,10 +2,10 @@ libdir=/usr/lib
 includedir=/usr/include
 
 PACKAGE_DEPS=gio-unix-2.0 glib-2.0
-SONAME=libopenbmc_intf.so
+SONAME=libopenbmc_sdbus.so
 VERSION=1
 LIBOBMC=$(SONAME).$(VERSION)
-INCLUDES=openbmc_intf.h openbmc.h gpio.h gpio_configs.h log.h
+INCLUDES=sdbus_property.h
 
 LDLIBS+=$(shell pkg-config --libs $(PACKAGE_DEPS))
 ALL_CFLAGS+=$(shell pkg-config --cflags $(PACKAGE_DEPS)) -fPIC -Werror $(CFLAGS)
@@ -18,7 +18,8 @@ all: $(SONAME)
 $(SONAME): $(LIBOBMC)
 	ln -sf $^ $@
 
-$(LIBOBMC): lib%.so.$(VERSION): %.o gpio.o gpio_configs.o
+#$(LIBOBMC): lib%.so.$(VERSION): %.o  sdbus_property.o
+$(LIBOBMC): lib%.so.$(VERSION):  sdbus_property.o
 	$(CC) -shared $(CFLAGS) $(LDFLAGS) -Wl,-soname,$(SONAME) \
 		-o $@ $^ $(LDLIBS)
 

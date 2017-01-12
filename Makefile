@@ -12,6 +12,7 @@ GDBUS_APPS = bmcctl \
 SUBDIRS = fanctl \
 	  ledctl \
 	  libopenbmc_intf \
+	  libopenbmc_sdbus \
 	  pychassisctl \
 	  pydownloadmgr \
 	  pyflashbmc \
