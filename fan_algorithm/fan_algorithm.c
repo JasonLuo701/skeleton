@@ -220,7 +220,7 @@ static int get_sensor_reading(sd_bus *bus, char *obj_path, int *sensor_reading, 
 
 	*sensor_reading = 0;
 
-	if (strlen(fan_obj->service_bus) <= 0 || strlen(fan_obj->service_inf) <= 0)
+	if (strlen(fan_obj->service_bus) <= 0 || strlen(fan_obj->service_inf) <= 0 || strlen(obj_path) <= 0)
 		return -1;
 
 	rc = sd_bus_call_method(bus,
@@ -235,7 +235,7 @@ static int get_sensor_reading(sd_bus *bus, char *obj_path, int *sensor_reading, 
 	if(rc < 0) {
 		fprintf(stderr, "obj_path: %s Failed to get temperature from dbus: %s\n", obj_path, bus_error.message);
 	} else {
-		rc = sd_bus_message_read(response, "v","i", sensor_reading);
+		rc = sd_bus_message_read(response, "i", sensor_reading);
 		if (rc < 0)
 			fprintf(stderr, "obj_path: %s Failed to parse response message:[%s]\n",obj_path, strerror(-rc));
 	}
