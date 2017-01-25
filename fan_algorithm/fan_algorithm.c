@@ -6,6 +6,7 @@
 #include <systemd/sd-bus.h>
 #include <linux/i2c-dev-user.h>
 #include <log.h>
+#include "fan_control.h"
 
 #define I2C_CLIENT_PEC          0x04    /* Use Packet Error Checking */
 #define I2C_M_RECV_LEN          0x0400  /* length will be first received byte */
@@ -235,7 +236,7 @@ static int get_sensor_reading(sd_bus *bus, char *obj_path, int *sensor_reading, 
 	if(rc < 0) {
 		fprintf(stderr, "obj_path: %s Failed to get temperature from dbus: %s\n", obj_path, bus_error.message);
 	} else {
-		rc = sd_bus_message_read(response, "i", sensor_reading);
+		rc = sd_bus_message_read(response, "v", "i", sensor_reading);
 		if (rc < 0)
 			fprintf(stderr, "obj_path: %s Failed to parse response message:[%s]\n",obj_path, strerror(-rc));
 	}
@@ -328,6 +329,7 @@ static int fan_control_algorithm_monitor(void)
 			while (t_header != NULL) {
 				int t_reaing;
 				t_reaing = get_max_sensor_reading(bus, t_header);
+				calculate_openloop(t_reaing);
 				openloop_reading = (openloop_reading<t_reaing? t_reaing:openloop_reading);
 				t_header = t_header->next;
 			}
@@ -484,15 +486,17 @@ static int initial_fan_config(sd_bus *bus)
 {
 	int reponse_len = 0;
 	char reponse_data[50][200];
-	int i;
+	int i, j;
 	int obj_count = 0;
 	char *p;
 
 	get_dbus_fan_parameters(bus, "FAN_INPUT_OBJ", &reponse_len, reponse_data);
-	g_FanInputObjPath.size = reponse_len;
-	for (i = 0; i<reponse_len; i++) {
-		strcpy(g_FanInputObjPath.path[i], reponse_data[i]);
+	for (i = 0, j = 0; i<reponse_len; i+=2, j++) {
+		strcpy(g_FanInputObjPath.path[j], reponse_data[i]);
 	}
+	g_FanInputObjPath.size = j;
+	fan_control_init(reponse_len, reponse_data);
+
 	get_dbus_fan_parameters(bus, "FAN_DBUS_INTF_LOOKUP#FAN_INPUT_OBJ", &reponse_len, reponse_data);
 	if (reponse_len == 2) {
 		strcpy(g_FanInputObjPath.service_bus , reponse_data[0]);
