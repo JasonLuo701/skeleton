@@ -382,3 +382,127 @@ MISC_SENSORS = {
 }
 
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
+
+# Set fan_algorithm config
+#   FAN_DBUS_INTF_LOOKUP: {keys:[dbus bus name, dbus interface name]}
+#   CHASSIS_POWER_STATE: set chassis power state object path
+#   FAN_INPUT_OBJ: set fan input object path
+#   FAN_OUTPUT_OBJ: set fan out object path , eg: hwmon control fan speed or directly use pwm control pwm
+#   OPEN_LOOP_PARAM: set openloop parameter
+#       - paramA
+#       - paramB
+#       - paramC
+#       - Low_Amb
+#       - Up_Amb
+#       - Low_Speed
+#       - High_Speed
+#   OPEN_LOOP_GROUPS_1: set openloop object path
+#   CLOSE_LOOP_PARAM_1: set closeloop parameter
+#       - g_Kp
+#       - g_Ki
+#       - g_Kd
+#       - g_CPUVariable
+#       - g_DIMMVariable
+#       - sensor_tracking
+#       - highest warning temp
+#   CLOSE_LOOP_GROUPS_1: set closeloop  group001 object path, eg: CPU0/CPU1
+#   CLOSE_LOOP_PARAM_2: set closeloop parameter
+#       - g_Kp
+#       - g_Ki
+#       - g_Kd
+#       - g_CPUVariable
+#       - g_DIMMVariable
+#       - sensor_tracking
+#       - highest warning temp
+#   CLOSE_LOOP_GROUPS_2: set closeloop  group002 object path, eg: DIMM
+#   FAN_LED_OFF: set fan led command: off
+#   FAN_LED_PORT0_ALL_BLUE: set fan led port0 command: all blue
+#   FAN_LED_PORT1_ALL_BLUE: set fan led port1 command: all blue
+#   FAN_LED_PORT0_ALL_RED: set fan led port0 command: all red
+#   FAN_LED_PORT1_ALL_RED: set fan led port1 command: all red
+#   PORT0_FAN_LED_RED_MASK: set fan led port0 register mask with red
+#   PORT0_FAN_LED_BLUE_MASK: set fan led port0 register mask with blue
+#   PORT1_FAN_LED_RED_MASK: set fan led port1 register mask with red
+#   PORT1_FAN_LED_BLUE_MASK: set fan led port1 register mask with blue
+#   FAN_LED_I2C_BUS: set fan led i2c bus
+#   FAN_LED_I2C_SLAVE_ADDRESS: set fan led i2c slave address
+FAN_ALGORITHM_CONFIG = {
+    'FAN_DBUS_INTF_LOOKUP':
+    {
+        'CHASSIS_POWER_STATE': ['org.openbmc.control.Chassis', 'org.openbmc.control.Chassis'],
+        'FAN_INPUT_OBJ' : ['org.openbmc.control.fan', 'org.openbmc.Fan'],
+        'FAN_OUTPUT_OBJ' : ['org.openbmc.control.fan', 'org.openbmc.Fan'],
+        'OPEN_LOOP_GROUPS_1' : [],
+        'CLOSE_LOOP_GROUPS_1' : [],
+        'CLOSE_LOOP_GROUPS_2' : [],
+    },
+
+    'CHASSIS_POWER_STATE': ['/org/openbmc/control/chassis0'],
+    'FAN_INPUT_OBJ':
+        [
+            "/org/openbmc/control/fan/fan_tacho0",
+            "/org/openbmc/control/fan/fan_tacho1",
+            "/org/openbmc/control/fan/fan_tacho2",
+            "/org/openbmc/control/fan/fan_tacho3",
+            "/org/openbmc/control/fan/fan_tacho4",
+            "/org/openbmc/control/fan/fan_tacho5",
+            "/org/openbmc/control/fan/fan_tacho6",
+            "/org/openbmc/control/fan/fan_tacho7",
+            "/org/openbmc/control/fan/fan_tacho8",
+            "/org/openbmc/control/fan/fan_tacho9",
+            "/org/openbmc/control/fan/fan_tacho10",
+            "/org/openbmc/control/fan/fan_tacho11",
+        ],
+    'FAN_OUTPUT_OBJ':
+        [
+            "/org/openbmc/control/fan/fan0",
+            "/org/openbmc/control/fan/fan1",
+            "/org/openbmc/control/fan/fan2",
+            "/org/openbmc/control/fan/fan3",
+            "/org/openbmc/control/fan/fan4",
+            "/org/openbmc/control/fan/fan5",
+        ],
+    'OPEN_LOOP_PARAM':
+        [
+            '0',
+            '2',
+            '0',
+            '20',
+            '38',
+            '40',
+            '100',
+        ],
+    'OPEN_LOOP_GROUPS_1':[],
+    'CLOSE_LOOP_PARAM_1' :
+        [
+            '0.45',
+            '-0.017',
+            '0.3',
+            '80',
+            '85',
+        ],
+    'CLOSE_LOOP_GROUPS_1':[],
+    'CLOSE_LOOP_PARAM_2' :
+        [
+            '0.45',
+            '-0.017',
+            '0.3',
+            '75',
+            '85',
+        ],
+    'CLOSE_LOOP_GROUPS_2':[],
+
+    'FAN_LED_OFF': ["0xFF"],
+    'FAN_LED_PORT0_ALL_BLUE': ["0xAA"],
+    'FAN_LED_PORT1_ALL_BLUE': ["0x55"],
+    'FAN_LED_PORT0_ALL_RED': ["0x55"],
+    'FAN_LED_PORT1_ALL_RED': ["0xAA"],
+    'PORT0_FAN_LED_RED_MASK': ["0x02"],
+    'PORT0_FAN_LED_BLUE_MASK': ["0x01"],
+    'PORT1_FAN_LED_RED_MASK': ["0x40"],
+    'PORT1_FAN_LED_BLUE_MASK': ["0x80"],
+    'FAN_LED_SPEED_LIMIT': ["30"],
+
+    'FAN_LED_I2C_BUS': ["/dev/i2c-6"],
+    'FAN_LED_I2C_SLAVE_ADDRESS': ["0x20"],
+}
