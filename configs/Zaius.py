@@ -343,6 +343,28 @@ GPIO_CONFIG['PE_MEZZB_PRSNT_N'] = \
         {'gpio_pin': 'P7', 'direction': 'in'}
 GPIO_CONFIG['CHECKSTOP'] = \
         {'gpio_pin': 'F7', 'direction': 'falling'}
+
+SENSOR_MONITOR_CONFIG = [
+	['/org/openbmc/control/fan/fan1', { 'object_path' : '/sys/devices/platform/ast_pwm_tacho.0/pwm1_falling','poll_interval' : 10000,'scale' : 1,'value' : 0}],
+	['/org/openbmc/control/fan/fan2', { 'object_path' : '/sys/devices/platform/ast_pwm_tacho.0/pwm2_falling','poll_interval' : 10000,'scale' : 1,'value' : 0}],
+	['/org/openbmc/control/fan/fan3', { 'object_path' : '/sys/devices/platform/ast_pwm_tacho.0/pwm3_falling','poll_interval' : 10000,'scale' : 1,'value' : 0}],
+	['/org/openbmc/control/fan/fan4', { 'object_path' : '/sys/devices/platform/ast_pwm_tacho.0/pwm4_falling','poll_interval' : 10000,'scale' : 1,'value' : 0}],
+	['/org/openbmc/control/fan/fan5', { 'object_path' : '/sys/devices/platform/ast_pwm_tacho.0/pwm5_falling','poll_interval' : 10000,'scale' : 1,'value' : 0}],
+	['/org/openbmc/control/fan/fan6', { 'object_path' : '/sys/devices/platform/ast_pwm_tacho.0/pwm6_falling','poll_interval' : 10000,'scale' : 1,'value' : 0}],
+	['/org/openbmc/sensors/fan/fan_tacho1', { 'object_path' : '/sys/devices/platform/ast_pwm_tacho.0/tacho1_rpm','poll_interval' : 10000,'scale' : 1,'units' : 'rpm','value' : 0}],
+	['/org/openbmc/sensors/fan/fan_tacho2', { 'object_path' : '/sys/devices/platform/ast_pwm_tacho.0/tacho2_rpm','poll_interval' : 10000,'scale' : 1,'units' : 'rpm','value' : 0}],
+	['/org/openbmc/sensors/fan/fan_tacho3', { 'object_path' : '/sys/devices/platform/ast_pwm_tacho.0/tacho3_rpm','poll_interval' : 10000,'scale' : 1,'units' : 'rpm','value' : 0}],
+	['/org/openbmc/sensors/fan/fan_tacho4', { 'object_path' : '/sys/devices/platform/ast_pwm_tacho.0/tacho4_rpm','poll_interval' : 10000,'scale' : 1,'units' : 'rpm','value' : 0}],
+	['/org/openbmc/sensors/fan/fan_tacho5', { 'object_path' : '/sys/devices/platform/ast_pwm_tacho.0/tacho5_rpm','poll_interval' : 10000,'scale' : 1,'units' : 'rpm','value' : 0}],
+	['/org/openbmc/sensors/fan/fan_tacho6', { 'object_path' : '/sys/devices/platform/ast_pwm_tacho.0/tacho6_rpm','poll_interval' : 10000,'scale' : 1,'units' : 'rpm','value' : 0}],
+	['/org/openbmc/sensors/fan/fan_tacho7', { 'object_path' : '/sys/devices/platform/ast_pwm_tacho.0/tacho7_rpm','poll_interval' : 10000,'scale' : 1,'units' : 'rpm','value' : 0}],
+	['/org/openbmc/sensors/fan/fan_tacho8', { 'object_path' : '/sys/devices/platform/ast_pwm_tacho.0/tacho8_rpm','poll_interval' : 10000,'scale' : 1,'units' : 'rpm','value' : 0}],
+	['/org/openbmc/sensors/fan/fan_tacho9', { 'object_path' : '/sys/devices/platform/ast_pwm_tacho.0/tacho9_rpm','poll_interval' : 10000,'scale' : 1,'units' : 'rpm','value' : 0}],
+	['/org/openbmc/sensors/fan/fan_tacho10', { 'object_path' : '/sys/devices/platform/ast_pwm_tacho.0/tacho10_rpm','poll_interval' : 10000,'scale' : 1,'units' : 'rpm','value' : 0}],
+	['/org/openbmc/sensors/fan/fan_tacho11', { 'object_path' : '/sys/devices/platform/ast_pwm_tacho.0/tacho11_rpm','poll_interval' : 10000,'scale' : 1,'units' : 'rpm','value' : 0}],
+	['/org/openbmc/sensors/fan/fan_tacho12', { 'object_path' : '/sys/devices/platform/ast_pwm_tacho.0/tacho12_rpm','poll_interval' : 10000,'scale' : 1,'units' : 'rpm','value' : 0}],
+]
+
 HWMON_CONFIG = {
     '0-0064': {
         'names': {
