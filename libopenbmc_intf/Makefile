@@ -5,7 +5,7 @@ PACKAGE_DEPS=gio-unix-2.0 glib-2.0
 SONAME=libopenbmc_intf.so
 VERSION=1
 LIBOBMC=$(SONAME).$(VERSION)
-INCLUDES=openbmc_intf.h openbmc.h gpio.h gpio_configs.h
+INCLUDES=openbmc_intf.h openbmc.h gpio.h gpio_configs.h log.h
 
 LDLIBS+=$(shell pkg-config --libs $(PACKAGE_DEPS))
 ALL_CFLAGS+=$(shell pkg-config --cflags $(PACKAGE_DEPS)) -fPIC -Werror $(CFLAGS)

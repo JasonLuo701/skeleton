@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 
 import gobject
 import dbus
@@ -130,6 +130,43 @@ class SystemManager(DbusProperties, DbusObjectManager):
     def getObjectFromByteId(self, category, key):
         byte = int(key)
         return self.doObjectLookup(category, byte)
+
+    @dbus.service.method(DBUS_NAME,
+		in_signature='s', out_signature='s')
+    def getFanControlParams(self, key):
+        if ('FAN_ALGORITHM_CONFIG' not in dir(System) or key == None):
+            return ""
+        s_params = ""
+        try:
+            if key == "INVENTORY_FAN":
+                for inventory_obj_path in System.FRU_INSTANCES:
+                    if inventory_obj_path.find("fan") >= 0:
+                        data = inventory_obj_path.replace("<inventory_root>", System.INVENTORY_ROOT)
+                        s_params+=data + ";"
+                        return s_params
+
+            if key.find("FAN_DBUS_INTF_LOOKUP") >= 0:
+                key_array = key.split("#")
+                if len(key_array) != 2:
+                    return ""
+                key_name = key_array[0]
+                key_prefix = key_array[1]
+                if key_name not in System.FAN_ALGORITHM_CONFIG:
+                    return ""
+                if key_prefix not in System.FAN_ALGORITHM_CONFIG[key_name]:
+                    return ""
+                for i in range(len(System.FAN_ALGORITHM_CONFIG[key_name][key_prefix])):
+                    s_params+=System.FAN_ALGORITHM_CONFIG[key_name][key_prefix][i] + ";"
+                return s_params
+
+            if key not in System.FAN_ALGORITHM_CONFIG:
+                return ""
+
+            for i in range(len(System.FAN_ALGORITHM_CONFIG[key])):
+                s_params+=System.FAN_ALGORITHM_CONFIG[key][i] + ";"
+        except:
+            return ""
+        return s_params
 
     # Get the FRU area names defined in ID_LOOKUP table given a fru_id.
     # If serval areas are defined for a fru_id, the areas are returned
