@@ -110,6 +110,42 @@ class Hwmons():
             gobject.timeout_add(
                 hwmon['poll_interval'], self.poll, objpath, hwmon_path)
 
+    def addSensorMonitorObject(self):
+        if "SENSOR_MONITOR_CONFIG" not in dir(System):
+            return
+
+        for i in range(len(System.SENSOR_MONITOR_CONFIG)):
+            objpath = System.SENSOR_MONITOR_CONFIG[i][0]
+            hwmon = System.SENSOR_MONITOR_CONFIG[i][1]
+
+            if 'object_path' not in hwmon or len(hwmon['object_path'])==0:
+                print "Warnning[addSensorMonitorObject]: Not correct set [object_path]"
+                continue
+
+            hwmon_path = hwmon['object_path']
+            if (self.sensors.has_key(objpath) == False):
+                ## register object with sensor manager
+                obj = bus.get_object(SENSOR_BUS,SENSOR_PATH,introspect=False)
+                intf = dbus.Interface(obj,SENSOR_BUS)
+                intf.register("HwmonSensor",objpath)
+
+                ## set some properties in dbus object
+                obj = bus.get_object(SENSOR_BUS,objpath,introspect=False)
+                intf = dbus.Interface(obj,dbus.PROPERTIES_IFACE)
+                intf.Set(HwmonSensor.IFACE_NAME,'filename',hwmon_path)
+
+                ## check if one of thresholds is defined to know
+                ## whether to enable thresholds or not
+                if (hwmon.has_key('critical_upper')):
+                    intf.Set(SensorThresholds.IFACE_NAME,'thresholds_enabled',True)
+
+                for prop in hwmon.keys():
+                    if (IFACE_LOOKUP.has_key(prop)):
+                        intf.Set(IFACE_LOOKUP[prop],prop,hwmon[prop])
+
+                self.sensors[objpath]=True
+                gobject.timeout_add(hwmon['poll_interval'],self.poll,objpath,hwmon_path)
+
     def scanDirectory(self):
         devices = os.listdir(HWMON_PATH)
         found_hwmon = {}
@@ -144,6 +180,7 @@ class Hwmons():
             else:
                 print "WARNING - hwmon: Unhandled hwmon: "+dpath
 
+        self.addSensorMonitorObject()
         for k in self.hwmon_root.keys():
             if k not in found_hwmon:
                 ## need to remove all objects associated with this path
