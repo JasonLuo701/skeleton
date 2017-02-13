@@ -452,8 +452,8 @@ FAN_ALGORITHM_CONFIG = {
     'FAN_DBUS_INTF_LOOKUP':
     {
         'CHASSIS_POWER_STATE': ['org.openbmc.control.Chassis', 'org.openbmc.control.Chassis'],
-        'FAN_INPUT_OBJ' : ['org.openbmc.control.fan', 'org.openbmc.Fan'],
-        'FAN_OUTPUT_OBJ' : ['org.openbmc.control.fan', 'org.openbmc.Fan'],
+        'FAN_INPUT_OBJ' : ['org.openbmc.Sensors', 'org.openbmc.SensorValue'],
+        'FAN_OUTPUT_OBJ' : ['org.openbmc.Sensors', 'org.openbmc.SensorValue'],
         'OPEN_LOOP_GROUPS_1' : [],
         'CLOSE_LOOP_GROUPS_1' : [],
         'CLOSE_LOOP_GROUPS_2' : [],
@@ -462,18 +462,18 @@ FAN_ALGORITHM_CONFIG = {
     'CHASSIS_POWER_STATE': ['/org/openbmc/control/chassis0'],
     'FAN_INPUT_OBJ':
         [
-            "/org/openbmc/control/fan/fan_tacho1", "pwm1",
-            "/org/openbmc/control/fan/fan_tacho2", "pwm2",
-            "/org/openbmc/control/fan/fan_tacho3", "pwm3",
-            "/org/openbmc/control/fan/fan_tacho4", "pwm4",
-            "/org/openbmc/control/fan/fan_tacho5", "pwm5",
-            "/org/openbmc/control/fan/fan_tacho6", "pwm6",
-            "/org/openbmc/control/fan/fan_tacho7", "pwm1",
-            "/org/openbmc/control/fan/fan_tacho8", "pwm2",
-            "/org/openbmc/control/fan/fan_tacho9", "pwm3",
-            "/org/openbmc/control/fan/fan_tacho10", "pwm4",
-            "/org/openbmc/control/fan/fan_tacho11", "pwm5",
-            "/org/openbmc/control/fan/fan_tacho12", "pwm6",
+            "/org/openbmc/sensors/fan/fan_tacho1", "pwm1",
+            "/org/openbmc/sensors/fan/fan_tacho2", "pwm2",
+            "/org/openbmc/sensors/fan/fan_tacho3", "pwm3",
+            "/org/openbmc/sensors/fan/fan_tacho4", "pwm4",
+            "/org/openbmc/sensors/fan/fan_tacho5", "pwm5",
+            "/org/openbmc/sensors/fan/fan_tacho6", "pwm6",
+            "/org/openbmc/sensors/fan/fan_tacho7", "pwm1",
+            "/org/openbmc/sensors/fan/fan_tacho8", "pwm2",
+            "/org/openbmc/sensors/fan/fan_tacho9", "pwm3",
+            "/org/openbmc/sensors/fan/fan_tacho10", "pwm4",
+            "/org/openbmc/sensors/fan/fan_tacho11", "pwm5",
+            "/org/openbmc/sensors/fan/fan_tacho12", "pwm6",
         ],
     'FAN_OUTPUT_OBJ':
         [
@@ -525,6 +525,6 @@ FAN_ALGORITHM_CONFIG = {
     'PORT1_FAN_LED_BLUE_MASK': ["0x80"],
     'FAN_LED_SPEED_LIMIT': ["30"],
 
-    'FAN_LED_I2C_BUS': ["/dev/i2c-6"],
-    'FAN_LED_I2C_SLAVE_ADDRESS': ["0x20"],
+    'FAN_LED_I2C_BUS': [],
+    'FAN_LED_I2C_SLAVE_ADDRESS': [],
 }
