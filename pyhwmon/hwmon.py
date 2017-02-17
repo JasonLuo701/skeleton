@@ -67,6 +67,16 @@ class Hwmons():
             raw_value = int(self.readAttribute(attribute))
             obj = bus.get_object(SENSOR_BUS, objpath, introspect=False)
             intf = dbus.Interface(obj, HwmonSensor.IFACE_NAME)
+            if self.isAdcSensor(attribute) == True:
+                raw_value = raw_value + 1
+                if attribute.find("adc0_value") >= 0:
+                    raw_value = raw_value * 0.00731
+                elif attribute.find("adc1_value") >= 0:
+                    raw_value = raw_value * 0.0034
+                elif attribute.find("adc2_value") >= 0:
+                    raw_value = raw_value * 0.0042
+                else:
+                    raw_value = raw_value * 0.0017
             rtn = intf.setByPoll(raw_value)
             if rtn[0]:
                 self.writeAttribute(attribute, rtn[1])
@@ -110,6 +120,13 @@ class Hwmons():
             gobject.timeout_add(
                 hwmon['poll_interval'], self.poll, objpath, hwmon_path)
 
+    def isAdcSensor(self, object_path):
+        if object_path == None or object_path == "":
+            return False
+        if object_path.find("ast_adc") >= 0:
+            return True
+        return False
+
     def addSensorMonitorObject(self):
         if "SENSOR_MONITOR_CONFIG" not in dir(System):
             return
@@ -143,6 +160,11 @@ class Hwmons():
                     if (IFACE_LOOKUP.has_key(prop)):
                         intf.Set(IFACE_LOOKUP[prop],prop,hwmon[prop])
 
+                if self.isAdcSensor(hwmon_path) == True:
+                    if 'enable' in hwmon:
+                        s_path = hwmon_path.replace("value", "en")
+                        s_cmd = "echo  " + str(hwmon['enable']) + "  >  " + s_path
+                        os.system(s_cmd)
                 self.sensors[objpath]=True
                 gobject.timeout_add(hwmon['poll_interval'],self.poll,objpath,hwmon_path)
 
