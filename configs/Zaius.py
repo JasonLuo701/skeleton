@@ -359,6 +359,19 @@ SENSOR_MONITOR_CONFIG = [
     ['/org/openbmc/sensors/CPU1_VDDQ1', { 'object_path' : '/sys/devices/platform/ast_adc.0/adc10_value','poll_interval' : 10000,'scale' : 1,'value' : 0, 'enable': 1}],
     ['/org/openbmc/sensors/CPU1_VDDQ2', { 'object_path' : '/sys/devices/platform/ast_adc.0/adc11_value','poll_interval' : 10000,'scale' : 1,'value' : 0, 'enable': 1}],
     ['/org/openbmc/sensors/P1V2AUX', { 'object_path' : '/sys/devices/platform/ast_adc.0/adc13_value','poll_interval' : 10000,'scale' : 1,'value' : 0, 'enable': 1}],
+    ['/org/openbmc/sensors/hwmon/voltage/P12V', { 'object_path' : '/sys/class/hwmon/hwmon0/in1_input','poll_interval' : 10000,'scale' : 1,'value' : 0}],
+    ['/org/openbmc/sensors/hwmon/voltage/P5V', { 'object_path' : '/sys/class/hwmon/hwmon0/in2_input','poll_interval' : 10000,'scale' : 1,'value' : 0}],
+    ['/org/openbmc/sensors/hwmon/voltage/P3V3', { 'object_path' : '/sys/class/hwmon/hwmon0/in3_input','poll_interval' : 10000,'scale' : 1,'value' : 0}],
+    ['/org/openbmc/sensors/hwmon/voltage/P1V8', { 'object_path' : '/sys/class/hwmon/hwmon0/in4_input','poll_interval' : 10000,'scale' : 1,'value' : 0}],
+    ['/org/openbmc/sensors/hwmon/voltage/P1V05', { 'object_path' : '/sys/class/hwmon/hwmon0/in5_input','poll_interval' : 10000,'scale' : 1,'value' : 0}],
+    ['/org/openbmc/sensors/hwmon/voltage/P1V0_SATA', { 'object_path' : '/sys/class/hwmon/hwmon0/in6_input','poll_interval' : 10000,'scale' : 1,'value' : 0}],
+    ['/org/openbmc/sensors/hwmon/voltage/P0V7_CPU0', { 'object_path' : '/sys/class/hwmon/hwmon0/in7_input','poll_interval' : 10000,'scale' : 1,'value' : 0}],
+    ['/org/openbmc/sensors/hwmon/voltage/P0V7_CPU1', { 'object_path' : '/sys/class/hwmon/hwmon0/in8_input','poll_interval' : 10000,'scale' : 1,'value' : 0}],
+    ['/org/openbmc/sensors/hwmon/voltage/P1V5_CPU', { 'object_path' : '/sys/class/hwmon/hwmon0/in9_input','poll_interval' : 10000,'scale' : 1,'value' : 0}],
+    ['/org/openbmc/sensors/hwmon/voltage/P1V0_CPU0', { 'object_path' : '/sys/class/hwmon/hwmon0/in10_input','poll_interval' : 10000,'scale' : 1,'value' : 0}],
+    ['/org/openbmc/sensors/hwmon/voltage/P1V0_CPU1', { 'object_path' : '/sys/class/hwmon/hwmon0/in11_input','poll_interval' : 10000,'scale' : 1,'value' : 0}],
+    ['/org/openbmc/sensors/hwmon/voltage/P0V8_CPU0', { 'object_path' : '/sys/class/hwmon/hwmon0/in12_input','poll_interval' : 10000,'scale' : 1,'value' : 0}],
+    ['/org/openbmc/sensors/hwmon/voltage/P0V8_CPU1', { 'object_path' : '/sys/class/hwmon/hwmon0/in13_input','poll_interval' : 10000,'scale' : 1,'value' : 0}],
 ]
 
 HWMON_CONFIG = {
