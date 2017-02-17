@@ -8,6 +8,7 @@ import dbus.service
 import dbus.mainloop.glib
 import re
 from obmc.dbuslib.bindings import get_dbus
+import subprocess
 
 from obmc.sensors import SensorValue as SensorValue
 from obmc.sensors import HwmonSensor as HwmonSensor
@@ -54,6 +55,10 @@ class Hwmons():
             with open(filename, 'r') as f:
                 for line in f:
                     val = line.rstrip('\n')
+            if self.is1WireTempSensor(filename) == True:
+                val_s = val
+                val_split = val_s.split("t=")
+                val = val_split[1]
         except (OSError, IOError):
             print "Cannot read attributes:", filename
         return val
@@ -127,6 +132,13 @@ class Hwmons():
             return True
         return False
 
+    def is1WireTempSensor(self, object_path):
+        if object_path == None or object_path == "":
+            return False
+        if object_path.find("w1_bus_master") >= 0:
+            return True
+        return False
+
     def addSensorMonitorObject(self):
         if "SENSOR_MONITOR_CONFIG" not in dir(System):
             return
@@ -140,6 +152,12 @@ class Hwmons():
                 continue
 
             hwmon_path = hwmon['object_path']
+            if self.is1WireTempSensor(hwmon_path) == True:
+                sub_dir_cmd = "cat  " +  hwmon_path + "w1_master_slaves"
+                sub_dir = subprocess.check_output(sub_dir_cmd, shell=True)
+                sub_dir = sub_dir.rstrip('\n').rstrip()
+                hwmon_path = hwmon_path + sub_dir + "/w1_slave"
+
             if (self.sensors.has_key(objpath) == False):
                 ## register object with sensor manager
                 obj = bus.get_object(SENSOR_BUS,SENSOR_PATH,introspect=False)
