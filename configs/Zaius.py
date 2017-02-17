@@ -358,7 +358,6 @@ SENSOR_MONITOR_CONFIG = [
     ['/org/openbmc/sensors/CPU0_VDDQ2', { 'object_path' : '/sys/devices/platform/ast_adc.0/adc9_value','poll_interval' : 10000,'scale' : 1,'value' : 0, 'enable': 1}],
     ['/org/openbmc/sensors/CPU1_VDDQ1', { 'object_path' : '/sys/devices/platform/ast_adc.0/adc10_value','poll_interval' : 10000,'scale' : 1,'value' : 0, 'enable': 1}],
     ['/org/openbmc/sensors/CPU1_VDDQ2', { 'object_path' : '/sys/devices/platform/ast_adc.0/adc11_value','poll_interval' : 10000,'scale' : 1,'value' : 0, 'enable': 1}],
-    ['/org/openbmc/sensors/RTC_BAT', { 'object_path' : '/sys/devices/platform/ast_adc.0/adc12_value','poll_interval' : 10000,'scale' : 1,'value' : 0, 'enable': 1}],
     ['/org/openbmc/sensors/P1V2AUX', { 'object_path' : '/sys/devices/platform/ast_adc.0/adc13_value','poll_interval' : 10000,'scale' : 1,'value' : 0, 'enable': 1}],
 ]
 
