@@ -346,6 +346,20 @@ GPIO_CONFIG['CHECKSTOP'] = \
         {'gpio_pin': 'F7', 'direction': 'falling'}
 
 SENSOR_MONITOR_CONFIG = [
+    ['/org/openbmc/sensors/P5VAUX', { 'object_path' : '/sys/devices/platform/ast_adc.0/adc0_value','poll_interval' : 10000,'scale' : 1,'value' : 0, 'enable': 1}],
+    ['/org/openbmc/sensors/P2V5AUX', { 'object_path' : '/sys/devices/platform/ast_adc.0/adc1_value','poll_interval' : 10000,'scale' : 1,'value' : 0, 'enable': 1}],
+    ['/org/openbmc/sensors/P3V3AUX', { 'object_path' : '/sys/devices/platform/ast_adc.0/adc2_value','poll_interval' : 10000,'scale' : 1,'value' : 0, 'enable': 1}],
+    ['/org/openbmc/sensors/P1V1AUX', { 'object_path' : '/sys/devices/platform/ast_adc.0/adc3_value','poll_interval' : 10000,'scale' : 1,'value' : 0, 'enable': 1}],
+    ['/org/openbmc/sensors/CPU0_VPP1', { 'object_path' : '/sys/devices/platform/ast_adc.0/adc4_value','poll_interval' : 10000,'scale' : 1,'value' : 0, 'enable': 1}],
+    ['/org/openbmc/sensors/CPU0_VPP2', { 'object_path' : '/sys/devices/platform/ast_adc.0/adc5_value','poll_interval' : 10000,'scale' : 1,'value' : 0, 'enable': 1}],
+    ['/org/openbmc/sensors/CPU1_VPP1', { 'object_path' : '/sys/devices/platform/ast_adc.0/adc6_value','poll_interval' : 10000,'scale' : 1,'value' : 0, 'enable': 1}],
+    ['/org/openbmc/sensors/CPU1_VPP2', { 'object_path' : '/sys/devices/platform/ast_adc.0/adc7_value','poll_interval' : 10000,'scale' : 1,'value' : 0, 'enable': 1}],
+    ['/org/openbmc/sensors/CPU0_VDDQ1', { 'object_path' : '/sys/devices/platform/ast_adc.0/adc8_value','poll_interval' : 10000,'scale' : 1,'value' : 0, 'enable': 1}],
+    ['/org/openbmc/sensors/CPU0_VDDQ2', { 'object_path' : '/sys/devices/platform/ast_adc.0/adc9_value','poll_interval' : 10000,'scale' : 1,'value' : 0, 'enable': 1}],
+    ['/org/openbmc/sensors/CPU1_VDDQ1', { 'object_path' : '/sys/devices/platform/ast_adc.0/adc10_value','poll_interval' : 10000,'scale' : 1,'value' : 0, 'enable': 1}],
+    ['/org/openbmc/sensors/CPU1_VDDQ2', { 'object_path' : '/sys/devices/platform/ast_adc.0/adc11_value','poll_interval' : 10000,'scale' : 1,'value' : 0, 'enable': 1}],
+    ['/org/openbmc/sensors/RTC_BAT', { 'object_path' : '/sys/devices/platform/ast_adc.0/adc12_value','poll_interval' : 10000,'scale' : 1,'value' : 0, 'enable': 1}],
+    ['/org/openbmc/sensors/P1V2AUX', { 'object_path' : '/sys/devices/platform/ast_adc.0/adc13_value','poll_interval' : 10000,'scale' : 1,'value' : 0, 'enable': 1}],
 ]
 
 HWMON_CONFIG = {
