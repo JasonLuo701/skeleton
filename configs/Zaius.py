@@ -372,6 +372,10 @@ SENSOR_MONITOR_CONFIG = [
     ['/org/openbmc/sensors/hwmon/voltage/P1V0_CPU1', { 'object_path' : '/sys/class/hwmon/hwmon0/in11_input','poll_interval' : 10000,'scale' : 1,'value' : 0}],
     ['/org/openbmc/sensors/hwmon/voltage/P0V8_CPU0', { 'object_path' : '/sys/class/hwmon/hwmon0/in12_input','poll_interval' : 10000,'scale' : 1,'value' : 0}],
     ['/org/openbmc/sensors/hwmon/voltage/P0V8_CPU1', { 'object_path' : '/sys/class/hwmon/hwmon0/in13_input','poll_interval' : 10000,'scale' : 1,'value' : 0}],
+    ['/org/openbmc/sensors/FM_SENSOR_TEMP0', { 'object_path' : '/sys/devices/w1_bus_master1/','poll_interval' : 10000,'scale' : 1000,'value' : 0}],
+    ['/org/openbmc/sensors/FM_SENSOR_TEMP1', { 'object_path' : '/sys/devices/w1_bus_master2/','poll_interval' : 10000,'scale' : 1000,'value' : 0}],
+    ['/org/openbmc/sensors/FM_SENSOR_TEMP2', { 'object_path' : '/sys/devices/w1_bus_master3/','poll_interval' : 10000,'scale' : 1000,'value' : 0}],
+    ['/org/openbmc/sensors/FM_SENSOR_TEMP3', { 'object_path' : '/sys/devices/w1_bus_master4/','poll_interval' : 10000,'scale' : 1000,'value' : 0}],
 ]
 
 HWMON_CONFIG = {
