@@ -12,7 +12,6 @@ import obmc_system_config as System
 import obmc.mapper.utils
 import obmc.inventory
 import obmc.system
-import subprocess
 
 DBUS_NAME = 'org.openbmc.managers.System'
 OBJ_NAME = '/org/openbmc/managers/System'
@@ -54,7 +53,6 @@ class SystemManager(DbusProperties, DbusObjectManager):
                 System.ID_LOOKUP[category][key] = new_val
 
         self.SystemStateHandler(System.SYSTEM_STATES[0])
-        subprocess.Popen("/usr/local/sbin/inarp")
 
         print "SystemManager Init Done"
 
