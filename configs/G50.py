@@ -252,6 +252,12 @@ APPS = {
 		'monitor_process' : False,
 		'process_name'    : 'node_init_sthelens.exe',
 	},
+        'pcie-device-temperature' : {
+                'system_state'    : 'BMC_READY',
+                'start_process'   : True,
+                'monitor_process' : True,
+                'process_name'    : 'pcie-device-temperature.exe',
+        },
 }
 
 CACHED_INTERFACES = {
