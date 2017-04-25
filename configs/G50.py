@@ -560,6 +560,12 @@ HWMON_CONFIG = {
 				'sensor_name':'Inlet Temp 8', 'reading_type' : '0x01', 'critical_upper' : 37, 'emergency_enabled' : True },
 		}
 	},
+	'24-004c' :  {
+		'names' : {
+			'FPGA_amb' : { 'object_path' : 'pcie/FPGA_amb','poll_interval' : 5000,'scale' : 1000,'units' : 'C', 'sensor_type' : '0x01', 'sensornumber' : '0x75',
+				'sensor_name':'FPGA Ambient Temp', 'reading_type' : '0x01', 'critical_upper' : 83, 'emergency_enabled' : True },
+		}
+	},
 }
 
 # Miscellaneous non-poll sensor with system specific properties.
