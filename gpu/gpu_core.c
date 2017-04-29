@@ -22,6 +22,8 @@
 #define TYPE_BOARD_PART_NUMBER 0x0
 #define TYPE_SERIAL_NUMBER 0x2
 #define TYPE_MARKETING_NAME 0x3
+#define TYPE_PART_NUMBER 0x4
+#define TYPE_FIRMWARE_VERSION 0x8
 
 #define GPU_TEMP_PATH "/tmp/gpu"
 
@@ -127,6 +129,7 @@ static int internal_gpu_access(int bus, __u8 slave,__u8 *write_buf, __u8 *read_b
 		if(cmd_reg[3] == GPU_ACCESS_SUCCESS_RETURN) {
 			if (i2c_smbus_read_block_data(fd, MBT_REG_DATA_KEPLER, read_buf) == 4) { /*success get data*/
 				close(fd);
+				PMBUS_DELAY;
 				return 0;
 			}
 		} else {
@@ -149,10 +152,13 @@ static int function_get_gpu_info(int index)
 		{TYPE_BOARD_PART_NUMBER,24},
 		{TYPE_SERIAL_NUMBER,16},
 		{TYPE_MARKETING_NAME,24},
+		{TYPE_PART_NUMBER,16},
+		{TYPE_FIRMWARE_VERSION,14},
 		{0xFF,0xFF}, //List of end
 	};
 	unsigned char temp_readbuf[MAX_INFO_INDEX][32];
 	unsigned char read_times = 0;
+	unsigned char read_times_count = 0;
 	unsigned char cuurent_index=0;
 	int rc=-1;
 	int i,j;
@@ -160,12 +166,12 @@ static int function_get_gpu_info(int index)
 	memset(temp_readbuf, 0x0, sizeof(temp_readbuf));
 
 	for(i=0; input_cmd_data[i][0]!=0xFF; i++) {
-		read_times = input_cmd_data[i][1]/4;
-		for(j=0; j<read_times; j++) {
+		read_times = input_cmd_data[i][1];
+		for(j=0, read_times_count=0; j<read_times; j+=4, read_times_count++) {
 			temp_writebuf[1]=input_cmd_data[i][0]; /* type*/
-			temp_writebuf[2]=j; /* times*/
+			temp_writebuf[2]=read_times_count; /* times*/
 			rc = internal_gpu_access(gpu_device_bus[index].bus_no,
-						 gpu_device_bus[index].slave,temp_writebuf,&temp_readbuf[i][j*4]);
+						 gpu_device_bus[index].slave,temp_writebuf,&temp_readbuf[i][read_times_count*4]);
 
 			if(rc < 0) {
 				fprintf(stderr, "failed to access gpu info index %d \n",index);
@@ -173,13 +179,13 @@ static int function_get_gpu_info(int index)
 				return rc;
 			}
 		}
+		temp_readbuf[i][read_times] = '\0';
 		memroy_index = input_cmd_data[i][0];
 
 		sprintf(&G_gpu_data[gpu_device_bus[index].device_index].info_data[memroy_index][0],"%s\0",&temp_readbuf[i][0]);
 		printf("Success get the gpu info =%s \r\n",G_gpu_data[gpu_device_bus[index].device_index].info_data[memroy_index]);
 	}
 	G_gpu_data[gpu_device_bus[index].device_index].info_ready = 1;
-#undef MAX_INFO_INDEX
 	return 0;
 }
 
@@ -222,6 +228,8 @@ int function_get_gpu_data(int index)
 			set_dbus_property(gpu_info_node , "Board Part Number", "s", (void *) G_gpu_data[gpu_device_bus[index].device_index].info_data[TYPE_BOARD_PART_NUMBER]);
 			set_dbus_property(gpu_info_node , "Serial Number", "s", (void *)G_gpu_data[gpu_device_bus[index].device_index].info_data[TYPE_SERIAL_NUMBER]);
 			set_dbus_property(gpu_info_node , "Marketing Name", "s", (void *)G_gpu_data[gpu_device_bus[index].device_index].info_data[TYPE_MARKETING_NAME]);
+			set_dbus_property(gpu_info_node , "PartNumber", "s", (void *)G_gpu_data[gpu_device_bus[index].device_index].info_data[TYPE_PART_NUMBER]);
+			set_dbus_property(gpu_info_node , "FirmwareVersion", "s", (void *)G_gpu_data[gpu_device_bus[index].device_index].info_data[TYPE_FIRMWARE_VERSION]);
 		} else
 			fprintf(stderr, "failed to set_gpu_info_propetry index %d \n",index);
 	}

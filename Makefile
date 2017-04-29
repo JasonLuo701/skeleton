@@ -32,7 +32,9 @@ SUBDIRS = hacks \
 	  fan_algorithm \
 	  info \
 	  gpu \
-	  node-init-sthelens
+	  node-init-sthelens \
+	  pcie-device-temperature \
+	  pybmchealth_ctl
 
 REVERSE_SUBDIRS = $(shell echo $(SUBDIRS) $(GDBUS_APPS) | tr ' ' '\n' | tac |tr '\n' ' ')
 

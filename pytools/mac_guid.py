@@ -17,8 +17,6 @@ g_delchars = set(g_allchars) - set(string.hexdigits)
 g_eeprom_path = "/sys/devices/platform/ahb/ahb:apb/1e78a000.i2c/i2c-4/i2c-4/4-0050/eeprom"
 g_mac_offset = 0x2000
 g_guid_offset = 0x2010
-g_mac_result_path = "/tmp/fix_mac_result.txt"
-g_guid_result_path = "/tmp/fix_guid_result.txt"
 
 def checkMAC(s):
   mac = s.translate("".join(g_allchars),"".join(g_delchars))
@@ -114,9 +112,9 @@ def fixMAC():
   if checksum != calc_checksum :
     writeMAC("0003FF000000")
     writeGUID()
-    os.system("echo  0  > " + g_mac_result_path)
+    return 0
   else:
-    os.system("echo  1  > " + g_mac_result_path)
+    return 1
 
 
 def fixGUID():
@@ -133,9 +131,9 @@ def fixGUID():
   calc_checksum = calChecksum(guid, len(guid))
   if checksum != calc_checksum:
     writeGUID()
-    os.system("echo  0  > " + g_guid_result_path)
+    return 0
   else:
-    os.system("echo  1  > " + g_guid_result_path)
+    return 1
 
 def usage():
   return str('Usage: ' + sys.argv[0] + ' [--help]' + ' [--write-mac]' + ' [--write-guid]'
