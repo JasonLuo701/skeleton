@@ -400,6 +400,14 @@ SENSOR_MONITOR_CONFIG = [
 ]
 
 HWMON_CONFIG = {
+	'24-004c' :  {
+		'names' : {
+			'temp2_input' : { 'object_path' : 'pcie/FPGA_dietmp','poll_interval' : 5000,'scale' : 1000,'units' : 'C', 'sensor_type' : '0x01', 'sensornumber' : '0x74',
+				'sensor_name':'FPGA Die Temp', 'reading_type' : '0x01', 'critical_upper' : 83, 'emergency_enabled' : False },
+			'temp1_input' : { 'object_path' : 'pcie/FPGA_ambtmp','poll_interval' : 5000,'scale' : 1000,'units' : 'C', 'sensor_type' : '0x01', 'sensornumber' : '0x75',
+				'sensor_name':'FPGA Ambient Temp', 'reading_type' : '0x01', 'critical_upper' : 35, 'emergency_enabled' : False },
+		}
+	},
 	'0-0010' :  {
 		'names' : {
 			'in3_input' : { 'object_path' : 'HSC/HSC1_VOUT','poll_interval' : 5000,'scale' : 1000,'units' : 'V', 'sensor_type' : '0x02', 'sensornumber' : '0x23',
@@ -586,14 +594,6 @@ HWMON_CONFIG = {
 		'names' : {
 			'temp1_input' : { 'object_path' : 'temperature/TMP8','poll_interval' : 5000,'scale' : 1000,'units' : 'C', 'sensor_type' : '0x01', 'sensornumber' : '0x04',
 				'sensor_name':'Inlet Temp 8', 'reading_type' : '0x01', 'critical_upper' : 37, 'emergency_enabled' : True },
-		}
-	},
-	'24-004c' :  {
-		'names' : {
-			'temp2_input' : { 'object_path' : 'pcie/FPGA_dietmp','poll_interval' : 5000,'scale' : 1000,'units' : 'C', 'sensor_type' : '0x01', 'sensornumber' : '0x74',
-				'sensor_name':'FPGA Die Temp', 'reading_type' : '0x01', 'critical_upper' : 83, 'emergency_enabled' : False },
-			'temp1_input' : { 'object_path' : 'pcie/FPGA_ambtmp','poll_interval' : 5000,'scale' : 1000,'units' : 'C', 'sensor_type' : '0x01', 'sensornumber' : '0x75',
-				'sensor_name':'FPGA Ambient Temp', 'reading_type' : '0x01', 'critical_upper' : 35, 'emergency_enabled' : False },
 		}
 	},
 }
