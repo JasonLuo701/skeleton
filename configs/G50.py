@@ -264,6 +264,12 @@ APPS = {
                 'monitor_process' : True,
                 'process_name'    : 'bmchealth_handler.py',
 	},
+	'pxe_service' : {
+                'system_state'    : 'BMC_READY',
+                'start_process'   : True,
+                'monitor_process' : True,
+                'process_name'    : 'pxe_core.exe',
+	},
 }
 
 CACHED_INTERFACES = {
@@ -433,6 +439,10 @@ SENSOR_MONITOR_CONFIG = [
 	['/org/openbmc/control/cable_led/led13', { 'object_path' : '/sys/class/gpio/gpio283/value','poll_interval' : 10000, 'scale' : 1,'units' : ''}],
 	['/org/openbmc/control/cable_led/led14', { 'object_path' : '/sys/class/gpio/gpio290/value','poll_interval' : 10000, 'scale' : 1,'units' : ''}],
 	['/org/openbmc/control/cable_led/led15', { 'object_path' : '/sys/class/gpio/gpio291/value','poll_interval' : 10000, 'scale' : 1,'units' : ''}],
+	['/org/openbmc/sensors/pxe/pxe0', { 'object_path' : '/tmp/pxe/pxe0_temp' ,'poll_interval' : 10000, 'scale' : 1,'units' : ''}],
+	['/org/openbmc/sensors/pxe/pxe1', { 'object_path' : '/tmp/pxe/pxe1_temp' ,'poll_interval' : 10000, 'scale' : 1,'units' : ''}],
+	['/org/openbmc/sensors/pxe/pxe2', { 'object_path' : '/tmp/pxe/pxe2_temp' ,'poll_interval' : 10000, 'scale' : 1,'units' : ''}],
+	['/org/openbmc/sensors/pxe/pxe3', { 'object_path' : '/tmp/pxe/pxe3_temp' ,'poll_interval' : 10000, 'scale' : 1,'units' : ''}],
 	['/org/openbmc/sensors/bmc_health', { 'object_path' : '' , 'value' : 0, 'sensor_type':'0x28', 'reading_type':'0x70', 'sensor_name':'BMC Health', 'sensornumber':'0x82'}],
 ]
 
