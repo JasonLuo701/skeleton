@@ -138,13 +138,18 @@ led_function_router(sd_bus_message *msg, void *user_data,
 	else if(strcmp(led_function, "GetLedState") == 0)
 	{
 		char value_str[10] = {0};
+		char trigger_str[30] = {0};
 		const char *led_state = NULL;
 
 		rc = read_led(led_name, power_ctrl, value_str, sizeof(value_str)-1);
+		rc = read_led(led_name, blink_ctrl, trigger_str, sizeof(trigger_str)-1);
 		if(rc >= 0)
 		{
 			/* LED is active HI */
-			led_state = strtoul(value_str, NULL, 0) ? "On" : "Off";
+			if (strncmp(trigger_str, "[none]", 6)==0)
+				led_state = strtoul(value_str, NULL, 0) ? "On" : "Off";
+			else
+				led_state = "Blinking";
 		}
 		return sd_bus_reply_method_return(msg, "is", rc, led_state);
 	}
