@@ -176,11 +176,74 @@ def bmchealth_fix_and_check_mac():
     print "bmchealth: bmchealth_fix_and_check_mac : " + str(ret)
     return ret
 
+def bmchealth_check_watchdog():
+    print "check watchdog timeout start"
+    check_watchdog1_command = "devmem 0x1e785010"
+    check_watchdog2_command = "devmem 0x1e785030"
+    reboot_file_path = "/usr/sbin/check_reboot"
+    watchdog1_event_counter_path = "/var/lib/obmc/watchdog1"
+    watchdog2_event_counter_path = "/var/lib/obmc/watchdog2"
+
+    #read event counters
+    try:
+        watchdog1_str_data = subprocess.check_output(check_watchdog1_command, shell=True)
+        watchdog1_timeout_counter = (  int(watchdog1_str_data, 16) >> 8) & 0xff
+    except:
+        print "[bmchealth_check_watchdog]Error conduct operstate!!!"
+        return False
+
+    try:
+        watchdog2_str_data = subprocess.check_output(check_watchdog2_command, shell=True)
+        watchdog2_timeout_counter = ( int(watchdog2_str_data, 16) >> 8) & 0xff
+    except:
+        print "[bmchealth_check_watchdog]Error conduct operstate!!!"
+        return False
+
+    #check reboot timeout or WDT timeout
+    if os.path.exists(reboot_file_path):
+            os.remove(reboot_file_path)
+            f = file(watchdog1_event_counter_path,"w")
+            f.write(str(watchdog1_timeout_counter))
+            f.close()
+            f = file(watchdog2_event_counter_path,"w")
+            f.write(str(watchdog2_timeout_counter))
+            f.close()
+            return True
+    else:
+        try:
+            with open(watchdog1_event_counter_path, 'r') as f:
+                for line in f:
+                    watchdog1_exist_counter = int(line.rstrip('\n'))
+        except:
+            watchdog1_exist_counter = watchdog1_timeout_counter
+            pass
+
+        try:
+            with open(watchdog2_event_counter_path, 'r') as f:
+                for line in f:
+                    watchdog2_exist_counter = int(line.rstrip('\n'))
+        except:
+            watchdog2_exist_counter = watchdog2_timeout_counter
+            pass
+
+    if watchdog1_timeout_counter > watchdog1_exist_counter or watchdog2_timeout_counter > watchdog2_exist_counter:
+        f = file(watchdog1_event_counter_path,"w")
+        f.write(str(watchdog1_timeout_counter))
+        f.close()
+        f = file(watchdog2_event_counter_path,"w")
+        f.write(str(watchdog2_timeout_counter))
+        f.close()
+        print "Log watchdog expired event"
+        bmchealth_set_value(0x3)
+        LogEventBmcHealthMessages("Asserted", "0x3", "", "" )
+    return True
+
 if __name__ == '__main__':
     mainloop = gobject.MainLoop()
     #set bmchealth default value
     bmchealth_set_value(0)
     bmchealth_fix_and_check_mac()
+    bmchealth_check_watchdog()
     gobject.timeout_add(1000,bmchealth_check_network)
     print "bmchealth_handler control starting"
     mainloop.run()
