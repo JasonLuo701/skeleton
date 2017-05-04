@@ -19,6 +19,9 @@
 
 #define PXE_TEMP_PATH "/tmp/pxe"
 #define PXE_SERIAL_LEN (8)
+#define PXE_UDID_LEN (17)
+#define PXE_SMBUS_BLOCK_WRITE_CMD (0xBE)
+
 
 enum {
 	EM_PXE_DEVICE_1 = 0,
@@ -37,6 +40,9 @@ enum {
 	EM_PXE_CMD_TEMP_READ,
 	EM_PXE_CMD_UPPER_SERIAL_READ,
 	EM_PXE_CMD_LOWER_SERIAL_READ,
+	EM_PXE_CMD_ENABLE_SMBUS,
+	EM_PXE_CMD_DISABLE_SMBUS,
+	EM_PXE_CMD_UDID_READ,
 	EM_PXE_CMD_MAX
 };
 
@@ -46,21 +52,28 @@ typedef struct {
 } pxe_device_serial;
 
 typedef struct {
+	__u32 udid_count;
+	__u8 udid_data[PXE_UDID_LEN];
+} pxe_device_udid;
+
+
+typedef struct {
 	__u8 bus_no;
 
 	__u8 slave;
 
 	__u8 device_index;
 
+	__u8 smbus_slave;
 	pxe_device_serial serial;
-
+	pxe_device_udid  udid;
 } pxe_device_mapping;
 
 pxe_device_mapping pxe_device_bus[MAX_PXE_NUM] = {
-	{16, 0x5d, EM_PXE_DEVICE_1, {0, {0}} },
-	{17, 0x5d, EM_PXE_DEVICE_2, {0, {0}} },
-	{18, 0x5d, EM_PXE_DEVICE_3, {0, {0}} },
-	{19, 0x5d, EM_PXE_DEVICE_4, {0, {0}} },
+	{16, 0x5d, EM_PXE_DEVICE_1, 0x61, {0, {0}}, {0, {0}} },
+	{17, 0x5d, EM_PXE_DEVICE_2, 0x61, {0, {0}}, {0, {0}} },
+	{18, 0x5d, EM_PXE_DEVICE_3, 0x61, {0, {0}}, {0, {0}} },
+	{19, 0x5d, EM_PXE_DEVICE_4, 0x61, {0, {0}}, {0, {0}} },
 };
 
 typedef struct {
@@ -100,6 +113,21 @@ pxe_device_i2c_cmd pxe_device_cmd_tab[EM_PXE_CMD_MAX] = {
 		EM_PXE_CMD_UPPER_SERIAL_READ,
 		{4, {0x4, 0x0, 0x3c, 0x42}},
 		{4, {0x0}}
+	},
+	{
+		EM_PXE_CMD_ENABLE_SMBUS,
+		{8, {0x3, 0x0, 0x3c, 0xb2, 0x01, 0x70, 0x62, 0x1}},
+		{-1,{0x0}}
+	},
+	{
+		EM_PXE_CMD_DISABLE_SMBUS,
+		{8, {0x3, 0x0, 0x3c, 0xb2, 0x01, 0x70, 0x62, 0x0}},
+		{-1,{0x0}}
+	},
+	{
+		EM_PXE_CMD_DISABLE_SMBUS,
+		{1, {0x3}},
+		{17,{0x0}}
 	},
 };
 
@@ -190,6 +218,33 @@ static i2c_raw_access(int i2c_bus, int i2c_addr ,int write_len , __u8 *write_dat
 	return rc;
 
 }
+
+static int smbus_commmand_write(int i2c_bus, int i2c_addr, __u8 *write_data, int write_count, int i2c_command)
+{
+	int fd;
+	char filename[MAX_I2C_DEV_LEN] = {0};
+	int rc=-1;
+	int retry_gpu = 5;
+	int count = 0;
+	int w_count = 0;
+	int i;
+
+	sprintf(filename,"/dev/i2c-%d",i2c_bus);
+	fd = open(filename,O_RDWR);
+
+	if (fd == -1) {
+		fprintf(stderr, "Failed to open i2c device %s", filename);
+		return rc;
+	}
+
+	if(i2c_smbus_write_block_data(fd, i2c_command, write_count, write_data) < 0) {
+		close(fd);
+		return -1;
+	}
+	close(fd);
+	return 0;
+}
+
 
 #define E (10)
 
@@ -351,6 +406,65 @@ void function_get_pxe_serial_data(int pxe_idx)
 		p_serial->serial_count = 0;
 }
 
+void function_get_pxe_udid_data(int pxe_idx)
+{
+	pxe_device_i2c_cmd *i2c_cmd;
+	int i2c_bus;
+	int i2c_addr;
+	int ret;
+	int i;
+	pxe_device_udid *p_udid;
+	char property_value[40];
+	char *st = NULL;
+
+	i2c_bus = pxe_device_bus[pxe_idx].bus_no;
+	i2c_addr = pxe_device_bus[pxe_idx].slave;
+	p_udid = &(pxe_device_bus[pxe_idx].udid);
+
+	if (p_udid->udid_count == PXE_UDID_LEN) {
+		return ;
+	}
+
+	//use i2c protocol to enabale smbus
+	i2c_cmd = &pxe_device_cmd_tab[EM_PXE_CMD_ENABLE_SMBUS];
+	ret = i2c_raw_access(i2c_bus, i2c_addr, i2c_cmd->write_cmd.len,
+			     i2c_cmd->write_cmd.data, i2c_cmd->read_cmd.len, i2c_cmd->read_cmd.data);
+	if (ret < 0) {
+		fprintf(stderr, "Failed to do iotcl I2C_SLAVE, cmd:%d, ret:%d\n", i2c_cmd->cmd, ret);
+		return ;
+	}
+
+	//**import: i2c_address swith smbus address
+	i2c_addr = pxe_device_bus[pxe_idx].smbus_slave;
+
+	//read pxe9797 udid
+	i2c_cmd = &pxe_device_cmd_tab[EM_PXE_CMD_UDID_READ];
+	ret = i2c_raw_access(i2c_bus, i2c_addr, i2c_cmd->write_cmd.len,
+			     i2c_cmd->write_cmd.data, i2c_cmd->read_cmd.len, i2c_cmd->read_cmd.data);
+	if (ret < 0) {
+		fprintf(stderr, "Failed to do iotcl I2C_SLAVE, cmd:%d, ret:%d\n", i2c_cmd->cmd, ret);
+		return ;
+	}
+
+	for(i = 0; i<i2c_cmd->read_cmd.len; i++)
+		p_udid->udid_data[p_udid->udid_count++] = i2c_cmd->read_cmd.data[i];
+
+	//set pxe9797 dbus property
+	st = property_value;
+	for (i = 0; i<p_udid->udid_count; i++, st+=2)
+	{
+		snprintf(st, 3, "%02x", p_udid->udid_data[i]);
+	}
+
+	if (pxe_set_dbus_property(pxe_idx, "UDID", property_value) < 0)
+		p_udid->udid_count = 0;
+
+	//use smbus protocol to disable smbus
+	i2c_cmd = &pxe_device_cmd_tab[EM_PXE_CMD_DISABLE_SMBUS];
+	smbus_commmand_write(i2c_bus, i2c_addr, i2c_cmd->write_cmd.data, i2c_cmd->write_cmd.len, PXE_SMBUS_BLOCK_WRITE_CMD);
+}
+
+
 int  init_data_folder(int index)
 {
 	char f_path[128];
@@ -392,6 +506,7 @@ void pxe_data_scan()
 		for(i=0; i<MAX_PXE_NUM; i++) {
 			function_get_pxe_temp_data(i);
 			function_get_pxe_serial_data(i);
+			function_get_pxe_udid_data(i);
 		}
 		sleep(1);
 	}
