@@ -18,6 +18,7 @@
 #define MAX_PXE_NUM (4)
 
 #define PXE_TEMP_PATH "/tmp/pxe"
+#define PXE_SERIAL_LEN (8)
 
 enum {
 	EM_PXE_DEVICE_1 = 0,
@@ -34,9 +35,15 @@ enum {
 	EM_PXE_CMD_TEMP_DISABLE_CTL = 0,
 	EM_PXE_CMD_TEMP_ENABLE_CTL,
 	EM_PXE_CMD_TEMP_READ,
+	EM_PXE_CMD_UPPER_SERIAL_READ,
+	EM_PXE_CMD_LOWER_SERIAL_READ,
 	EM_PXE_CMD_MAX
 };
 
+typedef struct {
+	__u32 serial_count;
+	__u8 serial_data[PXE_SERIAL_LEN];
+} pxe_device_serial;
 
 typedef struct {
 	__u8 bus_no;
@@ -45,13 +52,15 @@ typedef struct {
 
 	__u8 device_index;
 
+	pxe_device_serial serial;
+
 } pxe_device_mapping;
 
 pxe_device_mapping pxe_device_bus[MAX_PXE_NUM] = {
-	{16, 0x5d, EM_PXE_DEVICE_1},
-	{17, 0x5d, EM_PXE_DEVICE_2},
-	{18, 0x5d, EM_PXE_DEVICE_3},
-	{19, 0x5d, EM_PXE_DEVICE_4},
+	{16, 0x5d, EM_PXE_DEVICE_1, {0, {0}} },
+	{17, 0x5d, EM_PXE_DEVICE_2, {0, {0}} },
+	{18, 0x5d, EM_PXE_DEVICE_3, {0, {0}} },
+	{19, 0x5d, EM_PXE_DEVICE_4, {0, {0}} },
 };
 
 typedef struct {
@@ -64,8 +73,6 @@ typedef struct {
 	i2c_cmd_data write_cmd;
 	i2c_cmd_data read_cmd;
 } pxe_device_i2c_cmd;
-
-
 
 
 pxe_device_i2c_cmd pxe_device_cmd_tab[EM_PXE_CMD_MAX] = {
@@ -82,6 +89,16 @@ pxe_device_i2c_cmd pxe_device_cmd_tab[EM_PXE_CMD_MAX] = {
 	{
 		EM_PXE_CMD_TEMP_ENABLE_CTL,
 		{4, {0x4, 0x0, 0x3e, 0xeb}},
+		{4, {0x0}}
+	},
+	{
+		EM_PXE_CMD_LOWER_SERIAL_READ,
+		{4, {0x4, 0x0, 0x3c, 0x41}},
+		{4, {0x0}}
+	},
+	{
+		EM_PXE_CMD_UPPER_SERIAL_READ,
+		{4, {0x4, 0x0, 0x3c, 0x42}},
 		{4, {0x0}}
 	},
 };
@@ -275,6 +292,65 @@ void function_get_pxe_temp_data(int pxe_idx)
 	write_file_pex(pxe_idx, real_temp_data, "temp");
 }
 
+int pxe_set_dbus_property(int pxe_idx, char *property_name, char *property_value)
+{
+	char pxe_info_node[256] = {0};
+	snprintf(pxe_info_node, sizeof(pxe_info_node), "/org/openbmc/sensors/pxe/pxe%d", pxe_idx);
+	return set_dbus_property(pxe_info_node , property_name, "s", (void *) property_value);
+}
+
+void function_get_pxe_serial_data(int pxe_idx)
+{
+	pxe_device_i2c_cmd *i2c_cmd;
+	int i2c_bus;
+	int i2c_addr;
+	int ret;
+	int i;
+	pxe_device_serial *p_serial;
+	char property_value[20];
+	char *st = NULL;
+
+	i2c_bus = pxe_device_bus[pxe_idx].bus_no;
+	i2c_addr = pxe_device_bus[pxe_idx].slave;
+	p_serial = &(pxe_device_bus[pxe_idx].serial);
+
+	if (p_serial->serial_count == PXE_SERIAL_LEN) {
+		return ;
+	}
+
+	i2c_cmd = &pxe_device_cmd_tab[EM_PXE_CMD_UPPER_SERIAL_READ];
+	ret = i2c_raw_access(i2c_bus, i2c_addr, i2c_cmd->write_cmd.len,
+			     i2c_cmd->write_cmd.data, i2c_cmd->read_cmd.len, i2c_cmd->read_cmd.data);
+	if (ret < 0) {
+		fprintf(stderr, "Failed to do iotcl I2C_SLAVE, cmd:%d, ret:%d\n", i2c_cmd->cmd, ret);
+		return ;
+	}
+
+	p_serial->serial_count = 0;
+	for(i = 0; i<i2c_cmd->read_cmd.len; i++)
+		p_serial->serial_data[p_serial->serial_count++] = i2c_cmd->read_cmd.data[i];
+
+	i2c_cmd = &pxe_device_cmd_tab[EM_PXE_CMD_LOWER_SERIAL_READ];
+	ret = i2c_raw_access(i2c_bus, i2c_addr, i2c_cmd->write_cmd.len,
+			     i2c_cmd->write_cmd.data, i2c_cmd->read_cmd.len, i2c_cmd->read_cmd.data);
+	if (ret < 0) {
+		fprintf(stderr, "Failed to do iotcl I2C_SLAVE, cmd:%d, ret:%d\n", i2c_cmd->cmd, ret);
+		return ;
+	}
+
+	for(i = 0; i<i2c_cmd->read_cmd.len; i++)
+		p_serial->serial_data[p_serial->serial_count++] = i2c_cmd->read_cmd.data[i];
+
+	st = property_value;
+	for (i = 0; i<p_serial->serial_count; i++, st+=2)
+	{
+		snprintf(st, 3, "%02x", p_serial->serial_data[i]);
+	}
+
+	if (pxe_set_dbus_property(pxe_idx, "Serial Number", property_value) < 0)
+		p_serial->serial_count = 0;
+}
+
 int  init_data_folder(int index)
 {
 	char f_path[128];
@@ -315,6 +391,7 @@ void pxe_data_scan()
 	while(1) {
 		for(i=0; i<MAX_PXE_NUM; i++) {
 			function_get_pxe_temp_data(i);
+			function_get_pxe_serial_data(i);
 		}
 		sleep(1);
 	}
