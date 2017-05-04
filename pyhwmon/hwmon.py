@@ -9,7 +9,8 @@ import dbus.service
 import dbus.mainloop.glib
 import re
 from obmc.dbuslib.bindings import get_dbus
-
+from obmc.events import Event
+from obmc.events import EventManager
 from obmc.sensors import SensorValue as SensorValue
 from obmc.sensors import HwmonSensor as HwmonSensor
 from obmc.sensors import SensorThresholds as SensorThresholds
@@ -45,6 +46,7 @@ class Hwmons():
 		self.hwmon_root = { }
 		self.threshold_state = {}
 		self.scanDirectory()
+		self.event_manager = EventManager()
 		gobject.timeout_add(DIR_POLL_INTERVAL, self.scanDirectory)
 
 	def readAttribute(self,filename):
@@ -121,20 +123,10 @@ class Hwmons():
 				threshold = intf.Get(SensorThresholds.IFACE_NAME, 'critical_lower')
 			desc = sensor_name+' '+threshold_type_str+' '+event_dir+" from "+str(origin_threshold_type)+": Reading "+str(reading)+", Threshold: "+str(threshold)
 
-		#Get Severity
-		if event_dir == 'Asserted':
-			sev = "Critical"
-		else:
-			sev = "Information"
-
-		details = ""
-		debug = dbus.ByteArray("")
-
-		event_obj = bus.get_object("org.openbmc.records.events",
-								 "/org/openbmc/records/events",
-								 introspect=False)
-		event_intf = dbus.Interface(event_obj, "org.openbmc.recordlog")
-		event_intf.acceptBMCMessage(sev, desc, str(sensortype), str(sensor_number), details, debug)
+		# Add event log
+		severity = Event.SEVERITY_ERR if event_dir == 'Asserted' else Event.SEVERITY_INFO
+		log = Event(severity, desc, sensortype, sensor_number)
+		self.event_manager.add_log(log)
 
 		return True
 
