@@ -548,7 +548,7 @@ HWMON_CONFIG = {
 	'21-004b' :  {
 		'names' : {
 			'temp1_input' : { 'object_path' : 'temperature/TMP4','poll_interval' : 5000,'scale' : 1000,'units' : 'C', 'sensor_type' : '0x01', 'sensornumber' : '',
-				'sensor_name':'', 'reading_type' : '0x01', 'emergency_enabled' : True },
+				'sensor_name':'', 'reading_type' : '0x01', 'emergency_enabled' : True, 'offset':-7 }, #Thermal team suggest temp4 (-7) offset
 		}
 	},
 	'21-004c' :  {
@@ -642,7 +642,7 @@ FAN_ALGORITHM_CONFIG = {
         'FAN_OUTPUT_OBJ' : ['org.openbmc', 'org.openbmc.Fan'],
         'OPEN_LOOP_GROUPS_1' : ['org.openbmc.Sensors', 'org.openbmc.SensorValue'],
         'CLOSE_LOOP_GROUPS_1' : ['org.openbmc.Sensors', 'org.openbmc.SensorValue'],
-        'CLOSE_LOOP_GROUPS_2' : [],
+        'CLOSE_LOOP_GROUPS_2' : ['org.openbmc.Sensors', 'org.openbmc.SensorValue'],
     },
 
     'CHASSIS_POWER_STATE': ['/org/openbmc/control/chassis0'],
@@ -674,28 +674,21 @@ FAN_ALGORITHM_CONFIG = {
         [
             '0',
             '2',
-            '0',
-            '20',
-            '38',
-            '50',
+            '-60',
+            '25',
+            '35',
+            '40',
             '100',
         ],
     'OPEN_LOOP_GROUPS_1':
         [
-            "/org/openbmc/sensors/temperature/TMP1",
-            "/org/openbmc/sensors/temperature/TMP2",
-            "/org/openbmc/sensors/temperature/TMP3",
-            "/org/openbmc/sensors/temperature/TMP4",
-            "/org/openbmc/sensors/temperature/TMP5",
-            "/org/openbmc/sensors/temperature/TMP6",
-            "/org/openbmc/sensors/temperature/TMP7",
-            "/org/openbmc/sensors/temperature/TMP8",
+            "/org/openbmc/sensors/temperature/TMP4", #Thermal team only watch temp4 ambinet
         ],
     'CLOSE_LOOP_PARAM_1' :
         [
-            '0.45',
-            '-0.017',
-            '0.3',
+            '0.35',
+            '-0.015',
+            '0.4',
             '70',
             '85',
         ],
@@ -709,6 +702,21 @@ FAN_ALGORITHM_CONFIG = {
             "/org/openbmc/sensors/gpu/gpu6_temp",
             "/org/openbmc/sensors/gpu/gpu7_temp",
             "/org/openbmc/sensors/gpu/gpu8_temp",
+        ],
+    'CLOSE_LOOP_PARAM_2' :
+        [
+            '0.35',
+            '-0.015',
+            '0.4',
+            '90',
+            '85',
+        ],
+    'CLOSE_LOOP_GROUPS_2':
+        [
+            "/org/openbmc/sensors/pxe/pxe0",
+            "/org/openbmc/sensors/pxe/pxe1",
+            "/org/openbmc/sensors/pxe/pxe2",
+            "/org/openbmc/sensors/pxe/pxe3",
         ],
 
     'FAN_LED_OFF': ["0xFF"],
