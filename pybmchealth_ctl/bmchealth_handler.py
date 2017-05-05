@@ -238,6 +238,24 @@ def bmchealth_check_watchdog():
         LogEventBmcHealthMessages("Asserted", "0x3", "", "" )
     return True
 
+def bmchealth_check_i2c():
+    print "check i2c recovery start"
+    i2c_recovery_check_path = "/tmp/i2c_recovery"
+    if os.path.exists(i2c_recovery_check_path):
+        try:
+            with open(i2c_recovery_check_path, 'r') as f:
+                bus_id = f.readline()
+                error_code = f.readline()
+                bmchealth_set_value(0xA)
+                LogEventBmcHealthMessages("Asserted", "0xA", bus_id, error_code )
+                os.remove(i2c_recovery_check_path)
+        except:
+            print "[bmchealth_check_i2c]exception !!!"
+            pass
+    else:
+        print "[bmchealth_check_i2c]No i2c recovery occur!!!"
+        return False
+
 if __name__ == '__main__':
     mainloop = gobject.MainLoop()
     #set bmchealth default value
@@ -245,6 +263,7 @@ if __name__ == '__main__':
     bmchealth_fix_and_check_mac()
     bmchealth_check_watchdog()
     gobject.timeout_add(1000,bmchealth_check_network)
+    gobject.timeout_add(1000,bmchealth_check_i2c)
     print "bmchealth_handler control starting"
     mainloop.run()
 
