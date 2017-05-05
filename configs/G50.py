@@ -252,12 +252,13 @@ APPS = {
 		'monitor_process' : False,
 		'process_name'    : 'node_init_sthelens.exe',
 	},
-        'pcie-device-temperature' : {
-                'system_state'    : 'BMC_READY',
-                'start_process'   : True,
-                'monitor_process' : True,
-                'process_name'    : 'pcie-device-temperature.exe',
-        },
+    #MSFT ask to hide in M1 release
+    #'pcie-device-temperature' : {
+    #        'system_state'    : 'BMC_READY',
+    #        'start_process'   : True,
+    #        'monitor_process' : True,
+    #        'process_name'    : 'pcie-device-temperature.exe',
+    #},
 	'bmchealth_service' : {
                 'system_state'    : 'BMC_READY',
                 'start_process'   : True,
@@ -320,14 +321,15 @@ def convertGpio(name):
     return base + offset
 
 SENSOR_MONITOR_CONFIG = [
-	['/org/openbmc/sensors/pcie/Mdot_2_temp1', { 'object_path' : '/tmp/pcie/mdot2_1_temp','poll_interval' : 5000,'scale' : 1,'units' : 'C', 'critical_upper':85,
-		'sensor_type':'0x01', 'reading_type':'0x01', 'sensor_name':'M.2 1 Temp', 'sensornumber':'0x70'}],
-	['/org/openbmc/sensors/pcie/Mdot_2_temp2', { 'object_path' : '/tmp/pcie/mdot2_2_temp','poll_interval' : 5000,'scale' : 1,'units' : 'C', 'critical_upper':85,
-		'sensor_type':'0x01', 'reading_type':'0x01', 'sensor_name':'M.2 2 Temp', 'sensornumber':'0x71'}],
-	['/org/openbmc/sensors/pcie/Mdot_2_temp3', { 'object_path' : '/tmp/pcie/mdot2_3_temp','poll_interval' : 5000,'scale' : 1,'units' : 'C', 'critical_upper':85,
-		'sensor_type':'0x01', 'reading_type':'0x01', 'sensor_name':'M.2 3 Temp', 'sensornumber':'0x72'}],
-	['/org/openbmc/sensors/pcie/Mdot_2_temp4', { 'object_path' : '/tmp/pcie/mdot2_4_temp','poll_interval' : 5000,'scale' : 1,'units' : 'C', 'critical_upper':85,
-		'sensor_type':'0x01', 'reading_type':'0x01', 'sensor_name':'M.2 4 Temp', 'sensornumber':'0x73'}],
+	#MSFT ask to hide in M1 release
+    #['/org/openbmc/sensors/pcie/Mdot_2_temp1', { 'object_path' : '/tmp/pcie/mdot2_1_temp','poll_interval' : 5000,'scale' : 1,'units' : 'C', 'critical_upper':85,
+	#	'sensor_type':'0x01', 'reading_type':'0x01', 'sensor_name':'M.2 1 Temp', 'sensornumber':'0x70'}],
+	#['/org/openbmc/sensors/pcie/Mdot_2_temp2', { 'object_path' : '/tmp/pcie/mdot2_2_temp','poll_interval' : 5000,'scale' : 1,'units' : 'C', 'critical_upper':85,
+	#	'sensor_type':'0x01', 'reading_type':'0x01', 'sensor_name':'M.2 2 Temp', 'sensornumber':'0x71'}],
+	#['/org/openbmc/sensors/pcie/Mdot_2_temp3', { 'object_path' : '/tmp/pcie/mdot2_3_temp','poll_interval' : 5000,'scale' : 1,'units' : 'C', 'critical_upper':85,
+	#	'sensor_type':'0x01', 'reading_type':'0x01', 'sensor_name':'M.2 3 Temp', 'sensornumber':'0x72'}],
+	#['/org/openbmc/sensors/pcie/Mdot_2_temp4', { 'object_path' : '/tmp/pcie/mdot2_4_temp','poll_interval' : 5000,'scale' : 1,'units' : 'C', 'critical_upper':85,
+	#	'sensor_type':'0x01', 'reading_type':'0x01', 'sensor_name':'M.2 4 Temp', 'sensornumber':'0x73'}],
 	['/org/openbmc/sensors/gpu/gpu1_temp', { 'object_path' : '/tmp/gpu/gpu1_temp','poll_interval' : 5000,'scale' : 1,'units' : 'C', 'critical_upper':81,
 		'sensor_type':'0x01', 'reading_type':'0x01', 'sensor_name':'GPU1 Temp', 'sensornumber':'0x41'}],
 	['/org/openbmc/sensors/gpu/gpu2_temp', { 'object_path' : '/tmp/gpu/gpu2_temp','poll_interval' : 5000,'scale' : 1,'units' : 'C', 'critical_upper':81,
