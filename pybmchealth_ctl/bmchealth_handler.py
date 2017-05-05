@@ -180,7 +180,7 @@ def bmchealth_check_watchdog():
     print "check watchdog timeout start"
     check_watchdog1_command = "devmem 0x1e785010"
     check_watchdog2_command = "devmem 0x1e785030"
-    reboot_file_path = "/usr/sbin/check_reboot"
+    reboot_file_path = "/var/lib/obmc/check_reboot"
     watchdog1_event_counter_path = "/var/lib/obmc/watchdog1"
     watchdog2_event_counter_path = "/var/lib/obmc/watchdog2"
 
