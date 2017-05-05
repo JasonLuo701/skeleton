@@ -92,7 +92,7 @@ class Hwmons():
 				raw_value = "N/A"
 			if raw_value == "N/A":
 				intf_p.Set(SensorValue.IFACE_NAME,'value','N/A')
-				return False
+				return True
 			rtn = intf.setByPoll(raw_value)
 			if (rtn[0] == True):
 				self.writeAttribute(attribute,rtn[1])
