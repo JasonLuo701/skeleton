@@ -49,6 +49,7 @@ class Hwmons():
 		self.threshold_state = {}
 		self.pgood_obj = bus.get_object('org.openbmc.control.Power', '/org/openbmc/control/power0', introspect=False)
 		self.pgood_intf = dbus.Interface(self.pgood_obj,dbus.PROPERTIES_IFACE)
+		self.path_mapping = {}
 		self.scanDirectory()
 		self.event_manager = EventManager()
 		gobject.timeout_add(DIR_POLL_INTERVAL, self.scanDirectory)
@@ -188,11 +189,17 @@ class Hwmons():
 			objpath = System.SENSOR_MONITOR_CONFIG[i][0]
 			hwmon = System.SENSOR_MONITOR_CONFIG[i][1]
 
-			if 'object_path' not in hwmon:
-				print "Warnning[addSensorMonitorObject]: Not correct set [object_path]"
+			if 'device_node' not in hwmon:
+				print "Warnning[addSensorMonitorObject]: Not correct set [device_node]"
 				continue
 
-			hwmon_path = hwmon['object_path']
+			if 'bus_number' in hwmon:
+				if hwmon['bus_number'] in self.path_mapping:
+					hwmon_path = self.path_mapping[hwmon['bus_number']] + hwmon['device_node']
+				else:
+					hwmon_path = 'N/A'
+			else:
+				hwmon_path = hwmon['device_node']
 			if (self.sensors.has_key(objpath) == False):
 				## register object with sensor manager
 				obj = bus.get_object(SENSOR_BUS,SENSOR_PATH,introspect=False)
@@ -227,6 +234,7 @@ class Hwmons():
 	 	devices = os.listdir(HWMON_PATH)
 		found_hwmon = {}
 		regx = re.compile('([a-z]+)\d+\_')
+		self.path_mapping = {}
 		for d in devices:
 			dpath = HWMON_PATH+'/'+d+'/'
 			found_hwmon[dpath] = True
@@ -234,11 +242,9 @@ class Hwmons():
 				self.hwmon_root[dpath] = []
 			## the instance name is a soft link
 			instance_name = os.path.realpath(dpath+'device').split('/').pop()
-			
-			
+			self.path_mapping[instance_name] = dpath
 			if (System.HWMON_CONFIG.has_key(instance_name)):
 				hwmon = System.HWMON_CONFIG[instance_name]
-	 			
 				if (hwmon.has_key('labels')):
 					label_files = glob.glob(dpath+'/*_label')
 					for f in label_files:
