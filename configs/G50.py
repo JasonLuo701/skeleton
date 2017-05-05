@@ -741,7 +741,7 @@ FAN_ALGORITHM_CONFIG = {
 LOG_EVENT_CONFIG = [
 	{'EVD1': 0x1, 'EVD2':0x1, 'EVD3':None, 'health_indicator':'Network Error', 'description':'Link down', 'detail': ''},
 	{'EVD1': 0x1, 'EVD2':0x2, 'EVD3':None, 'health_indicator':'Network Error', 'description':'DHCP failure', 'detail': ''},
-	{'EVD1': 0x3, 'EVD2':0x2, 'EVD3':None, 'health_indicator':'Hardware WDT expired', 'description':'', 'detail': ''},
+	{'EVD1': 0x3, 'EVD2':None, 'EVD3':None, 'health_indicator':'Hardware WDT expired', 'description':'', 'detail': ''},
 	{'EVD1': 0xA, 'EVD2':None, 'EVD3':None, 'health_indicator':'I2C bus recovery', 'description':'', 'detail': ''},
 	{'EVD1': 0xC, 'EVD2':None, 'EVD3':None, 'health_indicator':'No MAC address programmed', 'description':'', 'detail': ''},
 ]
