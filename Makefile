@@ -20,6 +20,7 @@ SUBDIRS = hacks \
 	  fan_tool \
 	  pychassisctl \
 	  pydownloadmgr \
+	  pyeventctl \
 	  pyfanctl \
 	  pyflashbmc \
 	  pyhwmon \
