@@ -17,6 +17,8 @@ from obmc.sensors import SensorThresholds as SensorThresholds
 import obmc_system_config as System
 
 SENSOR_BUS = 'org.openbmc.Sensors'
+# sensors include /org/openbmc/sensors and /org/openbmc/control
+SENSORS_OBJPATH = '/org/openbmc'
 SENSOR_PATH = '/org/openbmc/sensors'
 DIR_POLL_INTERVAL = 30000
 HWMON_PATH = '/sys/class/hwmon'
@@ -45,6 +47,9 @@ class Hwmons():
 		self.sensors = { }
 		self.hwmon_root = { }
 		self.threshold_state = {}
+		self.pgood_obj = bus.get_object('org.openbmc.control.Power', '/org/openbmc/control/power0', introspect=False)
+		self.pgood_intf = dbus.Interface(self.pgood_obj,dbus.PROPERTIES_IFACE)
+		self.path_mapping = {}
 		self.scanDirectory()
 		self.event_manager = EventManager()
 		gobject.timeout_add(DIR_POLL_INTERVAL, self.scanDirectory)
@@ -63,8 +68,21 @@ class Hwmons():
 		with open(filename, 'w') as f:
 			f.write(str(value)+'\n')
 
-	def poll(self,objpath,attribute):
+	def poll(self,objpath,attribute,hwmon):
 		try:
+			standby_monitor = True
+			if hwmon.has_key('standby_monitor'):
+				standby_monitor = hwmon['standby_monitor']
+			# Skip monitor while DC power off if stand by monitor is False
+			current_pgood = self.pgood_intf.Get('org.openbmc.control.Power', 'pgood')
+			obj = bus.get_object(SENSOR_BUS,objpath,introspect=False)
+			intf_p = dbus.Interface(obj, dbus.PROPERTIES_IFACE)
+			intf = dbus.Interface(obj,HwmonSensor.IFACE_NAME)
+			if not standby_monitor:
+				if  current_pgood == 0:
+					intf_p.Set(SensorValue.IFACE_NAME,'value','N/A')
+					return True
+
 			if attribute != '':
 				try:
 					raw_value = int(self.readAttribute(attribute))
@@ -73,13 +91,11 @@ class Hwmons():
 			else:
 				raw_value = "N/A"
 			if raw_value == "N/A":
-				return False
-			obj = bus.get_object(SENSOR_BUS,objpath,introspect=False)
-			intf = dbus.Interface(obj,HwmonSensor.IFACE_NAME)
+				intf_p.Set(SensorValue.IFACE_NAME,'value','N/A')
+				return True
 			rtn = intf.setByPoll(raw_value)
 			if (rtn[0] == True):
 				self.writeAttribute(attribute,rtn[1])
-			intf_p = dbus.Interface(obj, dbus.PROPERTIES_IFACE)
 			threshold_state = intf_p.Get(SensorThresholds.IFACE_NAME, 'threshold_state')
 			if threshold_state != self.threshold_state[objpath]:
 				origin_threshold_type = self.threshold_state[objpath]
@@ -132,8 +148,8 @@ class Hwmons():
 
 	def addObject(self,dpath,hwmon_path,hwmon):
 		objsuf = hwmon['object_path']
-		objpath = SENSOR_PATH+'/'+objsuf
-		
+		objpath = SENSORS_OBJPATH+'/'+objsuf
+
 		if (self.sensors.has_key(objpath) == False):
 			print "HWMON add: "+objpath+" : "+hwmon_path
 
@@ -148,7 +164,7 @@ class Hwmons():
 			intf.Set(HwmonSensor.IFACE_NAME,'filename',hwmon_path)
 			# init value as N/A
 			intf.Set(SensorValue.IFACE_NAME,'value','N/A')
-			
+
 			## check if one of thresholds is defined to know
 			## whether to enable thresholds or not
 			if (hwmon.has_key('critical_upper') or hwmon.has_key('critical_lower')):
@@ -163,7 +179,7 @@ class Hwmons():
 			self.hwmon_root[dpath].append(objpath)
 			self.threshold_state[objpath] = "NORMAL"
 
-			gobject.timeout_add(hwmon['poll_interval'],self.poll,objpath,hwmon_path)
+			gobject.timeout_add(hwmon['poll_interval'],self.poll,objpath,hwmon_path,hwmon)
 
 	def addSensorMonitorObject(self):
 		if "SENSOR_MONITOR_CONFIG" not in dir(System):
@@ -173,11 +189,17 @@ class Hwmons():
 			objpath = System.SENSOR_MONITOR_CONFIG[i][0]
 			hwmon = System.SENSOR_MONITOR_CONFIG[i][1]
 
-			if 'object_path' not in hwmon:
-				print "Warnning[addSensorMonitorObject]: Not correct set [object_path]"
+			if 'device_node' not in hwmon:
+				print "Warnning[addSensorMonitorObject]: Not correct set [device_node]"
 				continue
 
-			hwmon_path = hwmon['object_path']
+			if 'bus_number' in hwmon:
+				if hwmon['bus_number'] in self.path_mapping:
+					hwmon_path = self.path_mapping[hwmon['bus_number']] + hwmon['device_node']
+				else:
+					hwmon_path = 'N/A'
+			else:
+				hwmon_path = hwmon['device_node']
 			if (self.sensors.has_key(objpath) == False):
 				## register object with sensor manager
 				obj = bus.get_object(SENSOR_BUS,SENSOR_PATH,introspect=False)
@@ -206,12 +228,13 @@ class Hwmons():
 				self.sensors[objpath]=True
 				self.threshold_state[objpath] = "NORMAL"
 				if hwmon.has_key('poll_interval'):
-					gobject.timeout_add(hwmon['poll_interval'],self.poll,objpath,hwmon_path)
-	
+					gobject.timeout_add(hwmon['poll_interval'],self.poll,objpath,hwmon_path,hwmon)
+
 	def scanDirectory(self):
 	 	devices = os.listdir(HWMON_PATH)
 		found_hwmon = {}
 		regx = re.compile('([a-z]+)\d+\_')
+		self.path_mapping = {}
 		for d in devices:
 			dpath = HWMON_PATH+'/'+d+'/'
 			found_hwmon[dpath] = True
@@ -219,11 +242,9 @@ class Hwmons():
 				self.hwmon_root[dpath] = []
 			## the instance name is a soft link
 			instance_name = os.path.realpath(dpath+'device').split('/').pop()
-			
-			
+			self.path_mapping[instance_name] = dpath
 			if (System.HWMON_CONFIG.has_key(instance_name)):
 				hwmon = System.HWMON_CONFIG[instance_name]
-	 			
 				if (hwmon.has_key('labels')):
 					label_files = glob.glob(dpath+'/*_label')
 					for f in label_files:
@@ -234,14 +255,14 @@ class Hwmons():
 						else:
 							pass
 							#print "WARNING - hwmon: label ("+label_key+") not found in lookup: "+f
-							
+
 				if hwmon.has_key('names'):
 					for attribute in hwmon['names'].keys():
 						self.addObject(dpath,dpath+attribute,hwmon['names'][attribute])
-						
+
 			else:
 				print "WARNING - hwmon: Unhandled hwmon: "+dpath
-	
+
 		self.addSensorMonitorObject()
 		for k in self.hwmon_root.keys():
 			if (found_hwmon.has_key(k) == False):
@@ -256,12 +277,12 @@ class Hwmons():
 						intf.delete(objpath)
 
 				self.hwmon_root.pop(k,None)
-				
+
 		return True
 
-			
+
 if __name__ == '__main__':
-	
+
 	dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 	bus = get_dbus()
 	root_sensor = Hwmons(bus)
