@@ -36,7 +36,7 @@ SUBDIRS = hacks \
 	  node-init-sthelens \
 	  pcie-device-temperature \
 	  pybmchealth_ctl  \
-	  pxe9797_ctl
+	  pex9797_ctl
 
 REVERSE_SUBDIRS = $(shell echo $(SUBDIRS) $(GDBUS_APPS) | tr ' ' '\n' | tac |tr '\n' ' ')
 
