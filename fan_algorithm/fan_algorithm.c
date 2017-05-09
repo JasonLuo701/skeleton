@@ -73,7 +73,7 @@ struct st_fan_parameter {
 	int g_LowSpeed;
 	int g_HighSpeed;
 	int openloop_speed;
-	int openloop_sensor_reading;
+	double openloop_sensor_reading;
 	int openloop_sensor_offset;
 
 	int current_speed;
@@ -242,10 +242,15 @@ static int calculate_closeloop(struct st_closeloop_obj_data *sensor_data, int cu
 	sensor_data->intergral_i=(sensor_data->intergral_i+1) % sample_n;
 	total_integral_error = 0;
 
-	for(i=0; i<sample_n; i++)
+	for(i=0; i<sample_n; i++) {
 		total_integral_error += sensor_data->interal_Err[i] ;
+		printf("[FAN_ALGORITHM][%s, %d]  interal_Err[%d]:%d\n", __FUNCTION__, __LINE__, i, sensor_data->interal_Err[i]);
+	}
 
 	pid_value = (int)((double) Kp * cur_interal_Err +  (double)Ki * total_integral_error + (double)Kd * (cur_interal_Err - sensor_data->last_error));
+
+	printf("[FAN_ALGORITHM][%s, %d] cur_interal_Err:%d, total_integral_error:%d, last_error:%d, pid_value:%d\n", __FUNCTION__, __LINE__, cur_interal_Err,
+		total_integral_error, sensor_data->last_error, pid_value);
 	//pwm_speed = pid_value + g_FanSpeed;
 
 	if (closeloop_first_time <= 10) {
@@ -283,7 +288,7 @@ static int calculate_closeloop(struct st_closeloop_obj_data *sensor_data, int cu
 	return 1;
 }
 
-static int calculate_openloop (int sensorreading)
+static int calculate_openloop (double sensorreading)
 {
 	int speed = 0;
 
@@ -293,7 +298,7 @@ static int calculate_openloop (int sensorreading)
 	}
 
 	sensorreading=sensorreading+g_fan_para_shm->openloop_sensor_offset;
-	sensorreading+=7; //because temp4 getsensors reading already offset (-7)
+	//sensorreading+=7; //because temp4 getsensors reading already offset (-7)
 
 
 	if (sensorreading >= g_UpAmb) {
@@ -301,7 +306,7 @@ static int calculate_openloop (int sensorreading)
 	} else if (sensorreading <= g_LowAmb) {
 		speed = g_LowSpeed;
 	} else {
-		speed = ( g_ParamA * sensorreading * sensorreading ) + ( g_ParamB * sensorreading ) + g_ParamC;
+		speed =(int) (( (double)g_ParamA * sensorreading * sensorreading ) + ((double) g_ParamB * sensorreading ) + (double)g_ParamC);
 		speed = (speed > g_HighSpeed)? g_HighSpeed : ((speed < g_LowSpeed)? g_LowSpeed : speed);
 	}
 
@@ -557,8 +562,8 @@ static int fan_control_algorithm_monitor(void)
 			while (t_header != NULL) {
 				int t_reaing;
 				t_reaing = get_max_sensor_reading(bus, t_header);
-				g_fan_para_shm->openloop_sensor_reading = t_reaing;
-				calculate_openloop(t_reaing);
+				g_fan_para_shm->openloop_sensor_reading =(double) t_reaing/1000;
+				calculate_openloop(g_fan_para_shm->openloop_sensor_reading);
 				openloop_reading = (openloop_reading<t_reaing? t_reaing:openloop_reading);
 				t_header = t_header->next;
 			}
@@ -592,10 +597,11 @@ static int fan_control_algorithm_monitor(void)
 				fan_led_port0 = FAN_LED_PORT0_ALL_BLUE;
 				fan_led_port1 = FAN_LED_PORT1_ALL_BLUE;
 			}
-			for(i=0; i<g_FanInputObjPath.size; i++) {
-				rc = get_sensor_reading(bus, g_FanInputObjPath.path[i], &Fan_tach, &g_FanInputObjPath);
-				if (g_fan_para_shm->debug_msg_info_en == 1)
-					printf("[FAN_ALGORITHM][Fan Tach: %d] value:%d\n", i,  Fan_tach);
+
+			int k;
+			for(i=0, k = 0; k<g_FanInputObjPath.size; i++, k+=2) {
+				rc = get_sensor_reading(bus, g_FanInputObjPath.path[k], &Fan_tach, &g_FanInputObjPath);
+				printf("[FAN_ALGORITHM][Fan Tach: %d] value:%d, rc:%d, %s\n", i,  Fan_tach, rc, g_FanInputObjPath.path[k]);
 				if (rc < 0)
 					Fan_tach = 0;
 
