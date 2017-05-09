@@ -55,7 +55,7 @@ class Hwmons():
 		gobject.timeout_add(DIR_POLL_INTERVAL, self.scanDirectory)
 
 	def readAttribute(self,filename):
-		val = "N/A"
+		val = "-1"
 		try:
 			with open(filename, 'r') as f:
 				for line in f:
@@ -74,28 +74,21 @@ class Hwmons():
 			if hwmon.has_key('standby_monitor'):
 				standby_monitor = hwmon['standby_monitor']
 			# Skip monitor while DC power off if stand by monitor is False
-			current_pgood = self.pgood_intf.Get('org.openbmc.control.Power', 'pgood')
 			obj = bus.get_object(SENSOR_BUS,objpath,introspect=False)
 			intf_p = dbus.Interface(obj, dbus.PROPERTIES_IFACE)
 			intf = dbus.Interface(obj,HwmonSensor.IFACE_NAME)
-			if not standby_monitor:
-				if  current_pgood == 0:
-					intf_p.Set(SensorValue.IFACE_NAME,'value','N/A')
-					return True
-
-			if attribute != '':
-				try:
-					raw_value = int(self.readAttribute(attribute))
-				except:
-					raw_value = "N/A"
-			else:
-				raw_value = "N/A"
-			if raw_value == "N/A":
-				intf_p.Set(SensorValue.IFACE_NAME,'value','N/A')
-				return True
+			raw_value = int(self.readAttribute(attribute))
 			rtn = intf.setByPoll(raw_value)
 			if (rtn[0] == True):
 				self.writeAttribute(attribute,rtn[1])
+			if not standby_monitor:
+				current_pgood = self.pgood_intf.Get('org.openbmc.control.Power', 'pgood')
+				if  current_pgood == 0:
+					return True
+
+			# do not check threshold while not reading
+			if raw_value == -1:
+				return True
 			threshold_state = intf_p.Get(SensorThresholds.IFACE_NAME, 'threshold_state')
 			if threshold_state != self.threshold_state[objpath]:
 				origin_threshold_type = self.threshold_state[objpath]
@@ -162,8 +155,6 @@ class Hwmons():
 			obj = bus.get_object(SENSOR_BUS,objpath,introspect=False)
 			intf = dbus.Interface(obj,dbus.PROPERTIES_IFACE)
 			intf.Set(HwmonSensor.IFACE_NAME,'filename',hwmon_path)
-			# init value as N/A
-			intf.Set(SensorValue.IFACE_NAME,'value','N/A')
 
 			## check if one of thresholds is defined to know
 			## whether to enable thresholds or not
@@ -210,11 +201,12 @@ class Hwmons():
 				obj = bus.get_object(SENSOR_BUS,objpath,introspect=False)
 				intf = dbus.Interface(obj,dbus.PROPERTIES_IFACE)
 				intf.Set(HwmonSensor.IFACE_NAME,'filename',hwmon_path)
-				# init value as N/A
-				val = 'N/A'
+				# init value as
+				val = -1
 				if hwmon.has_key('value'):
 					val = hwmon['value']
-				intf.Set(SensorValue.IFACE_NAME,'value', val)
+					intf_h = dbus.Interface(obj,HwmonSensor.IFACE_NAME)
+					intf_h.setByPoll(val)
 
 				## check if one of thresholds is defined to know
 				## whether to enable thresholds or not
