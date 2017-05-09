@@ -265,11 +265,11 @@ APPS = {
                 'monitor_process' : True,
                 'process_name'    : 'bmchealth_handler.py',
 	},
-	'pxe_service' : {
+	'pex_service' : {
                 'system_state'    : 'BMC_READY',
                 'start_process'   : True,
                 'monitor_process' : True,
-                'process_name'    : 'pxe_core.exe',
+                'process_name'    : 'pex_core.exe',
 	},
 }
 
@@ -440,10 +440,10 @@ SENSOR_MONITOR_CONFIG = [
 	['/org/openbmc/control/cable_led/led13', { 'object_path':'control/cable_led/led13', 'device_node' : '/sys/class/gpio/gpio283/value','poll_interval' : 10000, 'scale' : 1,'units' : '' ,'standby_monitor':True}],
 	['/org/openbmc/control/cable_led/led14', { 'object_path':'control/cable_led/led14', 'device_node' : '/sys/class/gpio/gpio290/value','poll_interval' : 10000, 'scale' : 1,'units' : '' ,'standby_monitor':True}],
 	['/org/openbmc/control/cable_led/led15', { 'object_path':'control/cable_led/led15', 'device_node' : '/sys/class/gpio/gpio291/value','poll_interval' : 10000, 'scale' : 1,'units' : '' ,'standby_monitor':True}],
-	['/org/openbmc/sensors/pxe/pxe0', { 'object_path':'sensors/pxe/pxe0', 'device_node' : '/tmp/pxe/pxe0_temp' ,'poll_interval' : 10000, 'scale' : 1,'units' : '', 'standby_monitor':False}],
-	['/org/openbmc/sensors/pxe/pxe1', { 'object_path':'sensors/pxe/pxe1', 'device_node' : '/tmp/pxe/pxe1_temp' ,'poll_interval' : 10000, 'scale' : 1,'units' : '', 'standby_monitor':False}],
-	['/org/openbmc/sensors/pxe/pxe2', { 'object_path':'sensors/pxe/pxe2', 'device_node' : '/tmp/pxe/pxe2_temp' ,'poll_interval' : 10000, 'scale' : 1,'units' : '', 'standby_monitor':False}],
-	['/org/openbmc/sensors/pxe/pxe3', { 'object_path':'sensors/pxe/pxe3', 'device_node' : '/tmp/pxe/pxe3_temp' ,'poll_interval' : 10000, 'scale' : 1,'units' : '', 'standby_monitor':False}],
+	['/org/openbmc/sensors/pex/pex0', { 'object_path':'sensors/pex/pex0', 'device_node' : '/tmp/pex/pex0_temp' ,'poll_interval' : 10000, 'scale' : 1,'units' : '', 'standby_monitor':False}],
+	['/org/openbmc/sensors/pex/pex1', { 'object_path':'sensors/pex/pex1', 'device_node' : '/tmp/pex/pex1_temp' ,'poll_interval' : 10000, 'scale' : 1,'units' : '', 'standby_monitor':False}],
+	['/org/openbmc/sensors/pex/pex2', { 'object_path':'sensors/pex/pex2', 'device_node' : '/tmp/pex/pex2_temp' ,'poll_interval' : 10000, 'scale' : 1,'units' : '', 'standby_monitor':False}],
+	['/org/openbmc/sensors/pex/pex3', { 'object_path':'sensors/pex/pex3', 'device_node' : '/tmp/pex/pex3_temp' ,'poll_interval' : 10000, 'scale' : 1,'units' : '', 'standby_monitor':False}],
 	['/org/openbmc/sensors/bmc_health', { 'object_path':'sensors/bmc_health', 'device_node' : '' , 'value' : 0, 'sensor_type':'0x28', 'reading_type':'0x70', 'sensor_name':'BMC Health', 'sensornumber':'0x82' ,'standby_monitor':True}],
 ]
 
@@ -715,10 +715,10 @@ FAN_ALGORITHM_CONFIG = {
         ],
     'CLOSE_LOOP_GROUPS_2':
         [
-            "/org/openbmc/sensors/pxe/pxe0",
-            "/org/openbmc/sensors/pxe/pxe1",
-            "/org/openbmc/sensors/pxe/pxe2",
-            "/org/openbmc/sensors/pxe/pxe3",
+            "/org/openbmc/sensors/pex/pex0",
+            "/org/openbmc/sensors/pex/pex1",
+            "/org/openbmc/sensors/pex/pex2",
+            "/org/openbmc/sensors/pex/pex3",
         ],
 
     'FAN_LED_OFF': ["0xFF"],
