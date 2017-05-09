@@ -15,45 +15,45 @@
 
 #define MAX_I2C_DEV_LEN 32
 #define GPU_ACCESS_SUCCESS_RETURN 0x1f
-#define MAX_pex_NUM (4)
+#define MAX_PEX_NUM (4)
 
-#define pex_TEMP_PATH "/tmp/pex"
-#define pex_SERIAL_LEN (8)
-#define pex_UDID_LEN (17)
-#define pex_SMBUS_BLOCK_WRITE_CMD (0xBE)
+#define PEX_TEMP_PATH "/tmp/pex"
+#define PEX_SERIAL_LEN (8)
+#define PEX_UDID_LEN (17)
+#define PEX_SMBUS_BLOCK_WRITE_CMD (0xBE)
 
 
 enum {
-	EM_pex_DEVICE_1 = 0,
-	EM_pex_DEVICE_2,
-	EM_pex_DEVICE_3,
-	EM_pex_DEVICE_4,
-	EM_pex_DEVICE_5,
-	EM_pex_DEVICE_6,
-	EM_pex_DEVICE_7,
-	EM_pex_DEVICE_8,
+	EM_PEX_DEVICE_1 = 0,
+	EM_PEX_DEVICE_2,
+	EM_PEX_DEVICE_3,
+	EM_PEX_DEVICE_4,
+	EM_PEX_DEVICE_5,
+	EM_PEX_DEVICE_6,
+	EM_PEX_DEVICE_7,
+	EM_PEX_DEVICE_8,
 };
 
 enum {
-	EM_pex_CMD_TEMP_DISABLE_CTL = 0,
-	EM_pex_CMD_TEMP_ENABLE_CTL,
-	EM_pex_CMD_TEMP_READ,
-	EM_pex_CMD_UPPER_SERIAL_READ,
-	EM_pex_CMD_LOWER_SERIAL_READ,
-	EM_pex_CMD_ENABLE_SMBUS,
-	EM_pex_CMD_DISABLE_SMBUS,
-	EM_pex_CMD_UDID_READ,
-	EM_pex_CMD_MAX
+	EM_PEX_CMD_TEMP_DISABLE_CTL = 0,
+	EM_PEX_CMD_TEMP_ENABLE_CTL,
+	EM_PEX_CMD_TEMP_READ,
+	EM_PEX_CMD_UPPER_SERIAL_READ,
+	EM_PEX_CMD_LOWER_SERIAL_READ,
+	EM_PEX_CMD_ENABLE_SMBUS,
+	EM_PEX_CMD_DISABLE_SMBUS,
+	EM_PEX_CMD_UDID_READ,
+	EM_PEX_CMD_MAX
 };
 
 typedef struct {
 	__u32 serial_count;
-	__u8 serial_data[pex_SERIAL_LEN];
+	__u8 serial_data[PEX_SERIAL_LEN];
 } pex_device_serial;
 
 typedef struct {
 	__u32 udid_count;
-	__u8 udid_data[pex_UDID_LEN];
+	__u8 udid_data[PEX_UDID_LEN];
 } pex_device_udid;
 
 
@@ -69,11 +69,11 @@ typedef struct {
 	pex_device_udid  udid;
 } pex_device_mapping;
 
-pex_device_mapping pex_device_bus[MAX_pex_NUM] = {
-	{16, 0x5d, EM_pex_DEVICE_1, 0x61, {0, {0}}, {0, {0}} },
-	{17, 0x5d, EM_pex_DEVICE_2, 0x61, {0, {0}}, {0, {0}} },
-	{18, 0x5d, EM_pex_DEVICE_3, 0x61, {0, {0}}, {0, {0}} },
-	{19, 0x5d, EM_pex_DEVICE_4, 0x61, {0, {0}}, {0, {0}} },
+pex_device_mapping pex_device_bus[MAX_PEX_NUM] = {
+	{16, 0x5d, EM_PEX_DEVICE_1, 0x61, {0, {0}}, {0, {0}} },
+	{17, 0x5d, EM_PEX_DEVICE_2, 0x61, {0, {0}}, {0, {0}} },
+	{18, 0x5d, EM_PEX_DEVICE_3, 0x61, {0, {0}}, {0, {0}} },
+	{19, 0x5d, EM_PEX_DEVICE_4, 0x61, {0, {0}}, {0, {0}} },
 };
 
 typedef struct {
@@ -88,44 +88,44 @@ typedef struct {
 } pex_device_i2c_cmd;
 
 
-pex_device_i2c_cmd pex_device_cmd_tab[EM_pex_CMD_MAX] = {
+pex_device_i2c_cmd pex_device_cmd_tab[EM_PEX_CMD_MAX] = {
 	{
-		EM_pex_CMD_TEMP_DISABLE_CTL,
+		EM_PEX_CMD_TEMP_DISABLE_CTL,
 		{8, {0x3, 0x0, 0x3e, 0xeb, 0x00, 0x00, 0x00, 0x00}},
 		{-1,{0x0}}
 	},
 	{
-		EM_pex_CMD_TEMP_ENABLE_CTL,
+		EM_PEX_CMD_TEMP_ENABLE_CTL,
 		{8, {0x3, 0x0, 0x3e, 0xeb, 0x00, 0x00, 0x00, 0x80}},
 		{-1,{0x0}}
 	},
 	{
-		EM_pex_CMD_TEMP_ENABLE_CTL,
+		EM_PEX_CMD_TEMP_ENABLE_CTL,
 		{4, {0x4, 0x0, 0x3e, 0xeb}},
 		{4, {0x0}}
 	},
 	{
-		EM_pex_CMD_LOWER_SERIAL_READ,
+		EM_PEX_CMD_LOWER_SERIAL_READ,
 		{4, {0x4, 0x0, 0x3c, 0x41}},
 		{4, {0x0}}
 	},
 	{
-		EM_pex_CMD_UPPER_SERIAL_READ,
+		EM_PEX_CMD_UPPER_SERIAL_READ,
 		{4, {0x4, 0x0, 0x3c, 0x42}},
 		{4, {0x0}}
 	},
 	{
-		EM_pex_CMD_ENABLE_SMBUS,
+		EM_PEX_CMD_ENABLE_SMBUS,
 		{8, {0x3, 0x0, 0x3c, 0xb2, 0x01, 0x70, 0x62, 0x1}},
 		{-1,{0x0}}
 	},
 	{
-		EM_pex_CMD_DISABLE_SMBUS,
+		EM_PEX_CMD_DISABLE_SMBUS,
 		{8, {0x3, 0x0, 0x3c, 0xb2, 0x01, 0x70, 0x62, 0x0}},
 		{-1,{0x0}}
 	},
 	{
-		EM_pex_CMD_DISABLE_SMBUS,
+		EM_PEX_CMD_DISABLE_SMBUS,
 		{1, {0x3}},
 		{17,{0x0}}
 	},
@@ -273,7 +273,7 @@ double calculate_pex_temp(unsigned int N)
 }
 
 
-#define pex_TEMP_SENSOR_DATA_MASK (0x3FF)
+#define PEX_TEMP_SENSOR_DATA_MASK (0x3FF)
 
 unsigned int get_temperature_sensor_data(int len, char *data)
 {
@@ -281,7 +281,7 @@ unsigned int get_temperature_sensor_data(int len, char *data)
 
 	sd = data[0]<<8 | data[1];
 
-	return (sd & pex_TEMP_SENSOR_DATA_MASK);
+	return (sd & PEX_TEMP_SENSOR_DATA_MASK);
 }
 
 
@@ -290,7 +290,7 @@ void write_file_pex(int pex_idx, double data, char *sub_name)
 	char f_path[128];
 	char sys_cmd[256];
 
-	sprintf(f_path , "%s/pex%d_%s", pex_TEMP_PATH, pex_idx, sub_name);
+	sprintf(f_path , "%s/pex%d_%s", PEX_TEMP_PATH, pex_idx, sub_name);
 	sprintf(sys_cmd, "echo %d > %s", (int)data, f_path);
 	system(sys_cmd);
 }
@@ -310,7 +310,7 @@ void function_get_pex_temp_data(int pex_idx)
 	i2c_bus = pex_device_bus[pex_idx].bus_no;
 	i2c_addr = pex_device_bus[pex_idx].slave;
 
-	i2c_cmd = &pex_device_cmd_tab[EM_pex_CMD_TEMP_DISABLE_CTL];
+	i2c_cmd = &pex_device_cmd_tab[EM_PEX_CMD_TEMP_DISABLE_CTL];
 	ret = i2c_raw_access(i2c_bus, i2c_addr, i2c_cmd->write_cmd.len,
 			     i2c_cmd->write_cmd.data, i2c_cmd->read_cmd.len, i2c_cmd->read_cmd.data);
 	if (ret < 0) {
@@ -318,7 +318,7 @@ void function_get_pex_temp_data(int pex_idx)
 		return ;
 	}
 
-	i2c_cmd = &pex_device_cmd_tab[EM_pex_CMD_TEMP_ENABLE_CTL];
+	i2c_cmd = &pex_device_cmd_tab[EM_PEX_CMD_TEMP_ENABLE_CTL];
 	ret = i2c_raw_access(i2c_bus, i2c_addr, i2c_cmd->write_cmd.len,
 			     i2c_cmd->write_cmd.data, i2c_cmd->read_cmd.len, i2c_cmd->read_cmd.data);
 	if (ret < 0) {
@@ -326,7 +326,7 @@ void function_get_pex_temp_data(int pex_idx)
 		return ;
 	}
 
-	i2c_cmd = &pex_device_cmd_tab[EM_pex_CMD_TEMP_READ];
+	i2c_cmd = &pex_device_cmd_tab[EM_PEX_CMD_TEMP_READ];
 	ret = i2c_raw_access(i2c_bus, i2c_addr, i2c_cmd->write_cmd.len,
 			     i2c_cmd->write_cmd.data, i2c_cmd->read_cmd.len, i2c_cmd->read_cmd.data);
 	if (ret < 0) {
@@ -369,11 +369,11 @@ void function_get_pex_serial_data(int pex_idx)
 	i2c_addr = pex_device_bus[pex_idx].slave;
 	p_serial = &(pex_device_bus[pex_idx].serial);
 
-	if (p_serial->serial_count == pex_SERIAL_LEN) {
+	if (p_serial->serial_count == PEX_SERIAL_LEN) {
 		return ;
 	}
 
-	i2c_cmd = &pex_device_cmd_tab[EM_pex_CMD_UPPER_SERIAL_READ];
+	i2c_cmd = &pex_device_cmd_tab[EM_PEX_CMD_UPPER_SERIAL_READ];
 	ret = i2c_raw_access(i2c_bus, i2c_addr, i2c_cmd->write_cmd.len,
 			     i2c_cmd->write_cmd.data, i2c_cmd->read_cmd.len, i2c_cmd->read_cmd.data);
 	if (ret < 0) {
@@ -385,7 +385,7 @@ void function_get_pex_serial_data(int pex_idx)
 	for(i = 0; i<i2c_cmd->read_cmd.len; i++)
 		p_serial->serial_data[p_serial->serial_count++] = i2c_cmd->read_cmd.data[i];
 
-	i2c_cmd = &pex_device_cmd_tab[EM_pex_CMD_LOWER_SERIAL_READ];
+	i2c_cmd = &pex_device_cmd_tab[EM_PEX_CMD_LOWER_SERIAL_READ];
 	ret = i2c_raw_access(i2c_bus, i2c_addr, i2c_cmd->write_cmd.len,
 			     i2c_cmd->write_cmd.data, i2c_cmd->read_cmd.len, i2c_cmd->read_cmd.data);
 	if (ret < 0) {
@@ -421,12 +421,12 @@ void function_get_pex_udid_data(int pex_idx)
 	i2c_addr = pex_device_bus[pex_idx].slave;
 	p_udid = &(pex_device_bus[pex_idx].udid);
 
-	if (p_udid->udid_count == pex_UDID_LEN) {
+	if (p_udid->udid_count == PEX_UDID_LEN) {
 		return ;
 	}
 
 	//use i2c protocol to enabale smbus
-	i2c_cmd = &pex_device_cmd_tab[EM_pex_CMD_ENABLE_SMBUS];
+	i2c_cmd = &pex_device_cmd_tab[EM_PEX_CMD_ENABLE_SMBUS];
 	ret = i2c_raw_access(i2c_bus, i2c_addr, i2c_cmd->write_cmd.len,
 			     i2c_cmd->write_cmd.data, i2c_cmd->read_cmd.len, i2c_cmd->read_cmd.data);
 	if (ret < 0) {
@@ -438,7 +438,7 @@ void function_get_pex_udid_data(int pex_idx)
 	i2c_addr = pex_device_bus[pex_idx].smbus_slave;
 
 	//read pex9797 udid
-	i2c_cmd = &pex_device_cmd_tab[EM_pex_CMD_UDID_READ];
+	i2c_cmd = &pex_device_cmd_tab[EM_PEX_CMD_UDID_READ];
 	ret = i2c_raw_access(i2c_bus, i2c_addr, i2c_cmd->write_cmd.len,
 			     i2c_cmd->write_cmd.data, i2c_cmd->read_cmd.len, i2c_cmd->read_cmd.data);
 	if (ret < 0) {
@@ -460,8 +460,8 @@ void function_get_pex_udid_data(int pex_idx)
 		p_udid->udid_count = 0;
 
 	//use smbus protocol to disable smbus
-	i2c_cmd = &pex_device_cmd_tab[EM_pex_CMD_DISABLE_SMBUS];
-	smbus_commmand_write(i2c_bus, i2c_addr, i2c_cmd->write_cmd.data, i2c_cmd->write_cmd.len, pex_SMBUS_BLOCK_WRITE_CMD);
+	i2c_cmd = &pex_device_cmd_tab[EM_PEX_CMD_DISABLE_SMBUS];
+	smbus_commmand_write(i2c_bus, i2c_addr, i2c_cmd->write_cmd.data, i2c_cmd->write_cmd.len, PEX_SMBUS_BLOCK_WRITE_CMD);
 }
 
 
@@ -469,7 +469,7 @@ int  init_data_folder(int index)
 {
 	char f_path[128];
 	FILE *fp;
-	sprintf(f_path , "%s/pex%d_temp", pex_TEMP_PATH, index);
+	sprintf(f_path , "%s/pex%d_temp", PEX_TEMP_PATH, index);
 	if( access( f_path, F_OK ) != -1 )
 		return 1;
 	else {
@@ -492,18 +492,18 @@ void pex_data_scan()
 
 	/* create the file patch for dbus usage*/
 	/* check if directory is existed */
-	if (access(pex_TEMP_PATH, F_OK) != 0) {
-		mkdir(pex_TEMP_PATH, 0755);
+	if (access(PEX_TEMP_PATH, F_OK) != 0) {
+		mkdir(PEX_TEMP_PATH, 0755);
 	}
 
-	for(i=0; i<MAX_pex_NUM; i++) {
+	for(i=0; i<MAX_PEX_NUM; i++) {
 		if (init_data_folder(i) != 1)
 			return ;
 	}
 
 	printf("pex9797 control starting!!!\n");
 	while(1) {
-		for(i=0; i<MAX_pex_NUM; i++) {
+		for(i=0; i<MAX_PEX_NUM; i++) {
 			function_get_pex_temp_data(i);
 			function_get_pex_serial_data(i);
 			function_get_pex_udid_data(i);
