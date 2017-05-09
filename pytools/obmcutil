@@ -4,6 +4,7 @@ import sys
 import dbus
 import json
 import xml.etree.ElementTree as ET
+from obmc.sensors import sensor_reading_convert
 
 
 def fix_byte(it,key,parent):   
@@ -199,9 +200,12 @@ if (method_name != ""):
 			for sensor in pydata:
 				if pydata[sensor]['org.openbmc.HwmonSensor'].has_key('sensornumber') and \
 					pydata[sensor]['org.openbmc.HwmonSensor']['sensornumber'] != "":
-						continue
+					if pydata[sensor]['org.openbmc.SensorValue'].has_key('value'):
+						pydata[sensor]['org.openbmc.SensorValue']['value'] = sensor_reading_convert(pydata[sensor]['org.openbmc.SensorValue']['value'])
+					continue
 				else:
 					remove_list.append(sensor)
+
 			for i in xrange(len(remove_list)):
 				del pydata[remove_list[i]]
 		if 'transform' in objinfo:
