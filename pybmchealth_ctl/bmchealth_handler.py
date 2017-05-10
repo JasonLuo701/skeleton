@@ -51,12 +51,11 @@ def LogEventBmcHealthMessages(event_dir, evd1, evd2, evd3):
                 desc+=log_item['health_indicator']
                 if log_item['description'] != '':
                     desc+="-" + log_item['description']
-                details = log_item['detail']
                 debug = dbus.ByteArray("")
 
                 #prepare to send log event:
                 #create & init new event class
-                log = Event(severity, desc, str(sensortype), str(sensor_number), details, debug)
+                log = Event(severity, desc, str(sensortype), str(sensor_number), debug)
                 #add new event log
                 logid=_EVENT_MANAGER.add_log(log)
                 break
