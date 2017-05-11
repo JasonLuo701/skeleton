@@ -191,6 +191,8 @@ def bmchealth_check_watchdog():
     reboot_file_path = "/var/lib/obmc/check_reboot"
     watchdog1_event_counter_path = "/var/lib/obmc/watchdog1"
     watchdog2_event_counter_path = "/var/lib/obmc/watchdog2"
+    watchdog1_exist_counter = 0
+    watchdog2_exist_counter = 0
 
     #read event counters
     try:
@@ -223,7 +225,6 @@ def bmchealth_check_watchdog():
                 for line in f:
                     watchdog1_exist_counter = int(line.rstrip('\n'))
         except:
-            watchdog1_exist_counter = watchdog1_timeout_counter
             pass
 
         try:
@@ -231,7 +232,6 @@ def bmchealth_check_watchdog():
                 for line in f:
                     watchdog2_exist_counter = int(line.rstrip('\n'))
         except:
-            watchdog2_exist_counter = watchdog2_timeout_counter
             pass
 
     if watchdog1_timeout_counter > watchdog1_exist_counter or watchdog2_timeout_counter > watchdog2_exist_counter:
