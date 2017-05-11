@@ -1,19 +1,13 @@
 GDBUS_APPS = bmcctl \
-	     flashbios \
-	     hostcheckstop \
 	     hostwatchdog \
 	     op-flasher \
-	     op-hostctl \
 	     op-pwrctl \
-	     pciedetect \
 	     pwrbutton \
-	     rstbutton \
 	     idbutton \
 	     cable-led \
 	     op-pwrctl-sthelens
 
 SDBUS_APPS = gpu \
-	     pcie-device-temperature \
 	     pex9797_ctl
 
 SUBDIRS = hacks \

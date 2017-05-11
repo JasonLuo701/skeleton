@@ -117,29 +117,11 @@ APPS = {
         'monitor_process' : True,
         'process_name'    : 'button_power.exe',
     },
-    'reset_button' : {
-        'system_state'    : 'BMC_STARTING',
-        'start_process'   : True,
-        'monitor_process' : True,
-        'process_name'    : 'button_reset.exe',
-    },
-    'host_checkstop' : {
-        'system_state'    : 'BMC_STARTING',
-        'start_process'   : True,
-        'monitor_process' : True,
-        'process_name'    : 'host_checkstop.exe',
-    },
     'led_control' : {
         'system_state'    : 'BMC_STARTING',
         'start_process'   : True,
         'monitor_process' : True,
         'process_name'    : 'led_controller.exe',
-    },
-    'flash_control' : {
-        'system_state'    : 'BMC_STARTING',
-        'start_process'   : True,
-        'monitor_process' : True,
-        'process_name'    : 'flash_bios.exe',
     },
     'bmc_flash_control' : {
         'system_state'    : 'BMC_STARTING',
@@ -153,12 +135,6 @@ APPS = {
         'monitor_process' : True,
         'process_name'    : 'download_manager.py',
         'args'            : [SYSTEM_NAME]
-    },
-    'host_control' : {
-        'system_state'    : 'BMC_STARTING',
-        'start_process'   : True,
-        'monitor_process' : True,
-        'process_name'    : 'control_host.exe',
     },
     'chassis_control' : {
         'system_state'    : 'BMC_STARTING2',
@@ -261,13 +237,6 @@ APPS = {
         'monitor_process' : False,
         'process_name'    : 'node_init_sthelens.exe',
     },
-    #MSFT ask to hide in M1 release
-    #'pcie-device-temperature' : {
-    #        'system_state'    : 'BMC_READY',
-    #        'start_process'   : True,
-    #        'monitor_process' : True,
-    #        'process_name'    : 'pcie-device-temperature.exe',
-    #},
     'bmchealth_service' : {
         'system_state'    : 'BMC_READY',
         'start_process'   : True,
