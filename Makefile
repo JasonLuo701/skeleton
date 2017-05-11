@@ -12,6 +12,10 @@ GDBUS_APPS = bmcctl \
 	     cable-led \
 	     op-pwrctl-sthelens
 
+SDBUS_APPS = gpu \
+	     pcie-device-temperature \
+	     pex9797_ctl
+
 SUBDIRS = hacks \
 	  libopenbmc_intf \
 	  libopenbmc_sdbus \
@@ -32,17 +36,14 @@ SUBDIRS = hacks \
 	  pytools \
 	  fan_algorithm \
 	  info \
-	  gpu \
 	  node-init-sthelens \
-	  pcie-device-temperature \
-	  pybmchealth_ctl  \
-	  pex9797_ctl
+	  pybmchealth_ctl
 
-REVERSE_SUBDIRS = $(shell echo $(SUBDIRS) $(GDBUS_APPS) | tr ' ' '\n' | tac |tr '\n' ' ')
+REVERSE_SUBDIRS = $(shell echo $(SUBDIRS) $(GDBUS_APPS) $(SDBUS_APPS) | tr ' ' '\n' | tac |tr '\n' ' ')
 
-.PHONY: subdirs $(SUBDIRS) $(GDBUS_APPS)
+.PHONY: subdirs $(SUBDIRS) $(GDBUS_APPS) $(SDBUS_APPS)
 
-subdirs: $(SUBDIRS) $(GDBUS_APPS)
+subdirs: $(SUBDIRS) $(GDBUS_APPS) $(SDBUS_APPS)
 
 $(SUBDIRS):
 	$(MAKE) -C $@
@@ -50,8 +51,11 @@ $(SUBDIRS):
 $(GDBUS_APPS): libopenbmc_intf
 	$(MAKE) -C $@ CFLAGS="-I ../$^" LDFLAGS="-L ../$^"
 
+$(SDBUS_APPS): libopenbmc_sdbus
+	$(MAKE) -C $@ CFLAGS="-I ../$^" LDFLAGS="-L ../$^"
+
 install: subdirs
-	@for d in $(SUBDIRS) $(GDBUS_APPS); do \
+	@for d in $(SUBDIRS) $(GDBUS_APPS) $(SDBUS_APPS); do \
 		$(MAKE) -C $$d $@ DESTDIR=$(DESTDIR) PREFIX=$(PREFIX) || exit 1; \
 	done
 clean:
