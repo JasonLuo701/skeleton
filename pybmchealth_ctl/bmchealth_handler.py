@@ -259,7 +259,7 @@ def bmchealth_check_i2c():
                 if current_recovery_count > g_recovery_count:
                     print "Log i2c recovery event"
                     bmchealth_set_value(0xA)
-                    LogEventBmcHealthMessages("Asserted", "0xA", bus_id, error_code )
+                    LogEventBmcHealthMessages("Asserted", 0xA, bus_id, error_code )
                     g_recovery_count = current_recovery_count
                 else:
                     return True
