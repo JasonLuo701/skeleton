@@ -31,8 +31,8 @@ def LogEventBmcHealthMessages(event_dir, evd1, evd2, evd3):
     objpath = g_bmchealth_obj_path
     obj = bus.get_object(DBUS_NAME, objpath, introspect=False)
     intf = dbus.Interface(obj, dbus.PROPERTIES_IFACE)
-    sensortype = intf.Get(HwmonSensor.IFACE_NAME, 'sensor_type')
-    sensor_number = intf.Get(HwmonSensor.IFACE_NAME, 'sensornumber')
+    sensortype = int(intf.Get(HwmonSensor.IFACE_NAME, 'sensor_type'), 16)
+    sensor_number = int(intf.Get(HwmonSensor.IFACE_NAME, 'sensornumber'), 16)
     sensor_name = objpath.split('/').pop()
 
     severity = Event.SEVERITY_ERR if event_dir == 'Asserted' else Event.SEVERITY_INFO
@@ -51,12 +51,11 @@ def LogEventBmcHealthMessages(event_dir, evd1, evd2, evd3):
                 desc+=log_item['health_indicator']
                 if log_item['description'] != '':
                     desc+="-" + log_item['description']
-                details = log_item['detail']
                 debug = dbus.ByteArray("")
 
                 #prepare to send log event:
                 #create & init new event class
-                log = Event(severity, desc, str(sensortype), str(sensor_number), details, debug)
+                log = Event(severity, desc, sensortype, sensor_number, debug)
                 #add new event log
                 logid=_EVENT_MANAGER.add_log(log)
                 break

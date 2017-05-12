@@ -14,12 +14,36 @@ logging.basicConfig(format='%(levelname)-8s| %(message)s')
 LOGGER = logging.getLogger('pyeventctl')
 LOGGER.setLevel(logging.DEBUG)
 
+SEVERITY_DEBUG = 'DEBUG'
+SEVERITY_INFO = 'INFO'
+SEVERITY_ERR = 'ERROR'
+
+def severity_uint8_to_string(uint8):
+    if uint8 == Event.SEVERITY_DEBUG:
+        return SEVERITY_DEBUG
+    elif uint8 == Event.SEVERITY_INFO:
+        return SEVERITY_INFO
+    elif uint8 == Event.SEVERITY_ERR:
+        return SEVERITY_ERR
+    else:
+        raise ValueError('invalid severity level %d' % uint8)
+
+def severity_string_to_uint8(string):
+    if string == SEVERITY_DEBUG:
+        return Event.SEVERITY_DEBUG
+    elif string == SEVERITY_INFO:
+        return Event.SEVERITY_INFO
+    elif string == SEVERITY_ERR:
+        return Event.SEVERITY_ERR
+    else:
+        raise ValueError('invalid severity level %s' % string)
+
 def add_log(args):
     event = Event(
-        args.severity,
+        severity_string_to_uint8(args.severity),
         args.message,
-        args.sensor_type,
-        args.sensor_number)
+        int(args.sensor_type, 16),
+        int(args.sensor_number, 16))
     logid = EventManager().add_log(event)
     print('created log %04X' % logid)
 
@@ -29,8 +53,8 @@ def build_parser():
     parser_add = subparsers.add_parser('add')
     parser_add.set_defaults(func=add_log)
     parser_add.add_argument(
-        '--severity', type=str, default=Event.SEVERITY_INFO,
-        choices=[Event.SEVERITY_DEBUG, Event.SEVERITY_INFO, Event.SEVERITY_ERR])
+        '--severity', type=str, default=SEVERITY_INFO,
+        choices=[SEVERITY_DEBUG, SEVERITY_INFO, SEVERITY_ERR])
     parser_add.add_argument(
         'sensor_type', type=str, help='sensor type in hexadecimal')
     parser_add.add_argument(
@@ -53,7 +77,8 @@ def list_logs(_):
     for logid in event_manager.get_log_ids():
         event = event_manager.get_log(logid)
         print('%04X | %19s | %8s | %s' % (
-            event.logid, event.time, event.severity, event.message))
+            event.logid, event.time, severity_uint8_to_string(event.severity),
+            event.message))
 
 def main(argv):
     parser = build_parser()
