@@ -103,14 +103,6 @@
 	<interface name="org.openbmc.control.Bmc">
 		<method name="warmReset"/>
 	</interface>
-	<interface name="org.openbmc.control.Host">
-		<method name="boot"/>
-		<method name="shutdown"/>
-		<method name="reboot"/>
-		<property name="debug_mode" type="i" access="readwrite"/>
-		<property name="flash_side" type="s" access="readwrite"/>
-		<signal name="Booted"/>
-	</interface>
 	<interface name="org.openbmc.control.Power">
 		<method name="setPowerState">
 			<arg name="state" type="i" direction="in"/>
@@ -125,8 +117,6 @@
 		<property name="pgood" type="i" access="read"/>
 		<property name="state" type="i" access="read"/>
 		<property name="pgood_timeout" type="i" access="readwrite"/>
-	</interface>
-	<interface name="org.openbmc.control.Checkstop">
 	</interface>
 	<interface name="org.openbmc.Watchdog">
 		<method name="start"/>
