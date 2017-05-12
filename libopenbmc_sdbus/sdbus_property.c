@@ -34,6 +34,8 @@ set_dbus_property(char *objpath, char *property_name, char *property_type, void 
 					"org.openbmc.HwmonSensor", property_name, "i",
 					*((int *) property_value)
 				       );
+		sd_bus_error_free(&bus_error);
+		sd_bus_message_unref(response);
 	} else if (property_type[0] == 's') {
 		rc = sd_bus_call_method(bus,
 					"org.openbmc.Sensors",
@@ -46,6 +48,8 @@ set_dbus_property(char *objpath, char *property_name, char *property_type, void 
 					"org.openbmc.HwmonSensor", property_name, "s",
 					(char *)property_value
 				       );
+		sd_bus_error_free(&bus_error);
+		sd_bus_message_unref(response);
 	} else
 		rc = -1;
 
