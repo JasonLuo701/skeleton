@@ -26,7 +26,7 @@
 #include <unistd.h>
 #include <stdint.h>
 
-#include "i2c-dev.h"
+#include <linux/i2c-dev-user.h>
 #include "log.h"
 
 void usage(const char *prog) {
@@ -46,6 +46,9 @@ void usage(const char *prog) {
 }
 
 #define MAX_BYTES 255
+
+#define I2C_CLIENT_PEC          0x04    /* Use Packet Error Checking */
+#define I2C_M_RECV_LEN          0x0400  /* length will be first received byte */
 
 int g_use_pec = 0;
 int g_has_write = 0;

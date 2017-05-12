@@ -3,7 +3,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <systemd/sd-bus.h>
-#include "i2c-dev.h"
+#include <linux/i2c-dev-user.h>
 #include "log.h"
 
 

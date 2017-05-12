@@ -135,8 +135,6 @@ pex_device_i2c_cmd pex_device_cmd_tab[EM_PEX_CMD_MAX] = {
 #define PMBUS_DELAY usleep(400*1000)
 #define I2C_CLIENT_PEC          0x04    /* Use Packet Error Checking */
 #define I2C_M_RECV_LEN          0x0400  /* length will be first received byte */
-#include "i2c-dev.h"
-
 
 static int g_use_pec = 0;
 
