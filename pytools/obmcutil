@@ -170,6 +170,8 @@ if (len(sys.argv) == 1 or sys.argv[1] == "-h" or dbus_objects.has_key(sys.argv[1
 
 method_name = ""
 property_name = ""
+getsensors_param = ""
+getsensors_value = ""
 
 sys.argv.pop(0)
 obj_name = sys.argv.pop(0)
@@ -177,6 +179,10 @@ objinfo = dbus_objects[obj_name]
 
 if (objinfo.has_key('method')):
 	method_name = objinfo['method']
+	if obj_name == "getsensors":
+		if len(sys.argv) == 2:
+			getsensors_param = sys.argv.pop(0)
+			getsensors_value = sys.argv.pop(0)
 elif (objinfo.has_key('property')):
 	property_name = objinfo['property']
 elif (len(sys.argv)>0):
@@ -198,7 +204,26 @@ if (method_name != ""):
 		if (obj_name == 'getsensors'):
 			remove_list = []
 			for sensor in pydata:
-				if pydata[sensor]['org.openbmc.HwmonSensor'].has_key('sensornumber') and \
+				if getsensors_param != "":
+					if getsensors_param == "-num":
+						if pydata[sensor]['org.openbmc.HwmonSensor'].has_key('sensornumber') and \
+						    pydata[sensor]['org.openbmc.HwmonSensor']['sensornumber'] == getsensors_value:
+								if pydata[sensor]['org.openbmc.SensorValue'].has_key('value'):
+									pydata[sensor]['org.openbmc.SensorValue']['value'] = sensor_reading_convert(pydata[sensor]['org.openbmc.SensorValue']['value'])
+								continue
+						else:
+							remove_list.append(sensor)
+					elif getsensors_param == "-name":
+						if pydata[sensor]['org.openbmc.HwmonSensor'].has_key('sensor_name') and \
+							pydata[sensor]['org.openbmc.HwmonSensor']['sensor_name'] == getsensors_value:
+								if pydata[sensor]['org.openbmc.SensorValue'].has_key('value'):
+									pydata[sensor]['org.openbmc.SensorValue']['value'] = sensor_reading_convert(pydata[sensor]['org.openbmc.SensorValue']['value'])
+								continue
+						else:
+							remove_list.append(sensor)
+					else:
+						remove_list.append(sensor)
+				elif pydata[sensor]['org.openbmc.HwmonSensor'].has_key('sensornumber') and \
 					pydata[sensor]['org.openbmc.HwmonSensor']['sensornumber'] != "":
 					if pydata[sensor]['org.openbmc.SensorValue'].has_key('value'):
 						pydata[sensor]['org.openbmc.SensorValue']['value'] = sensor_reading_convert(pydata[sensor]['org.openbmc.SensorValue']['value'])
