@@ -14,36 +14,40 @@ logging.basicConfig(format='%(levelname)-8s| %(message)s')
 LOGGER = logging.getLogger('pyeventctl')
 LOGGER.setLevel(logging.DEBUG)
 
-SEVERITY_DEBUG = 'DEBUG'
 SEVERITY_INFO = 'INFO'
-SEVERITY_ERR = 'ERROR'
+SEVERITY_WARN = 'WARNING'
+SEVERITY_CRIT = 'CRITICAL'
 
 def severity_uint8_to_string(uint8):
-    if uint8 == Event.SEVERITY_DEBUG:
-        return SEVERITY_DEBUG
-    elif uint8 == Event.SEVERITY_INFO:
+    if uint8 == Event.SEVERITY_INFO:
         return SEVERITY_INFO
-    elif uint8 == Event.SEVERITY_ERR:
-        return SEVERITY_ERR
+    elif uint8 == Event.SEVERITY_WARN:
+        return SEVERITY_WARN
+    elif uint8 == Event.SEVERITY_CRIT:
+        return SEVERITY_CRIT
     else:
         raise ValueError('invalid severity level %d' % uint8)
 
 def severity_string_to_uint8(string):
-    if string == SEVERITY_DEBUG:
-        return Event.SEVERITY_DEBUG
-    elif string == SEVERITY_INFO:
+    if string == SEVERITY_INFO:
         return Event.SEVERITY_INFO
-    elif string == SEVERITY_ERR:
-        return Event.SEVERITY_ERR
+    elif string == SEVERITY_WARN:
+        return Event.SEVERITY_WARN
+    elif string == SEVERITY_CRIT:
+        return Event.SEVERITY_CRIT
     else:
         raise ValueError('invalid severity level %s' % string)
 
 def add_log(args):
     event = Event(
         severity_string_to_uint8(args.severity),
-        args.message,
         int(args.sensor_type, 16),
-        int(args.sensor_number, 16))
+        int(args.sensor_number, 16),
+        int(args.event_dir_type, 16),
+        int(args.event_data_1, 16),
+        int(args.event_data_2, 16),
+        int(args.event_data_3, 16),
+        )
     logid = EventManager().add_log(event)
     print('created log %04X' % logid)
 
@@ -54,12 +58,23 @@ def build_parser():
     parser_add.set_defaults(func=add_log)
     parser_add.add_argument(
         '--severity', type=str, default=SEVERITY_INFO,
-        choices=[SEVERITY_DEBUG, SEVERITY_INFO, SEVERITY_ERR])
+        choices=[SEVERITY_INFO, SEVERITY_WARN, SEVERITY_CRIT])
+    parser_add.add_argument(
+        '--event_dir_type', type=str, default='0x00',
+        help='event_dir_type in hexadecimal')
+    parser_add.add_argument(
+        '--event_data_1', type=str, default='0x00',
+        help='event data 1 in hexadecimal')
+    parser_add.add_argument(
+        '--event_data_2', type=str, default='0x00',
+        help='event data 2 in hexadecimal')
+    parser_add.add_argument(
+        '--event_data_3', type=str, default='0x00',
+        help='event data 3 in hexadecimal')
     parser_add.add_argument(
         'sensor_type', type=str, help='sensor type in hexadecimal')
     parser_add.add_argument(
         'sensor_number', type=str, help='sensor number in hexadecimal')
-    parser_add.add_argument('message', type=str)
     parser_clear = subparsers.add_parser('clear')
     parser_clear.set_defaults(func=clear_logs)
     parser_list = subparsers.add_parser('list')
@@ -68,7 +83,7 @@ def build_parser():
 
 def clear_logs(_):
     event_manager = EventManager()
-    event_manager.remove_all_logs()
+    event_manager.remove_all_logs(0x80) # FIXME hard-coded
     print('removed all event logs')
 
 def list_logs(_):
@@ -78,7 +93,7 @@ def list_logs(_):
         event = event_manager.get_log(logid)
         print('%04X | %19s | %8s | %s' % (
             event.logid, event.time, severity_uint8_to_string(event.severity),
-            event.message))
+            event.assemble_message()))
 
 def main(argv):
     parser = build_parser()
