@@ -388,7 +388,7 @@ def _add_fan_tach_sensor(configs, index, sensornumber):
         'sensornumber': sensornumber,
         'standby_monitor': False,
         'units': 'rpm',
-        'value': 0,
+        'value': -1,
         }]
     configs.append(config)
 
