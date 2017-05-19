@@ -460,14 +460,18 @@ def _add_cable_led(configs, index, gpio):
         }]
     configs.append(config)
 
-def _add_pex9797(configs, index):
+def _add_pex9797(configs, index, sensornumber):
     config = ['/org/openbmc/sensors/pex/pex%d' % index, {
         'device_node': '/tmp/pex/pex%d_temp' % index,
         'object_path': 'sensors/pex/pex%d' % index,
-        'poll_interval': 10000,
+        'poll_interval': 5000,
         'scale': 1,
+        'sensornumber': sensornumber,
+        'sensor_type': '0x01',
+        'reading_type': '0x01',
+        'sensor_name': 'PLX Switch %d Temp' % (index+1),
         'standby_monitor': False,
-        'units': '',
+        'units': 'C',
         }]
     configs.append(config)
 
@@ -545,10 +549,10 @@ _add_cable_led(SENSOR_MONITOR_CONFIG, 12, 282)
 _add_cable_led(SENSOR_MONITOR_CONFIG, 13, 283)
 _add_cable_led(SENSOR_MONITOR_CONFIG, 14, 290)
 _add_cable_led(SENSOR_MONITOR_CONFIG, 15, 291)
-_add_pex9797(SENSOR_MONITOR_CONFIG, 0)
-_add_pex9797(SENSOR_MONITOR_CONFIG, 1)
-_add_pex9797(SENSOR_MONITOR_CONFIG, 2)
-_add_pex9797(SENSOR_MONITOR_CONFIG, 3)
+_add_pex9797(SENSOR_MONITOR_CONFIG, 0, 0x37)
+_add_pex9797(SENSOR_MONITOR_CONFIG, 1, 0x38)
+_add_pex9797(SENSOR_MONITOR_CONFIG, 2, 0x39)
+_add_pex9797(SENSOR_MONITOR_CONFIG, 3, 0x3A)
 _add_bmc_health_sensor(SENSOR_MONITOR_CONFIG, '0x82')
 
 HWMON_CONFIG = {
