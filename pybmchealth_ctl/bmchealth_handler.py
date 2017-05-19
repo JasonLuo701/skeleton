@@ -22,7 +22,7 @@ DBUS_INTERFACE = 'org.freedesktop.DBus.Properties'
 SENSOR_VALUE_INTERFACE = 'org.openbmc.SensorValue'
 
 g_bmchealth_obj_path = "/org/openbmc/sensors/bmc_health"
-g_recovery_count = 0
+g_recovery_count = [0,0,0,0,0,0,0,0]
 
 _EVENT_MANAGER = EventManager()
 
@@ -246,27 +246,24 @@ def bmchealth_check_watchdog():
     return True
 
 def bmchealth_check_i2c():
-    i2c_recovery_check_path = "/proc/i2c_recovery"
+    i2c_recovery_check_path = ["/proc/i2c_recovery_bus0","/proc/i2c_recovery_bus1","/proc/i2c_recovery_bus2","/proc/i2c_recovery_bus3","/proc/i2c_recovery_bus4","/proc/i2c_recovery_bus5","/proc/i2c_recovery_bus6","/proc/i2c_recovery_bus7"]
     global g_recovery_count
 
-    if os.path.exists(i2c_recovery_check_path):
-        try:
-            with open(i2c_recovery_check_path, 'r') as f:
-                bus_id = int(f.readline())
-                error_code = int(f.readline(), 16)
-                current_recovery_count = int(f.readline())
-                if current_recovery_count > g_recovery_count:
-                    print "Log i2c recovery event"
-                    bmchealth_set_value(0xA)
-                    LogEventBmcHealthMessages("Asserted", 0xA, bus_id, error_code )
-                    g_recovery_count = current_recovery_count
-                else:
-                    return True
-        except:
-            print "[bmchealth_check_i2c]exception !!!"
-            return True
-    else:
-        return True
+    for num in range(len(i2c_recovery_check_path)):
+        if os.path.exists(i2c_recovery_check_path[num]):
+            try:
+                with open(i2c_recovery_check_path[num], 'r') as f:
+                    bus_id = int(f.readline())
+                    error_code = int(f.readline(), 16)
+                    current_recovery_count = int(f.readline())
+                    if current_recovery_count > g_recovery_count[num]:
+                        print "Log i2c recovery event"
+                        bmchealth_set_value(0xA)
+                        LogEventBmcHealthMessages("Asserted", 0xA, bus_id, error_code )
+                        g_recovery_count[num] = current_recovery_count
+            except:
+                print "[bmchealth_check_i2c]exception !!!"
+
     return True
 
 if __name__ == '__main__':
