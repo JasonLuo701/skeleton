@@ -56,28 +56,16 @@ def bmchealth_set_status_led(light):
     except:
         pass
 
-def LogEventBmcHealthMessages(event_dir, evd1, evd2, evd3):
+def LogEventBmcHealthMessages(evd1 = 0, evd2 = 0, evd3 = 0):
     bus = get_dbus()
     objpath = g_bmchealth_obj_path
     obj = bus.get_object(DBUS_NAME, objpath, introspect=False)
     intf = dbus.Interface(obj, dbus.PROPERTIES_IFACE)
     sensortype = int(intf.Get(HwmonSensor.IFACE_NAME, 'sensor_type'), 16)
     sensor_number = int(intf.Get(HwmonSensor.IFACE_NAME, 'sensornumber'), 16)
-    sensor_name = objpath.split('/').pop()
 
-    logid = 0
-    if 'LOG_EVENT_CONFIG' in dir(System):
-        for log_item in System.LOG_EVENT_CONFIG:
-            if (log_item['EVD1'] == None or log_item['EVD1'] == evd1) and \
-               (log_item['EVD2'] == None or log_item['EVD2'] == evd2) and \
-               (log_item['EVD3'] == None or log_item['EVD3'] == evd3):
-
-                #prepare to send log event:
-                #create & init new event class
-                log = Event(Event.SEVERITY_INFO, sensortype, sensor_number)
-                #add new event log
-                logid=_EVENT_MANAGER.add_log(log)
-                break
+    log = Event(Event.SEVERITY_INFO, sensortype, sensor_number, 0x70, evd1, evd2, evd3)
+    logid=_EVENT_MANAGER.add_log(log)
 
     if logid == 0:
         return False
@@ -166,7 +154,7 @@ def bmchealth_check_network():
             print "bmchealth_check_network:  DHCP Fail"
             g_dhcp_status = 0
             bmchealth_set_value(0x1)
-            LogEventBmcHealthMessages("Asserted", 0x1, 0x2, None )
+            LogEventBmcHealthMessages(0x1, 0x2)
     else:
         g_dhcp_status = 1
 
@@ -176,7 +164,7 @@ def bmchealth_check_network():
             print "bmchealth_check_network:  network down Fail"
             g_net_down_status = 0
             bmchealth_set_value(0x1)
-            LogEventBmcHealthMessages("Asserted", 0x1, 0x1, None )
+            LogEventBmcHealthMessages(0x1, 0x1)
     else:
         g_net_down_status = 1
 
@@ -199,7 +187,7 @@ def bmchealth_fix_and_check_mac():
     ret = 0
     if fix_mac_status == 0 or fix_guid_status == 0:
         ret = bmchealth_set_value(0xC)
-        LogEventBmcHealthMessages("Asserted", 0xC, None, None )
+        LogEventBmcHealthMessages(0xC)
     print "bmchealth: bmchealth_fix_and_check_mac : " + str(ret)
     return ret
 
@@ -262,7 +250,7 @@ def bmchealth_check_watchdog():
         f.close()
         print "Log watchdog expired event"
         bmchealth_set_value(0x3)
-        LogEventBmcHealthMessages("Asserted", 0x3, None, None )
+        LogEventBmcHealthMessages(0x3)
     return True
 
 def bmchealth_check_i2c():
@@ -279,7 +267,7 @@ def bmchealth_check_i2c():
                     if current_recovery_count > g_recovery_count[num]:
                         print "Log i2c recovery event"
                         bmchealth_set_value(0xA)
-                        LogEventBmcHealthMessages("Asserted", 0xA, bus_id, error_code )
+                        LogEventBmcHealthMessages(0xA, bus_id, error_code )
                         g_recovery_count[num] = current_recovery_count
             except:
                 print "[bmchealth_check_i2c]exception !!!"
