@@ -35,27 +35,16 @@ def LogEventBmcHealthMessages(event_dir, evd1, evd2, evd3):
     sensor_number = int(intf.Get(HwmonSensor.IFACE_NAME, 'sensornumber'), 16)
     sensor_name = objpath.split('/').pop()
 
-    severity = Event.SEVERITY_ERR if event_dir == 'Asserted' else Event.SEVERITY_INFO
-
-    desc = sensor_name + ":"
-    details = ""
     logid = 0
     if 'LOG_EVENT_CONFIG' in dir(System):
         for log_item in System.LOG_EVENT_CONFIG:
             if (log_item['EVD1'] == None or log_item['EVD1'] == evd1) and \
                (log_item['EVD2'] == None or log_item['EVD2'] == evd2) and \
                (log_item['EVD3'] == None or log_item['EVD3'] == evd3):
-                desc+="EVD1:" + str(evd1) + ","
-                desc+="EVD2:" + str(evd2) + ","
-                desc+="EVD3:" + str(evd3) + ":"
-                desc+=log_item['health_indicator']
-                if log_item['description'] != '':
-                    desc+="-" + log_item['description']
-                debug = dbus.ByteArray("")
 
                 #prepare to send log event:
                 #create & init new event class
-                log = Event(severity, desc, sensortype, sensor_number, debug)
+                log = Event(Event.SEVERITY_INFO, sensortype, sensor_number)
                 #add new event log
                 logid=_EVENT_MANAGER.add_log(log)
                 break

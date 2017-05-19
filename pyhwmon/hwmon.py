@@ -117,24 +117,8 @@ class Hwmons():
 		sensor_name = objpath.split('/').pop()
 		threshold_type_str = threshold_type.title().replace('_', ' ')
 
-		#Get event messages
-		if threshold_type == 'UPPER_CRITICAL':
-			threshold = intf.Get(SensorThresholds.IFACE_NAME, 'critical_upper')
-			desc = sensor_name+' '+threshold_type_str+' going high-'+event_dir+": Reading "+str(reading)+", Threshold: "+str(threshold)
-		elif threshold_type == 'LOWER_CRITICAL':
-			threshold = intf.Get(SensorThresholds.IFACE_NAME, 'critical_lower')
-			desc = sensor_name+' '+threshold_type_str+' going low-'+event_dir+": Reading "+str(reading)+", Threshold: "+str(threshold)
-		else:
-			threshold = 'N/A'
-			if origin_threshold_type == 'UPPER_CRITICAL':
-				threshold = intf.Get(SensorThresholds.IFACE_NAME, 'critical_upper')
-			if origin_threshold_type == 'LOWER_CRITICAL':
-				threshold = intf.Get(SensorThresholds.IFACE_NAME, 'critical_lower')
-			desc = sensor_name+' '+threshold_type_str+' '+event_dir+" from "+str(origin_threshold_type)+": Reading "+str(reading)+", Threshold: "+str(threshold)
-
 		# Add event log
-		severity = Event.SEVERITY_ERR if event_dir == 'Asserted' else Event.SEVERITY_INFO
-		log = Event(severity, desc, sensortype, sensor_number)
+		log = Event(Event.SEVERITY_INFO, sensortype, sensor_number)
 		self.event_manager.add_log(log)
 
 		return True
