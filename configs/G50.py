@@ -331,6 +331,13 @@ GPIO_CONFIG['POWER_STATE_LED'] = {
     'direction': 'out',
     'inverse': 'yes'
     }
+GPIO_CONFIG['STATUS_LED'] = {
+    'gpio_pin': 'F0',
+    'direction': 'out',
+    'inverse': 'yes',
+    'data_reg_addr': 0x1e780020,
+    'offset': 8
+    }
 
 def convertGpio(name):
     offset = int(filter(str.isdigit, name))

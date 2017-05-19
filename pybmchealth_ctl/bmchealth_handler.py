@@ -26,6 +26,36 @@ g_recovery_count = 0
 
 _EVENT_MANAGER = EventManager()
 
+#light: 1, light on; 0:light off
+def bmchealth_set_status_led(light):
+    if 'GPIO_CONFIG' not in dir(System) or 'STATUS_LED' not in System.GPIO_CONFIG:
+        return
+    try:
+        data_reg_addr = System.GPIO_CONFIG["STATUS_LED"]["data_reg_addr"]
+        offset = System.GPIO_CONFIG["STATUS_LED"]["offset"]
+        inverse = "no"
+        if "inverse" in  System.GPIO_CONFIG["STATUS_LED"]:
+            inverse = System.GPIO_CONFIG["STATUS_LED"]["inverse"]
+        print data_reg_addr
+        cmd_data = subprocess.check_output("devmem  " + hex(data_reg_addr) , shell=True)
+        cmd_data = cmd_data.rstrip("\n")
+        cur_data = int(cmd_data, 16)
+        if (inverse == "yes"):
+            if (light == 1):
+                cur_data = cur_data & ~(1<<offset)
+            else:
+                cur_data = cur_data | (1<<offset)
+        else:
+            if (light == 1):
+                cur_data = cur_data | (1<<offset)
+            else:
+                cur_data = cur_data & ~(1<<offset)
+
+        set_led_cmd = "devmem  " + hex(data_reg_addr) + " 32 " + hex(cur_data)[:10]
+        os.system(set_led_cmd)
+    except:
+        pass
+
 def LogEventBmcHealthMessages(event_dir, evd1, evd2, evd3):
     bus = get_dbus()
     objpath = g_bmchealth_obj_path
@@ -63,6 +93,7 @@ def LogEventBmcHealthMessages(event_dir, evd1, evd2, evd3):
     if logid == 0:
         return False
     else:
+        bmchealth_set_status_led(1)
         return True
 
 def bmchealth_set_value_with_dbus(val):
