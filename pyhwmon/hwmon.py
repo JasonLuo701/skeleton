@@ -99,14 +99,18 @@ class Hwmons():
 			obj = bus.get_object(SENSOR_BUS,objpath,introspect=False)
 			intf_p = dbus.Interface(obj, dbus.PROPERTIES_IFACE)
 			intf = dbus.Interface(obj,HwmonSensor.IFACE_NAME)
-			raw_value = int(self.readAttribute(attribute))
-			rtn = intf.setByPoll(raw_value)
-			if (rtn[0] == True):
-				self.writeAttribute(attribute,rtn[1])
 			if not standby_monitor:
 				current_pgood = self.pgood_intf.Get('org.openbmc.control.Power', 'pgood')
 				if  current_pgood == 0:
+					rtn = intf.setByPoll(-1)
+					if (rtn[0] == True):
+						self.writeAttribute(attribute,rtn[1])
 					return True
+			raw_value = int(self.readAttribute(attribute))
+			rtn = intf.setByPoll(raw_value)
+			raw_value = int(self.readAttribute(attribute))
+			if (rtn[0] == True):
+				self.writeAttribute(attribute,rtn[1])
 
 			self.entity_presence_check(attribute,hwmon,raw_value)
 
