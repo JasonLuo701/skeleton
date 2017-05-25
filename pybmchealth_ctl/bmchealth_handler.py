@@ -53,48 +53,19 @@ def bmchealth_set_status_led(light):
         os.system(set_led_cmd)
     except:
         pass
-def bmchealth_set_value_with_dbus(val):
-    try:
-        b_bus = get_dbus()
-        b_obj= b_bus.get_object(DBUS_NAME, g_bmchealth_obj_path)
-        b_interface = dbus.Interface(b_obj,  DBUS_INTERFACE)
-        b_interface.Set(SENSOR_VALUE_INTERFACE, 'value', val)
-    except:
-        print "bmchealth_set_value Error!!!"
-        return -1
-    return 0
-
-def bmchealth_get_value_with_dbus():
-    val = 0
-    try:
-        b_bus = get_dbus()
-        b_obj= b_bus.get_object(DBUS_NAME, g_bmchealth_obj_path)
-        b_interface = dbus.Interface(b_obj,  DBUS_INTERFACE)
-        val = b_interface.Get(SENSOR_VALUE_INTERFACE, 'value')
-    except:
-        print "bmchealth_set_value Error!!!"
-        return -1
-    return val
-
-def bmchealth_set_value(val, mask=0xFFFF):
-    retry = 20
-    data = bmchealth_get_value_with_dbus()
-    while( data !=0):
-        if (retry <=0):
-            return -1
-        data = bmchealth_get_value_with_dbus()
-        retry = retry -1
-        time.sleep(1)
-
-    data = data & ~(mask)
-    data = data | val;
-    bmchealth_set_value_with_dbus(data)
-    return 0
 
 def LogEventBmcHealthMessages(s_assert="", s_event_indicator="", \
                                          s_evd_desc="", data={}):
-    return bmclogevent_ctl.BmcLogEventMessages(g_bmchealth_obj_path, "BMC Health", \
-                s_assert,  s_event_indicator, s_evd_desc, data)
+    try:
+        result = bmclogevent_ctl.BmcLogEventMessages(g_bmchealth_obj_path, "BMC Health", \
+                    s_assert,  s_event_indicator, s_evd_desc, data)
+        if result['logid'] != 0:
+            if s_assert == "Asserted":
+                bmclogevent_ctl.bmclogevent_set_value(g_bmchealth_obj_path, 1, offset=result['evd1'])
+            elif s_assert == "Deasserted":
+                bmclogevent_ctl.bmclogevent_set_value(g_bmchealth_obj_path, 0, offset=result['evd1'])
+    except:
+        print "LogEventBmcHealthMessages error!! " + s_event_indicator
 
 def bmchealth_check_network():
     carrier_file_path = "/sys/class/net/eth0/carrier"
@@ -279,7 +250,7 @@ def bmchealth_check_i2c():
 if __name__ == '__main__':
     mainloop = gobject.MainLoop()
     #set bmchealth default value
-    bmchealth_set_value(0)
+    bmclogevent_ctl.bmclogevent_set_value(g_bmchealth_obj_path, 0)
     bmchealth_fix_and_check_mac()
     bmchealth_check_watchdog()
     gobject.timeout_add(1000,bmchealth_check_network)
