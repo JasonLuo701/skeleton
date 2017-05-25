@@ -41,6 +41,7 @@ IFACE_LOOKUP = {
 	'reading_type': HwmonSensor.IFACE_NAME,
 	'min_reading': HwmonSensor.IFACE_NAME,
 	'max_reading': HwmonSensor.IFACE_NAME,
+	'standby_monitor': HwmonSensor.IFACE_NAME,
 }
 
 class Hwmons():
