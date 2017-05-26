@@ -15,6 +15,7 @@ from obmc.sensors import SensorValue as SensorValue
 from obmc.sensors import HwmonSensor as HwmonSensor
 from obmc.sensors import SensorThresholds as SensorThresholds
 import obmc_system_config as System
+import bmclogevent_ctl
 
 SENSOR_BUS = 'org.openbmc.Sensors'
 # sensors include /org/openbmc/sensors and /org/openbmc/control
@@ -68,6 +69,15 @@ class Hwmons():
 		with open(filename, 'w') as f:
 			f.write(str(value)+'\n')
 
+	def entity_presence_check(self,attribute,hwmon,raw_value):
+		if hwmon.has_key('entity'):
+			if raw_value <= 0:
+				bmclogevent_ctl.BmcLogEventMessages("/org/openbmc/sensors/entity_presence", \
+                                                                    "Entity Presence" ,"Asserted", \
+                                                                     data={'entity_device':hwmon['entity'], 'entity_index':hwmon['index']})
+                        	bmclogevent_ctl.bmclogevent_set_value("/org/openbmc/sensors/entity_presence",1, offset=hwmon['entity'])
+		return True
+
 	def poll(self,objpath,attribute,hwmon):
 		try:
 			standby_monitor = True
@@ -85,6 +95,8 @@ class Hwmons():
 				current_pgood = self.pgood_intf.Get('org.openbmc.control.Power', 'pgood')
 				if  current_pgood == 0:
 					return True
+
+			self.entity_presence_check(attribute,hwmon,raw_value)
 
 			# do not check threshold while not reading
 			if raw_value == -1:

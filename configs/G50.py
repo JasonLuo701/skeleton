@@ -361,6 +361,8 @@ def _add_gpu_temperature_sensor(configs, index, sensornumber):
         'sensornumber': sensornumber,
         'standby_monitor': False,
         'units': 'C',
+        'entity': 0x3,
+        'index': index,
         }]
     configs.append(config)
 
@@ -435,6 +437,8 @@ def _add_psu_voltage_sensor(configs, index, sensornumber, bus_number):
         'standby_monitor': True,
         'units': 'V',
         'value': 0,
+        'entity': 0xA,
+        'index': index,
         }]
     configs.append(config)
 
@@ -464,6 +468,8 @@ def _add_cable_led(configs, index, gpio):
         'scale': 1,
         'standby_monitor': True,
         'units': '',
+        'entity': 0x1F,
+        'index': index,
         }]
     configs.append(config)
 
@@ -479,6 +485,8 @@ def _add_pex9797(configs, index, sensornumber):
         'sensor_name': 'PLX Switch %d Temp' % (index+1),
         'standby_monitor': False,
         'units': 'C',
+        'entity': 0xB,
+        'index': index,
         }]
     configs.append(config)
 
@@ -489,6 +497,19 @@ def _add_bmc_health_sensor(configs, sensornumber):
         'reading_type': '0x70',
         'sensor_name': 'BMC Health',
         'sensor_type': '0x28',
+        'sensornumber': sensornumber,
+        'standby_monitor': True,
+        'value': 0,
+        }]
+    configs.append(config)
+
+def _add_entity_presence(configs, sensornumber):
+    config = ['/org/openbmc/sensors/entity_presence', {
+        'device_node': '',
+        'object_path': 'sensors/entity_presence',
+        'reading_type': '0x6F',
+        'sensor_name': 'Entity Presence',
+        'sensor_type': '0x25',
         'sensornumber': sensornumber,
         'standby_monitor': True,
         'value': 0,
@@ -560,7 +581,8 @@ _add_pex9797(SENSOR_MONITOR_CONFIG, 0, 0x37)
 _add_pex9797(SENSOR_MONITOR_CONFIG, 1, 0x38)
 _add_pex9797(SENSOR_MONITOR_CONFIG, 2, 0x39)
 _add_pex9797(SENSOR_MONITOR_CONFIG, 3, 0x3A)
-_add_bmc_health_sensor(SENSOR_MONITOR_CONFIG, '0x82')
+_add_bmc_health_sensor(SENSOR_MONITOR_CONFIG, 0x82)
+_add_entity_presence(SENSOR_MONITOR_CONFIG, 0x8A)
 
 HWMON_CONFIG = {
     '0-0010' :  {
@@ -1202,3 +1224,58 @@ FAN_ALGORITHM_CONFIG = {
     'FAN_LED_I2C_BUS': [],
     'FAN_LED_I2C_SLAVE_ADDRESS': [],
 }
+
+BMC_LOGEVENT_CONFIG = {
+	'BMC Health': {
+	    'Record ID': 0,
+	    'Record Type': 0x2,
+	    'Timestamp': 0,
+	    'Generator Id': 0x20,
+	    'Evm Rev': 0x04,
+	    'Event Dir': 0x70,
+	    'Event Data Table': {
+			'Network Error': {
+				'Severity': 'Critical',
+				'Event Data Information': {
+					'Link Down':	[0x1, 0x1, None],
+					'DHCP Failure':	[0x1, 0x2, None],
+				},
+			},
+			'Hardware WDT expired': {
+				'Severity': 'Critical',
+				'Event Data Information': {
+					'Hardware WDT expired':	[0x3, None, None],
+				},
+			},
+			'I2C bus hang': {
+				'Severity': 'Warning',
+				'Event Data Information': {
+					'I2C bus hang':	[0xA, 'i2c_bus_id', 'i2c_error_code'],
+				},
+			},
+			'No MAC address programmed': {
+				'Severity': 'Critical',
+				'Event Data Information': {
+					'No MAC address programmed':	[0xC, None, None],
+				},
+			},
+	    },
+    },
+    'Entity Presence': {
+        'Record ID': 0,
+        'Record Type': 0x2,
+        'Timestamp': 0,
+        'Generator Id': 0x20,
+        'Evm Rev': 0x04,
+        'Event Dir': 0x6F,
+        'Event Data Table': {
+            'Entity Presence': {
+                'Severity': 'Critical',
+                'Event Data Information': {
+                    'Entity Presence':	[0x1, "entity_device", 'entity_index'],
+				},
+			},
+		},
+	},
+}
+
