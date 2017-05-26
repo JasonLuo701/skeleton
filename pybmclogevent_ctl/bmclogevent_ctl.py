@@ -10,12 +10,57 @@ import dbus.mainloop.glib
 import obmc.dbuslib.propertycacher as PropertyCacher
 from obmc.dbuslib.bindings import get_dbus, DbusProperties, DbusObjectManager
 from obmc.sensors import HwmonSensor as HwmonSensor
+import time
 
 DBUS_NAME = 'org.openbmc.Sensors'
 DBUS_INTERFACE = 'org.freedesktop.DBus.Properties'
 SENSOR_VALUE_INTERFACE = 'org.openbmc.SensorValue'
 
 _EVENT_MANAGER = EventManager()
+
+
+def bmclogevent_set_value_with_dbus(obj_path, val):
+    try:
+        b_bus = get_dbus()
+        b_obj= b_bus.get_object(DBUS_NAME, obj_path)
+        b_interface = dbus.Interface(b_obj,  DBUS_INTERFACE)
+        b_interface.Set(SENSOR_VALUE_INTERFACE, 'value', val)
+    except:
+        print "bmclogevent_set_value_with_dbus Error!!! " + obj_path
+        return -1
+    return 0
+
+def bmclogevent_get_value_with_dbus(obj_path):
+    val = 0
+    try:
+        b_bus = get_dbus()
+        b_obj= b_bus.get_object(DBUS_NAME, obj_path)
+        b_interface = dbus.Interface(b_obj,  DBUS_INTERFACE)
+        val = b_interface.Get(SENSOR_VALUE_INTERFACE, 'value')
+    except:
+        print "bmclogevent_get_value_with_dbus Error!!! " + obj_path
+        return -1
+    return val
+
+def bmclogevent_set_value(obj_path, val, mask=0xFFFF, offset=-1):
+    retry = 20
+    data = bmclogevent_get_value_with_dbus(obj_path)
+    while( data == -1):
+        if (retry <=0):
+            return -1
+        data = bmclogevent_get_value_with_dbus(obj_path)
+        retry = retry -1
+        time.sleep(1)
+
+    if offset != -1:
+        offset_mask = (1<<offset)
+        mask = mask & offset_mask
+        val = val << offset
+
+    data = data & ~(mask)
+    data = data | val;
+    bmclogevent_set_value_with_dbus(obj_path, data)
+    return 0
 
 def BmcLogEventMessages(objpath = "", s_event_identify="", s_assert="", \
                                     s_event_indicator="", s_evd_desc="", data={}):
@@ -25,10 +70,11 @@ def BmcLogEventMessages(objpath = "", s_event_identify="", s_assert="", \
     serverity = Event.SEVERITY_INFO
     b_assert = 0
     event_dir = 0
+    result = {'logid':0}
     try:
         if 'BMC_LOGEVENT_CONFIG' not in dir(System) and \
           s_event_identify not in System.BMC_HEALTH_LOGEVENT_CONFIG:
-            return False
+            return result
         event_dir = System.BMC_LOGEVENT_CONFIG[s_event_identify]['Event Dir']
 
         if s_assert == "Deasserted":
@@ -55,16 +101,18 @@ def BmcLogEventMessages(objpath = "", s_event_identify="", s_assert="", \
             else:
                 evd3 =evd_data_info[2]
     except:
-        return False
+        return result
 
     bus = get_dbus()
     obj = bus.get_object(DBUS_NAME, objpath, introspect=False)
     intf = dbus.Interface(obj, dbus.PROPERTIES_IFACE)
     sensortype = int(intf.Get(HwmonSensor.IFACE_NAME, 'sensor_type'), 16)
-    sensor_number = int(intf.Get(HwmonSensor.IFACE_NAME, 'sensornumber'), 16)
+    sensor_number = intf.Get(HwmonSensor.IFACE_NAME, 'sensornumber')
+    if isinstance(sensor_number, basestring):
+        sensor_number =  int(sensor_number , 16)
     log = Event(serverity, sensortype, sensor_number, event_dir | b_assert, evd1, evd2, evd3)
     logid=_EVENT_MANAGER.add_log(log)
-    if logid == 0:
-        return False
-    else:
-        return True
+    result['logid'] = logid
+    if s_event_identify == "BMC Health":
+        result['evd1'] = evd1
+    return result
