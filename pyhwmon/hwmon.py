@@ -53,6 +53,7 @@ class Hwmons():
 		self.path_mapping = {}
 		self.scanDirectory()
 		self.event_manager = EventManager()
+		self.check_entity_presence = {}
 		gobject.timeout_add(DIR_POLL_INTERVAL, self.scanDirectory)
 
 	def readAttribute(self,filename):
@@ -70,12 +71,23 @@ class Hwmons():
 			f.write(str(value)+'\n')
 
 	def entity_presence_check(self,attribute,hwmon,raw_value):
+		entity_presence_obj_path = "/org/openbmc/sensors/entity_presence"
+		if attribute not in self.check_entity_presence:
+			self.check_entity_presence[attribute] = 1
 		if hwmon.has_key('entity'):
-			if raw_value <= 0:
-				bmclogevent_ctl.BmcLogEventMessages("/org/openbmc/sensors/entity_presence", \
-                                                                    "Entity Presence" ,"Asserted", "Entity Presence" , \
-                                                                     data={'entity_device':hwmon['entity'], 'entity_index':hwmon['index']})
-                        	bmclogevent_ctl.bmclogevent_set_value("/org/openbmc/sensors/entity_presence",1, offset=hwmon['entity'])
+			if raw_value <= 0 and self.check_entity_presence[attribute] == 1:
+				bmclogevent_ctl.BmcLogEventMessages(entity_presence_obj_path, \
+						"Entity Presence" ,"Asserted", "Entity Presence" , \
+						data={'entity_device':hwmon['entity'], 'entity_index':hwmon['index']})
+				bmclogevent_ctl.bmclogevent_set_value(entity_presence_obj_path ,1, offset=hwmon['entity'])
+				self.check_entity_presence[attribute] = 0
+			elif raw_value > 0:
+				if self.check_entity_presence[attribute] == 0:
+					bmclogevent_ctl.BmcLogEventMessages(entity_presence_obj_path, \
+						"Entity Presence" ,"Deasserted", "Entity Presence" , \
+						data={'entity_device':hwmon['entity'], 'entity_index':hwmon['index']})
+					bmclogevent_ctl.bmclogevent_set_value(entity_presence_obj_path, 0, offset=hwmon['entity'])
+				self.check_entity_presence[attribute] = 1
 		return True
 
 	def poll(self,objpath,attribute,hwmon):
