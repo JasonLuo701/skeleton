@@ -73,7 +73,7 @@ class Hwmons():
 		if hwmon.has_key('entity'):
 			if raw_value <= 0:
 				bmclogevent_ctl.BmcLogEventMessages("/org/openbmc/sensors/entity_presence", \
-                                                                    "Entity Presence" ,"Asserted", \
+                                                                    "Entity Presence" ,"Asserted", "Entity Presence" , \
                                                                      data={'entity_device':hwmon['entity'], 'entity_index':hwmon['index']})
                         	bmclogevent_ctl.bmclogevent_set_value("/org/openbmc/sensors/entity_presence",1, offset=hwmon['entity'])
 		return True
