@@ -15,6 +15,7 @@ from obmc.sensors import SensorValue as SensorValue
 from obmc.sensors import HwmonSensor as HwmonSensor
 from obmc.sensors import SensorThresholds as SensorThresholds
 import obmc_system_config as System
+import bmclogevent_ctl
 
 SENSOR_BUS = 'org.openbmc.Sensors'
 # sensors include /org/openbmc/sensors and /org/openbmc/control
@@ -52,6 +53,7 @@ class Hwmons():
 		self.path_mapping = {}
 		self.scanDirectory()
 		self.event_manager = EventManager()
+		self.check_entity_presence = {}
 		gobject.timeout_add(DIR_POLL_INTERVAL, self.scanDirectory)
 
 	def readAttribute(self,filename):
@@ -67,6 +69,26 @@ class Hwmons():
 	def writeAttribute(self,filename,value):
 		with open(filename, 'w') as f:
 			f.write(str(value)+'\n')
+
+	def entity_presence_check(self,attribute,hwmon,raw_value):
+		entity_presence_obj_path = "/org/openbmc/sensors/entity_presence"
+		if attribute not in self.check_entity_presence:
+			self.check_entity_presence[attribute] = 1
+		if hwmon.has_key('entity'):
+			if raw_value <= 0 and self.check_entity_presence[attribute] == 1:
+				bmclogevent_ctl.BmcLogEventMessages(entity_presence_obj_path, \
+						"Entity Presence" ,"Asserted", "Entity Presence" , \
+						data={'entity_device':hwmon['entity'], 'entity_index':hwmon['index']})
+				bmclogevent_ctl.bmclogevent_set_value(entity_presence_obj_path ,1, offset=hwmon['entity'])
+				self.check_entity_presence[attribute] = 0
+			elif raw_value > 0:
+				if self.check_entity_presence[attribute] == 0:
+					bmclogevent_ctl.BmcLogEventMessages(entity_presence_obj_path, \
+						"Entity Presence" ,"Deasserted", "Entity Presence" , \
+						data={'entity_device':hwmon['entity'], 'entity_index':hwmon['index']})
+					bmclogevent_ctl.bmclogevent_set_value(entity_presence_obj_path, 0, offset=hwmon['entity'])
+				self.check_entity_presence[attribute] = 1
+		return True
 
 	def poll(self,objpath,attribute,hwmon):
 		try:
@@ -85,6 +107,8 @@ class Hwmons():
 				current_pgood = self.pgood_intf.Get('org.openbmc.control.Power', 'pgood')
 				if  current_pgood == 0:
 					return True
+
+			self.entity_presence_check(attribute,hwmon,raw_value)
 
 			# do not check threshold while not reading
 			if raw_value == -1:
