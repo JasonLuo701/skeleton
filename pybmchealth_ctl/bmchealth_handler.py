@@ -11,9 +11,9 @@ import obmc.dbuslib.propertycacher as PropertyCacher
 from obmc.dbuslib.bindings import get_dbus, DbusProperties, DbusObjectManager
 from obmc.sensors import HwmonSensor as HwmonSensor
 from obmc.sensors import SensorThresholds as SensorThresholds
-from obmc.events import EventManager, Event
 import obmc_system_config as System
 import time
+import bmclogevent_ctl
 
 import mac_guid
 
@@ -23,8 +23,6 @@ SENSOR_VALUE_INTERFACE = 'org.openbmc.SensorValue'
 
 g_bmchealth_obj_path = "/org/openbmc/sensors/bmc_health"
 g_recovery_count = [0,0,0,0,0,0,0,0]
-
-_EVENT_MANAGER = EventManager()
 
 #light: 1, light on; 0:light off
 def bmchealth_set_status_led(light):
@@ -55,24 +53,6 @@ def bmchealth_set_status_led(light):
         os.system(set_led_cmd)
     except:
         pass
-
-def LogEventBmcHealthMessages(evd1 = 0, evd2 = 0, evd3 = 0):
-    bus = get_dbus()
-    objpath = g_bmchealth_obj_path
-    obj = bus.get_object(DBUS_NAME, objpath, introspect=False)
-    intf = dbus.Interface(obj, dbus.PROPERTIES_IFACE)
-    sensortype = int(intf.Get(HwmonSensor.IFACE_NAME, 'sensor_type'), 16)
-    sensor_number = int(intf.Get(HwmonSensor.IFACE_NAME, 'sensornumber'), 16)
-
-    log = Event(Event.SEVERITY_INFO, sensortype, sensor_number, 0x70, evd1, evd2, evd3)
-    logid=_EVENT_MANAGER.add_log(log)
-
-    if logid == 0:
-        return False
-    else:
-        bmchealth_set_status_led(1)
-        return True
-
 def bmchealth_set_value_with_dbus(val):
     try:
         b_bus = get_dbus()
@@ -84,13 +64,37 @@ def bmchealth_set_value_with_dbus(val):
         return -1
     return 0
 
-def bmchealth_set_value(val):
+def bmchealth_get_value_with_dbus():
+    val = 0
+    try:
+        b_bus = get_dbus()
+        b_obj= b_bus.get_object(DBUS_NAME, g_bmchealth_obj_path)
+        b_interface = dbus.Interface(b_obj,  DBUS_INTERFACE)
+        val = b_interface.Get(SENSOR_VALUE_INTERFACE, 'value')
+    except:
+        print "bmchealth_set_value Error!!!"
+        return -1
+    return val
+
+def bmchealth_set_value(val, mask=0xFFFF):
     retry = 20
-    while(bmchealth_set_value_with_dbus(val)!=0):
+    data = bmchealth_get_value_with_dbus()
+    while( data !=0):
         if (retry <=0):
             return -1
+        data = bmchealth_get_value_with_dbus()
+        retry = retry -1
         time.sleep(1)
+
+    data = data & ~(mask)
+    data = data | val;
+    bmchealth_set_value_with_dbus(data)
     return 0
+
+def LogEventBmcHealthMessages(s_assert="", s_event_indicator="", \
+                                         s_evd_desc="", data={}):
+    return bmclogevent_ctl.BmcLogEventMessages(g_bmchealth_obj_path, "BMC Health", \
+                s_assert,  s_event_indicator, s_evd_desc, data)
 
 def bmchealth_check_network():
     carrier_file_path = "/sys/class/net/eth0/carrier"
@@ -153,9 +157,10 @@ def bmchealth_check_network():
         if g_dhcp_status == 1:
             print "bmchealth_check_network:  DHCP Fail"
             g_dhcp_status = 0
-            bmchealth_set_value(0x1)
-            LogEventBmcHealthMessages(0x1, 0x2)
+            LogEventBmcHealthMessages("Asserted", "Network Error", "DHCP Failure")
     else:
+        if g_dhcp_status == 0:
+            LogEventBmcHealthMessages("Deasserted", "Network Error", "DHCP Failure")
         g_dhcp_status = 1
 
     #check network down
@@ -163,9 +168,10 @@ def bmchealth_check_network():
         if g_net_down_status == 1:
             print "bmchealth_check_network:  network down Fail"
             g_net_down_status = 0
-            bmchealth_set_value(0x1)
-            LogEventBmcHealthMessages(0x1, 0x1)
+            LogEventBmcHealthMessages("Asserted", "Network Error", "Link Down")
     else:
+        if g_net_down_status == 0:
+            LogEventBmcHealthMessages("Deasserted", "Network Error", "Link Down")
         g_net_down_status = 1
 
     if org_dhcp_status != g_dhcp_status:
@@ -186,10 +192,8 @@ def bmchealth_fix_and_check_mac():
     #check bmchealth macaddress
     ret = 0
     if fix_mac_status == 0 or fix_guid_status == 0:
-        ret = bmchealth_set_value(0xC)
-        LogEventBmcHealthMessages(0xC)
-    print "bmchealth: bmchealth_fix_and_check_mac : " + str(ret)
-    return ret
+        LogEventBmcHealthMessages("Asserted", "No MAC address programmed")
+    return True
 
 def bmchealth_check_watchdog():
     print "check watchdog timeout start"
@@ -249,8 +253,7 @@ def bmchealth_check_watchdog():
         f.write(str(watchdog2_timeout_counter))
         f.close()
         print "Log watchdog expired event"
-        bmchealth_set_value(0x3)
-        LogEventBmcHealthMessages(0x3)
+        LogEventBmcHealthMessages("Asserted", "Hardware WDT expired")
     return True
 
 def bmchealth_check_i2c():
@@ -266,7 +269,7 @@ def bmchealth_check_i2c():
                     current_recovery_count = int(f.readline())
                     if current_recovery_count > g_recovery_count[num]:
                         print "Log i2c recovery event"
-                        LogEventBmcHealthMessages(0xA, bus_id, 0x1)
+                        LogEventBmcHealthMessages("Asserted", "I2C bus hang", data={'i2c_bus_id':bus_id, 'i2c_error_code':0x1})
                         g_recovery_count[num] = current_recovery_count
             except:
                 print "[bmchealth_check_i2c]exception !!!"
