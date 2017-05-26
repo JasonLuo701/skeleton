@@ -159,6 +159,8 @@ def bmchealth_check_network():
             g_dhcp_status = 0
             LogEventBmcHealthMessages("Asserted", "Network Error", "DHCP Failure")
     else:
+        if g_dhcp_status == 0:
+            LogEventBmcHealthMessages("Deasserted", "Network Error", "DHCP Failure")
         g_dhcp_status = 1
 
     #check network down
@@ -168,6 +170,8 @@ def bmchealth_check_network():
             g_net_down_status = 0
             LogEventBmcHealthMessages("Asserted", "Network Error", "Link Down")
     else:
+        if g_net_down_status == 0:
+            LogEventBmcHealthMessages("Deasserted", "Network Error", "Link Down")
         g_net_down_status = 1
 
     if org_dhcp_status != g_dhcp_status:
