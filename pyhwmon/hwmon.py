@@ -79,14 +79,14 @@ class Hwmons():
 				bmclogevent_ctl.BmcLogEventMessages(entity_presence_obj_path, \
 						"Entity Presence" ,"Asserted", "Entity Presence" , \
 						data={'entity_device':hwmon['entity'], 'entity_index':hwmon['index']})
-				bmclogevent_ctl.bmclogevent_set_value(entity_presence_obj_path ,1, offset=hwmon['entity'])
+				bmclogevent_ctl.bmclogevent_set_value(entity_presence_obj_path ,1, 0x1)
 				self.check_entity_presence[attribute] = 0
 			elif raw_value > 0:
 				if self.check_entity_presence[attribute] == 0:
 					bmclogevent_ctl.BmcLogEventMessages(entity_presence_obj_path, \
 						"Entity Presence" ,"Deasserted", "Entity Presence" , \
 						data={'entity_device':hwmon['entity'], 'entity_index':hwmon['index']})
-					bmclogevent_ctl.bmclogevent_set_value(entity_presence_obj_path, 0, offset=hwmon['entity'])
+					bmclogevent_ctl.bmclogevent_set_value(entity_presence_obj_path, 0, 0)
 				self.check_entity_presence[attribute] = 1
 		return True
 
