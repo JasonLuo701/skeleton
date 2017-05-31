@@ -87,7 +87,11 @@ def BmcLogEventMessages(objpath = "", s_event_identify="", s_assert="", \
 
         evd_data_info = evd_data['Event Data Information'][s_evd_desc]
         if evd_data_info[0] != None:
-            evd1 =evd_data_info[0]
+            if isinstance(evd_data_info[0], basestring):
+                if evd_data_info[0] in data:
+                    evd1 =data[evd_data_info[0]]
+            else:
+                evd1 =evd_data_info[0]
         if evd_data_info[1] != None:
             if isinstance(evd_data_info[1], basestring):
                 if evd_data_info[1] in data:
