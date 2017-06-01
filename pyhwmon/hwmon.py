@@ -42,6 +42,7 @@ IFACE_LOOKUP = {
 	'min_reading': HwmonSensor.IFACE_NAME,
 	'max_reading': HwmonSensor.IFACE_NAME,
 	'standby_monitor': HwmonSensor.IFACE_NAME,
+	'firmware_update': HwmonSensor.IFACE_NAME,
 }
 
 class Hwmons():
@@ -107,6 +108,10 @@ class Hwmons():
 					if (rtn[0] == True):
 						self.writeAttribute(attribute,rtn[1])
 					return True
+
+			if 'firmware_update' in hwmon and hwmon['firmware_update'] == 1:
+				return True
+
 			raw_value = int(self.readAttribute(attribute))
 			rtn = intf.setByPoll(raw_value)
 			raw_value = int(self.readAttribute(attribute))
