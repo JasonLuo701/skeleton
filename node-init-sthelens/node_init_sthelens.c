@@ -46,6 +46,9 @@ main(int argc, char *argv[])
     /* For firmware update feature: Create /var/home/ folder && link  between /run/initramfs and /var/home/wcs */
     system("mkdir /var/wcs/");
     system("ln -s /run/initramfs /var/wcs/home");
+    
+    /* Check the ntp server address in EEPROM */
+    system("python /usr/sbin/ntp_eeprom.py --check-ntp");
 
     return 0;
 }
