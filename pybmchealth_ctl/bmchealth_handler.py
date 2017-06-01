@@ -247,12 +247,30 @@ def bmchealth_check_i2c():
 
     return True
 
+def bmchealth_check_fw_updata_complete():
+    fw_update_complete_check = "/var/lib/obmc/fw_update_complete"
+    psu_fw_update_complete_check = "/var/lib/obmc/psu_fwupdate_record"
+    if os.path.exists(fw_update_complete_check):
+        os.remove(fw_update_complete_check)
+        LogEventBmcHealthMessages("Asserted", "Firmware Update completed","BMC Firmware Update completed",data={'index':0x1})
+    if os.path.exists(psu_fw_update_complete_check):
+        try:
+            with open(psu_fw_update_complete_check, 'r') as f:
+                psu_id = int(f.readline())
+                print"log psu_fwupdate_record psu_id = "+str(psu_id)
+                LogEventBmcHealthMessages("Asserted", "Firmware Update completed","PSU Firmware Update completed",data={'index':psu_id})
+        except:
+                print "[bmchealth_check_fw_updata_complete]exception !!!"
+        os.remove(psu_fw_update_complete_check)
+	return True
+
 if __name__ == '__main__':
     mainloop = gobject.MainLoop()
     #set bmchealth default value
     bmclogevent_ctl.bmclogevent_set_value(g_bmchealth_obj_path, 0)
     bmchealth_fix_and_check_mac()
     bmchealth_check_watchdog()
+    bmchealth_check_fw_updata_complete()
     gobject.timeout_add(1000,bmchealth_check_network)
     gobject.timeout_add(1000,bmchealth_check_i2c)
     print "bmchealth_handler control starting"

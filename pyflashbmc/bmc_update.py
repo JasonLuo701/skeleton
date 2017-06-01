@@ -280,6 +280,7 @@ class BmcFlashControl(DbusProperties,DbusObjectManager):
 	@dbus.service.method(DBUS_NAME,
 		in_signature='', out_signature='')
 	def PrepareForUpdate(self):
+		fw_update_complete_check="/var/lib/obmc/fw_update_complete"
 		subprocess.call([
 			"fw_setenv",
 			"openbmconce",
@@ -287,6 +288,8 @@ class BmcFlashControl(DbusProperties,DbusObjectManager):
 		self.Set(DBUS_NAME,"status","Switch to update mode in progress")
 		o = bus.get_object(BMC_DBUS_NAME, BMC_OBJ_NAME)
 		intf = dbus.Interface(o, BMC_DBUS_NAME)
+		f = file(fw_update_complete_check,"w")
+		f.close()
 		intf.warmReset()
 
 
