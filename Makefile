@@ -33,7 +33,8 @@ SUBDIRS = hacks \
 	  info \
 	  node-init-sthelens \
 	  pybmchealth_ctl \
-	  pybmclogevent_ctl
+	  pybmclogevent_ctl \
+	  gpu_utility
 
 REVERSE_SUBDIRS = $(shell echo $(SUBDIRS) $(GDBUS_APPS) $(SDBUS_APPS) | tr ' ' '\n' | tac |tr '\n' ' ')
 
