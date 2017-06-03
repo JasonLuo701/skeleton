@@ -312,37 +312,44 @@ void function_get_pex_temp_data(int pex_idx)
 	ret = i2c_raw_access(i2c_bus, i2c_addr, i2c_cmd->write_cmd.len,
 			     i2c_cmd->write_cmd.data, i2c_cmd->read_cmd.len, i2c_cmd->read_cmd.data);
 	if (ret < 0) {
+		real_temp_data = -1;
 		fprintf(stderr, "Failed to do iotcl cmd:%d, ret:%d\n", i2c_cmd->cmd, ret);
-		return ;
+		goto error_i2c_access;
 	}
 
 	i2c_cmd = &pex_device_cmd_tab[EM_PEX_CMD_TEMP_ENABLE_CTL];
 	ret = i2c_raw_access(i2c_bus, i2c_addr, i2c_cmd->write_cmd.len,
 			     i2c_cmd->write_cmd.data, i2c_cmd->read_cmd.len, i2c_cmd->read_cmd.data);
 	if (ret < 0) {
+		real_temp_data = -1;
 		fprintf(stderr, "Failed to do iotcl cmd:%d, ret=%d\n", i2c_cmd->cmd, ret);
-		return ;
+		goto error_i2c_access;
 	}
 
 	i2c_cmd = &pex_device_cmd_tab[EM_PEX_CMD_TEMP_READ];
 	ret = i2c_raw_access(i2c_bus, i2c_addr, i2c_cmd->write_cmd.len,
 			     i2c_cmd->write_cmd.data, i2c_cmd->read_cmd.len, i2c_cmd->read_cmd.data);
 	if (ret < 0) {
+		real_temp_data = -1;
 		fprintf(stderr, "Failed to do iotcl cmd:%d, ret:%d\n", i2c_cmd->cmd, ret);
-		return ;
+		goto error_i2c_access;
 	}
 
 	rx_len = i2c_cmd->read_cmd.len;
 	rx_data = i2c_cmd->read_cmd.data;
 
 	if ((rx_data[0] & 0x80) != 0x80) {
-		write_file_pex(pex_idx, -1, "temp");
-		return ;
+		real_temp_data = -1;
+		goto error_i2c_access;
 	}
 
 	temp_sensor_data = get_temperature_sensor_data(rx_len, rx_data);
 	real_temp_data = calculate_pex_temp(temp_sensor_data);
 	write_file_pex(pex_idx, real_temp_data, "temp");
+
+error_i2c_access:
+	write_file_pex(pex_idx, real_temp_data, "temp");
+	return ;
 }
 
 int pex_set_dbus_property(int pex_idx, char *property_name, char *property_value)
