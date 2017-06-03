@@ -47,5 +47,8 @@ main(int argc, char *argv[])
     system("mkdir /var/wcs/");
     system("ln -s /run/initramfs /var/wcs/home");
 
+    /* Check the ntp server address in EEPROM */
+    system("python /usr/sbin/ntp_eeprom.py --check-ntp");
+
     return 0;
 }
