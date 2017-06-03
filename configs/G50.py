@@ -457,6 +457,7 @@ def _add_psu_power_sensor(configs, index, sensornumber, bus_number):
         'standby_monitor': False,
         'units': 'W',
         'value': 0,
+        'firmware_update': 0, # 0: normal, 1:firmware_update working
         }]
     configs.append(config)
 
