@@ -1260,6 +1260,14 @@ BMC_LOGEVENT_CONFIG = {
 					'No MAC address programmed':	[0xC, None, None],
 				},
 			},
+			'Firmware Update completed': {
+				'Severity': 'OK',
+				'Event Data Information': {
+					'BMC Firmware Update completed':	[0xE, 0x1, 'index'],
+					'PSU Firmware Update completed':	[0xE, 0x2, 'index'],
+					'FPGA Firmware Update completed':	[0xE, 0x3, 'index'],
+				},
+			},
 	    },
     },
     'Entity Presence': {
