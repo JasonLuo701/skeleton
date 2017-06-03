@@ -32,7 +32,7 @@ def checkNTP():
 def writeNTP(ntpaddr):
   if ntpaddr == None:
     ntpaddr = raw_input("Please input NTP Address->")
-    print("Your MAC:",ntpaddr)
+    print("Your NTP:",ntpaddr)
   ntp =[]
   write_ntp=[]
   for i in range( 0, 8 ):

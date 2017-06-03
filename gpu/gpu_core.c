@@ -116,6 +116,7 @@ static int internal_gpu_access(int bus, __u8 slave,__u8 *write_buf, __u8 *read_b
 	}
     PMBUS_DELAY;
 	if(i2c_smbus_write_block_data(fd, MBT_REG_CMD, 4, write_buf) < 0) {
+		rc = -2;
 		goto error_smbus_access;
 	}
     PMBUS_DELAY;
@@ -141,7 +142,7 @@ static int internal_gpu_access(int bus, __u8 slave,__u8 *write_buf, __u8 *read_b
 error_smbus_access:
     PMBUS_DELAY;
 	close(fd);
-	return -1;
+	return rc;
 }
 
 static int function_get_gpu_info(int index)
@@ -213,7 +214,7 @@ int function_get_gpu_data(int index)
 	} else {
 		if(G_gpu_data[gpu_device_bus[index].device_index].temp_ready) { /*if previous is ok*/
 			sprintf(gpu_path , "%s%s%d%s", GPU_TEMP_PATH, "/gpu", gpu_device_bus[index].device_index+1,"_temp");
-			sprintf(sys_cmd, "echo %d > %s", -1, gpu_path);
+			sprintf(sys_cmd, "echo %d > %s", rc, gpu_path);
 			system(sys_cmd);
 		}
 		G_gpu_data[gpu_device_bus[index].device_index].temp_ready = 0;

@@ -457,6 +457,7 @@ def _add_psu_power_sensor(configs, index, sensornumber, bus_number):
         'standby_monitor': False,
         'units': 'W',
         'value': 0,
+        'firmware_update': 0, # 0: normal, 1:firmware_update working
         }]
     configs.append(config)
 
@@ -510,6 +511,19 @@ def _add_entity_presence(configs, sensornumber):
         'reading_type': '0x6F',
         'sensor_name': 'Entity Presence',
         'sensor_type': '0x25',
+        'sensornumber': sensornumber,
+        'standby_monitor': True,
+        'value': 0,
+        }]
+    configs.append(config)
+
+def _add_management_subsystem_health(configs, sensornumber):
+    config = ['/org/openbmc/sensors/management_subsystem_health', {
+        'device_node': '',
+        'object_path': 'sensors/management_subsystem_health',
+        'reading_type': '0x6F',
+        'sensor_name': 'Management Subsystem Health',
+        'sensor_type': '0x28',
         'sensornumber': sensornumber,
         'standby_monitor': True,
         'value': 0,
@@ -583,6 +597,7 @@ _add_pex9797(SENSOR_MONITOR_CONFIG, 2, 0x39)
 _add_pex9797(SENSOR_MONITOR_CONFIG, 3, 0x3A)
 _add_bmc_health_sensor(SENSOR_MONITOR_CONFIG, 0x82)
 _add_entity_presence(SENSOR_MONITOR_CONFIG, 0x8A)
+_add_management_subsystem_health(SENSOR_MONITOR_CONFIG, 0x89)
 
 HWMON_CONFIG = {
     '0-0010' :  {
@@ -1259,6 +1274,14 @@ BMC_LOGEVENT_CONFIG = {
 					'No MAC address programmed':	[0xC, None, None],
 				},
 			},
+			'Firmware Update completed': {
+				'Severity': 'OK',
+				'Event Data Information': {
+					'BMC Firmware Update completed':	[0xE, 0x1, 'index'],
+					'PSU Firmware Update completed':	[0xE, 0x2, 'index'],
+					'FPGA Firmware Update completed':	[0xE, 0x3, 'index'],
+				},
+			},
 	    },
     },
     'Entity Presence': {
@@ -1272,7 +1295,23 @@ BMC_LOGEVENT_CONFIG = {
             'Entity Presence': {
                 'Severity': 'Critical',
                 'Event Data Information': {
-                    'Entity Presence':	[0x1, "entity_device", 'entity_index'],
+                    'Entity Presence':	[0x1, 'entity_device', 'entity_index'],
+				},
+			},
+		},
+	},
+	'Management Subsystem Health': {
+		'Record ID': 0,
+		'Record Type': 0x2,
+		'Timestamp': 0,
+		'Generator Id': 0x20,
+		'Evm Rev': 0x04,
+		'Event Dir': 0x6F,
+		'Event Data Table': {
+			'Management Subsystem Health': {
+				'Severity': 'Critical',
+				'Event Data Information': {
+					'Management Subsystem Health':	['event_status', 'sensor_number', 0xFF],
 				},
 			},
 		},
