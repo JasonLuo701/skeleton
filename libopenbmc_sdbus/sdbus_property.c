@@ -6,9 +6,8 @@
 #include <systemd/sd-bus.h>
 
 int
-set_dbus_property(char *objpath, char *property_name, char *property_type, void *property_value)
+set_dbus_property(sd_bus *bus, char *objpath, char *property_name, char *property_type, void *property_value)
 {
-	sd_bus *bus = NULL;
 	sd_bus_error bus_error = SD_BUS_ERROR_NULL;
 	sd_bus_message *response = NULL;
 	int rc = 0;
@@ -16,11 +15,8 @@ set_dbus_property(char *objpath, char *property_name, char *property_type, void 
 	if (property_value == NULL || property_type == NULL || property_name==NULL || objpath == NULL)
 		return 0;
 
-	rc = sd_bus_open_system(&bus);
-	if(rc < 0) {
-		fprintf(stderr,"Error opening system bus.\n");
-		return rc;
-	}
+	if (bus == NULL)
+		return -1;
 
 	if (property_type[0] == 'i') {
 		rc = sd_bus_call_method(bus,
@@ -56,6 +52,5 @@ set_dbus_property(char *objpath, char *property_name, char *property_type, void 
 	if(rc < 0) {
 		printf("%s, %d response message:[%s]\n", __FUNCTION__, __LINE__, strerror(-rc));
 	}
-	sd_bus_unref(bus);
 	return rc;
 }

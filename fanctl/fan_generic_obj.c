@@ -289,7 +289,7 @@ start_fan_services()
 		fprintf(stderr, "Failed to add object to dbus: %s\n",
 			strerror(-rc));
 		sd_bus_slot_unref(fan_slot);
-		sd_bus_unref(bus_type);
+		sd_bus_flush_close_unref(bus_type);
 		return rc;
 	}
 
@@ -352,7 +352,7 @@ start_fan_services()
 	}
 
 	sd_bus_slot_unref(fan_slot);
-	sd_bus_unref(bus_type);
+	sd_bus_flush_close_unref(bus_type);
 	return rc;
 }
 
