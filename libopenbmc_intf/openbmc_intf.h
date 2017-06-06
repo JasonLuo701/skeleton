@@ -1882,6 +1882,8 @@ struct _ControlPowerIface
 
   gint  (*get_pgood_timeout) (ControlPower *object);
 
+  gint  (*get_dc_on_off) (ControlPower *object);
+
   gint  (*get_state) (ControlPower *object);
 
   void (*power_good) (
@@ -1968,6 +1970,8 @@ void control_power_set_state (ControlPower *object, gint value);
 gint control_power_get_pgood_timeout (ControlPower *object);
 void control_power_set_pgood_timeout (ControlPower *object, gint value);
 
+gint control_power_get_dc_on_off (ControlPower *object);
+void control_power_set_dc_on_off (ControlPower *object, gint value);
 
 /* ---- */
 

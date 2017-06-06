@@ -117,6 +117,7 @@
 		<property name="pgood" type="i" access="read"/>
 		<property name="state" type="i" access="read"/>
 		<property name="pgood_timeout" type="i" access="readwrite"/>
+		<property name="dc_on_off" type="i" access="readwrite"/>
 	</interface>
 	<interface name="org.openbmc.Watchdog">
 		<method name="start"/>
