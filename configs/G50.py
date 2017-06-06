@@ -363,6 +363,7 @@ def _add_gpu_temperature_sensor(configs, index, sensornumber):
         'units': 'C',
         'entity': 0x3,
         'index': index,
+        'value': -1
         }]
     configs.append(config)
 
@@ -379,7 +380,7 @@ def _add_fan_pwm_sensor(configs, index, sensornumber):
         'sensornumber': sensornumber,
         'standby_monitor': False,
         'units': '%',
-        'value': 0,
+        'value': -1,
         }]
     configs.append(config)
 
@@ -415,7 +416,7 @@ def _add_psu_temperature_sensor(configs, index, sensornumber, bus_number):
         'sensornumber': sensornumber,
         'standby_monitor': False,
         'units': 'C',
-        'value': 0,
+        'value': -1,
         }]
     configs.append(config)
 
@@ -436,7 +437,7 @@ def _add_psu_voltage_sensor(configs, index, sensornumber, bus_number):
         'sensornumber': sensornumber,
         'standby_monitor': False,
         'units': 'V',
-        'value': 0,
+        'value': -1,
         'entity': 0xA,
         'index': index,
         }]
@@ -456,7 +457,7 @@ def _add_psu_power_sensor(configs, index, sensornumber, bus_number):
         'sensornumber': sensornumber,
         'standby_monitor': False,
         'units': 'W',
-        'value': 0,
+        'value': -1,
         'firmware_update': 0, # 0: normal, 1:firmware_update working
         }]
     configs.append(config)
