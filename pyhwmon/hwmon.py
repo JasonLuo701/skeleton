@@ -134,7 +134,6 @@ class Hwmons():
 
 			raw_value = int(self.readAttribute(attribute))
 			rtn = intf.setByPoll(raw_value)
-			raw_value = int(self.readAttribute(attribute))
 			if (rtn[0] == True):
 				self.writeAttribute(attribute,rtn[1])
 
