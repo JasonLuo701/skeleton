@@ -23,6 +23,7 @@ SENSOR_VALUE_INTERFACE = 'org.openbmc.SensorValue'
 
 g_bmchealth_obj_path = "/org/openbmc/sensors/bmc_health"
 g_recovery_count = [0,0,0,0,0,0,0,0]
+g_reboot_flag = 0
 
 #light: 1, light on; 0:light off
 def bmchealth_set_status_led(light):
@@ -166,11 +167,18 @@ def bmchealth_fix_and_check_mac():
         LogEventBmcHealthMessages("Asserted", "No MAC address programmed")
     return True
 
+def reboot_check_flag():
+    reboot_file_path = "/var/lib/obmc/check_reboot"
+    global g_reboot_flag
+    if os.path.exists(reboot_file_path):
+        g_reboot_flag = 1
+        os.remove(reboot_file_path)
+    return True
+
 def bmchealth_check_watchdog():
     print "check watchdog timeout start"
     check_watchdog1_command = "devmem 0x1e785010"
     check_watchdog2_command = "devmem 0x1e785030"
-    reboot_file_path = "/var/lib/obmc/check_reboot"
     watchdog1_event_counter_path = "/var/lib/obmc/watchdog1"
     watchdog2_event_counter_path = "/var/lib/obmc/watchdog2"
     watchdog1_exist_counter = 0
@@ -192,8 +200,7 @@ def bmchealth_check_watchdog():
         return False
 
     #check reboot timeout or WDT timeout
-    if os.path.exists(reboot_file_path):
-            os.remove(reboot_file_path)
+    if g_reboot_flag == 1:
             f = file(watchdog1_event_counter_path,"w")
             f.write(str(watchdog1_timeout_counter))
             f.close()
@@ -247,13 +254,47 @@ def bmchealth_check_i2c():
 
     return True
 
-def bmchealth_check_fw_updata_complete():
+def bmchealth_check_fw_update_start():
+    fw_update_start_check = "/var/lib/obmc/fw_update_start"
+    psu_fw_update_start_check = "/var/lib/obmc/psu_fwupdate_record"
+    fpga_fw_update_start_check =  "/var/lib/obmc/fpga_fwupdate_record"
+    #check BMC fw update start
+    if os.path.exists(fw_update_start_check):
+        LogEventBmcHealthMessages("Asserted", "Firmware Update Started","BMC Firmware Update Started",data={'index':0x1})
+        os.rename(fw_update_start_check, "/var/lib/obmc/fw_update_complete")
+    #check PSU fw update start
+    if os.path.exists(psu_fw_update_start_check):
+        try:
+            with open(psu_fw_update_start_check, 'r') as f:
+                psu_id = int(f.readline())
+                print"log psu_fwupdate_record psu_id = "+str(psu_id)
+                LogEventBmcHealthMessages("Asserted", "Firmware Update Started","PSU Firmware Update Started",data={'index':psu_id})
+                os.rename(psu_fw_update_start_check, "/var/lib/obmc/psu_fwupdate_complete")
+        except:
+                print "[bmchealth_check_fw_updata_complete]exception !!!"
+    #check FPGA fw update start
+    if os.path.exists(fpga_fw_update_start_check):
+        try:
+            with open(fpga_fw_update_start_check, 'r') as f:
+                fpga_id = int(f.readline())
+                print"log fpga_fwupdate_record fpga_id = "+str(fpga_id)
+                LogEventBmcHealthMessages("Asserted", "Firmware Update Started","FPGA Firmware Update Started",data={'index':fpga_id})
+                os.rename(fpga_fw_update_start_check, "/var/lib/obmc/fpga_fwupdate_complete")
+        except:
+                print "[bmchealth_check_fw_updata_complete]exception !!!"
+    return True
+
+def bmchealth_check_fw_update_complete():
     fw_update_complete_check = "/var/lib/obmc/fw_update_complete"
-    psu_fw_update_complete_check = "/var/lib/obmc/psu_fwupdate_record"
-    if os.path.exists(fw_update_complete_check):
+    psu_fw_update_complete_check = "/var/lib/obmc/psu_fwupdate_complete"
+    fpga_fw_update_complete_check =  "/var/lib/obmc/fpga_fwupdate_complete"
+    global g_reboot_flag
+    #check BMC fw update complete
+    if os.path.exists(fw_update_complete_check) and g_reboot_flag == 1:
         os.remove(fw_update_complete_check)
         LogEventBmcHealthMessages("Asserted", "Firmware Update completed","BMC Firmware Update completed",data={'index':0x1})
-    if os.path.exists(psu_fw_update_complete_check):
+    #check PSU fw update complete
+    if os.path.exists(psu_fw_update_complete_check) and g_reboot_flag == 1:
         try:
             with open(psu_fw_update_complete_check, 'r') as f:
                 psu_id = int(f.readline())
@@ -262,16 +303,28 @@ def bmchealth_check_fw_updata_complete():
         except:
                 print "[bmchealth_check_fw_updata_complete]exception !!!"
         os.remove(psu_fw_update_complete_check)
+    #check FPGA fw update complete
+    if os.path.exists(fpga_fw_update_complete_check) and g_reboot_flag == 1:
+        try:
+            with open(fpga_fw_update_complete_check, 'r') as f:
+                fpga_id = int(f.readline())
+                print"log fpga_fwupdate_record fpga_id = "+str(fpga_id)
+                LogEventBmcHealthMessages("Asserted", "Firmware Update completed","FPGA Firmware Update completed",data={'index':fpga_id})
+        except:
+                print "[bmchealth_check_fw_updata_complete]exception !!!"
+        os.remove(fpga_fw_update_complete_check)
 	return True
 
 if __name__ == '__main__':
     mainloop = gobject.MainLoop()
     #set bmchealth default value
     bmclogevent_ctl.bmclogevent_set_value(g_bmchealth_obj_path, 0)
+    reboot_check_flag()
     bmchealth_fix_and_check_mac()
     bmchealth_check_watchdog()
-    bmchealth_check_fw_updata_complete()
+    bmchealth_check_fw_update_complete()
     gobject.timeout_add(1000,bmchealth_check_network)
+    gobject.timeout_add(1000,bmchealth_check_fw_update_start)
     gobject.timeout_add(1000,bmchealth_check_i2c)
     print "bmchealth_handler control starting"
     mainloop.run()
