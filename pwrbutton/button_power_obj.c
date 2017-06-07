@@ -11,7 +11,7 @@ static const int LONG_PRESS_SECONDS = 3;
 static GDBusObjectManagerServer *manager = NULL;
 
 //This object will use these GPIOs
-GPIO gpio_button = (GPIO){ "POWER_BUTTON" };
+GPIO gpio_button = (GPIO){ "PWR_BTN_N" };
 
 static gboolean
 on_is_on(Button *btn,

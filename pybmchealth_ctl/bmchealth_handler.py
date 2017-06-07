@@ -26,14 +26,14 @@ g_recovery_count = [0,0,0,0,0,0,0,0]
 
 #light: 1, light on; 0:light off
 def bmchealth_set_status_led(light):
-    if 'GPIO_CONFIG' not in dir(System) or 'STATUS_LED' not in System.GPIO_CONFIG:
+    if 'GPIO_CONFIG' not in dir(System) or 'BLADE_ATT_LED_N' not in System.GPIO_CONFIG:
         return
     try:
-        data_reg_addr = System.GPIO_CONFIG["STATUS_LED"]["data_reg_addr"]
-        offset = System.GPIO_CONFIG["STATUS_LED"]["offset"]
+        data_reg_addr = System.GPIO_CONFIG["BLADE_ATT_LED_N"]["data_reg_addr"]
+        offset = System.GPIO_CONFIG["BLADE_ATT_LED_N"]["offset"]
         inverse = "no"
-        if "inverse" in  System.GPIO_CONFIG["STATUS_LED"]:
-            inverse = System.GPIO_CONFIG["STATUS_LED"]["inverse"]
+        if "inverse" in  System.GPIO_CONFIG["BLADE_ATT_LED_N"]:
+            inverse = System.GPIO_CONFIG["BLADE_ATT_LED_N"]["inverse"]
         print data_reg_addr
         cmd_data = subprocess.check_output("devmem  " + hex(data_reg_addr) , shell=True)
         cmd_data = cmd_data.rstrip("\n")

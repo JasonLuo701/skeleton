@@ -322,22 +322,28 @@ ID_LOOKUP = {
 }
 
 GPIO_CONFIG = {}
-GPIO_CONFIG['POWER_BUTTON'] = {'gpio_pin': 'F1', 'direction': 'both'}
-GPIO_CONFIG['IDBTN'] = {'gpio_pin': 'F3', 'direction': 'both'}
-GPIO_CONFIG['PGOOD'] = {'gpio_pin': 'M2', 'direction': 'in', 'inverse': 'yes'}
-GPIO_CONFIG['POWER_PIN'] = {'gpio_pin': 'M3', 'direction': 'out'}
-GPIO_CONFIG['POWER_STATE_LED'] = {
-    'gpio_pin': 'F2',
-    'direction': 'out',
-    'inverse': 'yes'
-    }
-GPIO_CONFIG['STATUS_LED'] = {
-    'gpio_pin': 'F0',
-    'direction': 'out',
-    'inverse': 'yes',
-    'data_reg_addr': 0x1e780020,
-    'offset': 8
-    }
+GPIO_CONFIG['UBB_SMB_RST_N'] = {'gpio_pin': 'C6', 'direction': 'out', 'inverse': 'yes'}
+GPIO_CONFIG['PDB_SMB_RST_N'] = {'gpio_pin': 'C7', 'direction': 'out', 'inverse': 'yes'}
+GPIO_CONFIG['BLADE_ATT_LED_N'] = {'gpio_pin': 'F0', 'direction': 'out', 'inverse': 'yes', 'data_reg_addr': 0x1e780020, 'offset': 8}
+GPIO_CONFIG['PWR_BTN_N'] = {'gpio_pin': 'F1', 'direction': 'both'}
+GPIO_CONFIG['PWR_STA_LED_N'] = {'gpio_pin': 'F2', 'direction': 'out', 'inverse': 'yes'}
+GPIO_CONFIG['UID_BTN_N'] = {'gpio_pin': 'F3', 'direction': 'both'}
+GPIO_CONFIG['UID_LED_N'] = {'gpio_pin': 'F4', 'direction': 'out', 'inverse': 'yes'}
+GPIO_CONFIG['SYS_THROTTLE_N'] = {'gpio_pin': 'F5', 'direction': 'in', 'inverse': 'yes'}
+GPIO_CONFIG['FM_GPIO4'] = {'gpio_pin': 'F6', 'direction': 'out'}
+GPIO_CONFIG['GPU_OVERT_N'] = {'gpio_pin': 'F7', 'direction': 'out'}
+GPIO_CONFIG['RM_SYS_THROTTLE_N'] = {'gpio_pin': 'M0', 'direction': 'in', 'inverse': 'yes'}
+GPIO_CONFIG['FIO_RM_SYS_THROTTLE_N'] = {'gpio_pin': 'M1', 'direction': 'in', 'inverse': 'yes'}
+GPIO_CONFIG['PWR_ON_REQ_N'] = {'gpio_pin': 'M2', 'direction': 'in', 'inverse': 'yes'}
+GPIO_CONFIG['SYS_FORCE_PWR_OFF'] = {'gpio_pin': 'M3', 'direction': 'out'}
+GPIO_CONFIG['SYS_READY_N'] = {'gpio_pin': 'M4', 'direction': 'out', 'inverse': 'yes'}
+GPIO_CONFIG['FM_GPIO1'] = {'gpio_pin': 'M5', 'direction': 'out'}
+GPIO_CONFIG['FM_GPIO2'] = {'gpio_pin': 'M6', 'direction': 'out'}
+GPIO_CONFIG['FM_GPIO3'] = {'gpio_pin': 'M7', 'direction': 'out'}
+GPIO_CONFIG['BMC_BSC_ALT_N'] = {'gpio_pin': 'Q6', 'direction': 'in', 'inverse': 'yes'}
+GPIO_CONFIG['BMC_SMB_4_RST_N'] = {'gpio_pin': 'Q7', 'direction': 'out', 'inverse': 'yes'}
+GPIO_CONFIG['BMC_HB_LED'] = {'gpio_pin': 'R4', 'direction': 'out'}
+
 
 def convertGpio(name):
     offset = int(filter(str.isdigit, name))

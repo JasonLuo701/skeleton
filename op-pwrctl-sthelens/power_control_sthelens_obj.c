@@ -18,13 +18,13 @@ static const gchar* dbus_name = "org.openbmc.control.Power";
 
 //This object will use these GPIOs
 GPIO power_pin    = (GPIO)
-{ "POWER_PIN"
+{ "SYS_FORCE_PWR_OFF"
 };
 GPIO pgood        = (GPIO)
-{ "PGOOD"
+{ "PWR_ON_REQ_N"
 };
 GPIO power_led    = (GPIO)
-{ "POWER_STATE_LED"
+{ "PWR_STA_LED_N"
 };
 
 static GDBusObjectManagerServer *manager = NULL;
