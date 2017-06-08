@@ -530,6 +530,18 @@ def _add_management_subsystem_health(configs, sensornumber):
         }]
     configs.append(config)
 
+def _add_pcie_slot(configs, index, gpio):
+    config = ['/org/openbmc/control/pcie/slot%d' % index, {
+        'device_node': '/sys/class/gpio/gpio%d/value' % gpio,
+        'object_path': 'control/pcie/slot%d' % index,
+        'poll_interval': 10000,
+        'scale': 1,
+        'standby_monitor': True,
+        'units': '',
+        'index': index,
+        }]
+    configs.append(config)
+
 SENSOR_MONITOR_CONFIG = []
 _add_gpu_temperature_sensor(SENSOR_MONITOR_CONFIG, 1, 0x41)
 _add_gpu_temperature_sensor(SENSOR_MONITOR_CONFIG, 2, 0x42)
@@ -598,6 +610,10 @@ _add_pex9797(SENSOR_MONITOR_CONFIG, 3, 0x3A)
 _add_bmc_health_sensor(SENSOR_MONITOR_CONFIG, 0x82)
 _add_entity_presence(SENSOR_MONITOR_CONFIG, 0x8A)
 _add_management_subsystem_health(SENSOR_MONITOR_CONFIG, 0x89)
+_add_pcie_slot(SENSOR_MONITOR_CONFIG, 1, 220)
+_add_pcie_slot(SENSOR_MONITOR_CONFIG, 2, 221)
+_add_pcie_slot(SENSOR_MONITOR_CONFIG, 3, 222)
+_add_pcie_slot(SENSOR_MONITOR_CONFIG, 4, 223)
 
 HWMON_CONFIG = {
     '0-0010' :  {
