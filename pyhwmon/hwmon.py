@@ -97,19 +97,20 @@ class Hwmons():
 		check_subsystem_health_obj_path = "/org/openbmc/sensors/management_subsystem_health"
 		if attribute not in self.check_subsystem_health:
 			self.check_subsystem_health[attribute] = 1
-		if raw_value == -1 and self.check_subsystem_health[attribute] == 1:
-			bmclogevent_ctl.BmcLogEventMessages(check_subsystem_health_obj_path, \
-						"Management Subsystem Health" ,"Asserted", "Management Subsystem Health" , \
-						data={'event_status':0x4, 'sensor_number':hwmon['sensornumber']})
-			bmclogevent_ctl.bmclogevent_set_value(check_subsystem_health_obj_path ,0x4)
-			self.check_subsystem_health[attribute] = 0
-		elif raw_value >= 0:
-			if self.check_subsystem_health[attribute] == 0:
+		if hwmon.has_key('sensornumber'):
+			if raw_value == -1 and self.check_subsystem_health[attribute] == 1:
 				bmclogevent_ctl.BmcLogEventMessages(check_subsystem_health_obj_path, \
-				"Management Subsystem Health" ,"Deasserted", "Management Subsystem Health", \
-				data={'event_status':0x4, 'sensor_number':hwmon['sensornumber']})
-				bmclogevent_ctl.bmclogevent_set_value(check_subsystem_health_obj_path, 0)
-			self.check_subsystem_health[attribute] = 1
+							"Management Subsystem Health" ,"Asserted", "Management Subsystem Health" , \
+							data={'event_status':0x4, 'sensor_number':hwmon['sensornumber']})
+				bmclogevent_ctl.bmclogevent_set_value(check_subsystem_health_obj_path ,0x4)
+				self.check_subsystem_health[attribute] = 0
+			elif raw_value >= 0:
+				if self.check_subsystem_health[attribute] == 0:
+					bmclogevent_ctl.BmcLogEventMessages(check_subsystem_health_obj_path, \
+					"Management Subsystem Health" ,"Deasserted", "Management Subsystem Health", \
+					data={'event_status':0x4, 'sensor_number':hwmon['sensornumber']})
+					bmclogevent_ctl.bmclogevent_set_value(check_subsystem_health_obj_path, 0)
+				self.check_subsystem_health[attribute] = 1
 		return True
 
 	def poll(self,objpath,attribute,hwmon):
