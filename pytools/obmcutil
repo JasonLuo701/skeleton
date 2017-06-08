@@ -5,8 +5,18 @@ import dbus
 import json
 import xml.etree.ElementTree as ET
 from obmc.sensors import sensor_reading_convert
+import gobject
+from obmc.dbuslib.bindings import get_dbus
+import os
+from time import sleep
+import fcntl
+import signal
 
 
+locked_file_descriptor = None
+bus = get_dbus()
+pgood_obj = bus.get_object('org.openbmc.control.Power', '/org/openbmc/control/power0', introspect=False)
+pgood_intf = dbus.Interface(pgood_obj,dbus.PROPERTIES_IFACE)
 def fix_byte(it,key,parent):   
     if (isinstance(it,dbus.Array)):
         for i in range(0,len(it)): 
@@ -62,6 +72,41 @@ def introspect(bus_name,obj_path,intf_name,method_name):
 
 	return found
 
+
+def handler(signum, frame):
+	set_dc_on_off_state(False)
+
+def set_dc_on_off_state(in_progress):
+	locked_file_descriptor = open('/run/initramfs/dc_on_off.LOCK', 'a+')
+	fcntl.lockf(locked_file_descriptor, fcntl.LOCK_EX)
+	locked_file_descriptor.seek(0)
+	count = locked_file_descriptor.readline()
+	if count == '':
+		count = 0
+	else:
+		count = int(count)
+	locked_file_descriptor.truncate(0)
+	locked_file_descriptor.seek(0)
+	if in_progress:
+		count = count + 1
+		pgood_intf.Set('org.openbmc.control.Power', 'dc_on_off', dbus.Int32(1, variant_level=1))
+	else:
+		count = count - 1
+		if count < 0:
+			count = 0
+		if count == 0:
+			pgood_intf.Set('org.openbmc.control.Power', 'dc_on_off', dbus.Int32(0, variant_level=1))
+	locked_file_descriptor.write(str(count))
+	locked_file_descriptor.flush()
+	locked_file_descriptor.close()
+	return True
+
+def reset_dc_on_off_flag():
+	f = os.fork()
+	if f == 0:
+		sleep(10.0)
+		set_dc_on_off_state(False)
+		sys.exit()
 
 dbus_objects = {
 	'power' : { 
@@ -196,8 +241,12 @@ intf_name = objinfo['interface_name']
 obj = bus.get_object(bus_name,obj_path)
 
 if (method_name != ""):
+	signal.signal(signal.SIGINT, handler)
 	methd = obj.get_dbus_method(method_name,intf_name)
 	try:
+		if (obj_name == 'poweron' or obj_name == 'poweroff'):
+			set_dc_on_off_state(True)
+			reset_dc_on_off_flag()
 		data = methd(*sys.argv)
 		fix_byte(data,None,None)	
 		pydata = json.loads(json.dumps(data))
@@ -252,6 +301,3 @@ else:
 	props = intf.GetAll(intf_name)	
 	for p in props:
 		print p+" = "+str(props[p])
-	
-		
-
