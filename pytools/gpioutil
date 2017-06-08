@@ -4,6 +4,7 @@ import sys
 import os
 import getopt
 import obmc_system_config as System
+import subprocess
 
 
 def printUsage():
@@ -86,7 +87,35 @@ class Gpio:
 		f.close()
 		return data
 
+def getValueFromDevMem(led_name):
+	if (led_name == "BMC_HB_LED"):
+		readVal = subprocess.check_output(['devmem', '0x1e780080'])
+		readVal = int(readVal, 16)
+		#BMC_HB_LED is GPIOR4, retrieve this bit from register
+		readVal = (readVal >> 12) & 0x1
+	elif (led_name == "UID_LED_N"):
+		readVal = subprocess.check_output(['devmem', '0x1e780020'])
+		readVal = int(readVal, 16)
+		#UID_LED_N is GPIOF4, retrieve this bit from register
+		readVal = (readVal >> 12) & 0x1
 
+	return readVal
+
+
+def setValueToDevMem(led_name, value):
+	if (led_name == "BMC_HB_LED"):
+		addr = 0x1e780080
+		readVal = subprocess.check_output(['devmem', '0x1e780080'])
+	elif (led_name == "UID_LED_N"):
+		addr = 0x1e780020
+		readVal = subprocess.check_output(['devmem', '0x1e780020'])
+	readVal = int(readVal, 16)
+	if (value == "0"):
+		readVal = readVal & 0xFFFFEFFF
+	elif (value == "1"):
+		readVal = readVal | 0x1000
+	cmd = "devmem 0x%x 32 0x%x" %(addr ,readVal)
+	subprocess.call(cmd, shell=True)
 
 if __name__ == '__main__':
 
@@ -101,12 +130,14 @@ if __name__ == '__main__':
 	gpio_name = ""
 	value = ""
 	direction = ""
+	gpio_name_led = ""
 	for opt, arg in opts:
  		if opt == '-h':
 			printUsage()
 
  		elif opt in ("-n"):
  			gpio_name = arg
+ 			gpio_name_led = arg
 			lookup = True
  		elif opt in ("-i"):
  			gpio_name = arg
@@ -149,14 +180,21 @@ if __name__ == '__main__':
 
 	gpio = Gpio(gpio_name)
 	try:
-		gpio.export()
-		if (direction != ""):
-			gpio.setDirection(direction)
+		if (gpio_name_led != "BMC_HB_LED" and gpio_name_led != "UID_LED_N"):
+			gpio.export()
+			if (direction != ""):
+				gpio.setDirection(direction)
 
 		if (value == ""):
-			print gpio.getValue()
+			if (gpio_name_led == "BMC_HB_LED" or gpio_name_led == "UID_LED_N"):
+				print getValueFromDevMem(gpio_name_led)
+			else:
+				print gpio.getValue()
 		else:
-			gpio.setValue(value)
+			if (gpio_name_led == "BMC_HB_LED" or gpio_name_led == "UID_LED_N"):
+				setValueToDevMem(gpio_name_led, value)
+			else:
+				gpio.setValue(value)
 
 	except Exception as e:
 		print e
