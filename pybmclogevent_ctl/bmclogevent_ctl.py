@@ -85,6 +85,11 @@ def BmcLogEventMessages(objpath = "", s_event_identify="", s_assert="", \
         if (s_evd_desc == ""):
             s_evd_desc = s_event_indicator
 
+        if (evd_data['Severity'] == 'Critical'):
+            serverity = Event.SEVERITY_CRIT
+        elif (evd_data['Severity'] == 'Warning'):
+            serverity = Event.SEVERITY_WARN
+
         evd_data_info = evd_data['Event Data Information'][s_evd_desc]
         if evd_data_info[0] != None:
             if isinstance(evd_data_info[0], basestring):
