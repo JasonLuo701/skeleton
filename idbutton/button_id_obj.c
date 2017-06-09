@@ -18,7 +18,7 @@ const char *blink_ctrl = "trigger";
 
 //This object will use these GPIOs
 GPIO gpio_button = (GPIO)
-{ "IDBTN"
+{ "UID_BTN_N"
 };
 
 enum {
