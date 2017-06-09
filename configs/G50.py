@@ -1274,7 +1274,15 @@ BMC_LOGEVENT_CONFIG = {
 					'No MAC address programmed':	[0xC, None, None],
 				},
 			},
-			'Firmware Update completed': {
+			'Firmware Update Started': {
+				'Severity': 'OK',
+				'Event Data Information': {
+					'BMC Firmware Update Started':	[0xD, 0x1, 'index'],
+					'PSU Firmware Update Started':	[0xD, 0x2, 'index'],
+					'FPGA Firmware Update Started':	[0xD, 0x3, 'index'],
+				},
+			},
+            'Firmware Update completed': {
 				'Severity': 'OK',
 				'Event Data Information': {
 					'BMC Firmware Update completed':	[0xE, 0x1, 'index'],
