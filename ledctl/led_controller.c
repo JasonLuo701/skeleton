@@ -465,7 +465,7 @@ start_led_services()
 		fprintf(stderr,"No LEDs present in the system\n");
 
 		sd_bus_slot_unref(led_slot);
-		sd_bus_unref(bus_type);
+		sd_bus_flush_close_unref(bus_type);
 		return rc;
 	}
 
@@ -476,7 +476,7 @@ start_led_services()
 				strerror(-rc));
 
 		sd_bus_slot_unref(led_slot);
-		sd_bus_unref(bus_type);
+		sd_bus_flush_close_unref(bus_type);
 		return rc;
 	}
 
@@ -565,7 +565,7 @@ start_led_services()
 		}
 	}
 	sd_bus_slot_unref(led_slot);
-	sd_bus_unref(bus_type);
+	sd_bus_flush_close_unref(bus_type);
 
 	return rc;
 }

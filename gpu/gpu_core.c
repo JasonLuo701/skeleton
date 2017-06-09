@@ -114,12 +114,12 @@ static int internal_gpu_access(int bus, __u8 slave,__u8 *write_buf, __u8 *read_b
 		fprintf(stderr, "Failed to do iotcl I2C_SLAVE\n");
 		goto error_smbus_access;
 	}
-    PMBUS_DELAY;
+	PMBUS_DELAY;
 	if(i2c_smbus_write_block_data(fd, MBT_REG_CMD, 4, write_buf) < 0) {
 		rc = -2;
 		goto error_smbus_access;
 	}
-    PMBUS_DELAY;
+	PMBUS_DELAY;
 	while(retry_gpu) {
 
 		if (i2c_smbus_read_block_data(fd, MBT_REG_CMD, cmd_reg) != 4) {
@@ -140,7 +140,7 @@ static int internal_gpu_access(int bus, __u8 slave,__u8 *write_buf, __u8 *read_b
 		PMBUS_DELAY;
 	}
 error_smbus_access:
-    PMBUS_DELAY;
+	PMBUS_DELAY;
 	close(fd);
 	return rc;
 }
@@ -226,11 +226,29 @@ int function_get_gpu_data(int index)
 		if(rc==0) {
 			len = snprintf(gpu_info_node, sizeof(gpu_info_node), "%s%d%s",
 				       "/org/openbmc/sensors/gpu/gpu",gpu_device_bus[index].device_index+1,"_temp");
-			set_dbus_property(gpu_info_node , "Board Part Number", "s", (void *) G_gpu_data[gpu_device_bus[index].device_index].info_data[TYPE_BOARD_PART_NUMBER]);
-			set_dbus_property(gpu_info_node , "Serial Number", "s", (void *)G_gpu_data[gpu_device_bus[index].device_index].info_data[TYPE_SERIAL_NUMBER]);
-			set_dbus_property(gpu_info_node , "Marketing Name", "s", (void *)G_gpu_data[gpu_device_bus[index].device_index].info_data[TYPE_MARKETING_NAME]);
-			set_dbus_property(gpu_info_node , "PartNumber", "s", (void *)G_gpu_data[gpu_device_bus[index].device_index].info_data[TYPE_PART_NUMBER]);
-			set_dbus_property(gpu_info_node , "FirmwareVersion", "s", (void *)G_gpu_data[gpu_device_bus[index].device_index].info_data[TYPE_FIRMWARE_VERSION]);
+
+			sd_bus *bus = NULL;
+			rc = sd_bus_open_system(&bus);
+			if(rc < 0) {
+				fprintf(stderr,"Error opening system bus.\n");
+				return rc;
+			}
+			rc = set_dbus_property(bus, gpu_info_node , "Board Part Number", "s", (void *) G_gpu_data[gpu_device_bus[index].device_index].info_data[TYPE_BOARD_PART_NUMBER]);
+			if (rc<0)
+				G_gpu_data[gpu_device_bus[index].device_index].info_ready = 0;
+			rc = set_dbus_property(bus, gpu_info_node , "Serial Number", "s", (void *)G_gpu_data[gpu_device_bus[index].device_index].info_data[TYPE_SERIAL_NUMBER]);
+			if (rc<0)
+				G_gpu_data[gpu_device_bus[index].device_index].info_ready = 0;
+			rc = set_dbus_property(bus, gpu_info_node , "Marketing Name", "s", (void *)G_gpu_data[gpu_device_bus[index].device_index].info_data[TYPE_MARKETING_NAME]);
+			if (rc<0)
+				G_gpu_data[gpu_device_bus[index].device_index].info_ready = 0;
+			rc = set_dbus_property(bus, gpu_info_node , "PartNumber", "s", (void *)G_gpu_data[gpu_device_bus[index].device_index].info_data[TYPE_PART_NUMBER]);
+			if (rc<0)
+				G_gpu_data[gpu_device_bus[index].device_index].info_ready = 0;
+			rc = set_dbus_property(bus, gpu_info_node , "FirmwareVersion", "s", (void *)G_gpu_data[gpu_device_bus[index].device_index].info_data[TYPE_FIRMWARE_VERSION]);
+			if (rc<0)
+				G_gpu_data[gpu_device_bus[index].device_index].info_ready = 0;
+			sd_bus_flush_close_unref(bus);
 		} else
 			fprintf(stderr, "failed to set_gpu_info_propetry index %d \n",index);
 	}

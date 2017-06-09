@@ -355,8 +355,17 @@ error_i2c_access:
 int pex_set_dbus_property(int pex_idx, char *property_name, char *property_value)
 {
 	char pex_info_node[256] = {0};
+	sd_bus *bus = NULL;
+	int rc;
+	rc = sd_bus_open_system(&bus);
+	if(rc < 0) {
+		fprintf(stderr,"Error opening system bus.\n");
+		return rc;
+	}
 	snprintf(pex_info_node, sizeof(pex_info_node), "/org/openbmc/sensors/pex/pex%d", pex_idx);
-	return set_dbus_property(pex_info_node , property_name, "s", (void *) property_value);
+	rc = set_dbus_property(bus, pex_info_node , property_name, "s", (void *) property_value);
+	sd_bus_flush_close_unref(bus);
+	return rc;
 }
 
 void function_get_pex_serial_data(int pex_idx)
@@ -402,8 +411,7 @@ void function_get_pex_serial_data(int pex_idx)
 		p_serial->serial_data[p_serial->serial_count++] = i2c_cmd->read_cmd.data[i];
 
 	st = property_value;
-	for (i = 0; i<p_serial->serial_count; i++, st+=2)
-	{
+	for (i = 0; i<p_serial->serial_count; i++, st+=2) {
 		snprintf(st, 3, "%02x", p_serial->serial_data[i]);
 	}
 
@@ -456,8 +464,7 @@ void function_get_pex_udid_data(int pex_idx)
 
 	//set pex9797 dbus property
 	st = property_value;
-	for (i = 0; i<p_udid->udid_count; i++, st+=2)
-	{
+	for (i = 0; i<p_udid->udid_count; i++, st+=2) {
 		snprintf(st, 3, "%02x", p_udid->udid_data[i]);
 	}
 
