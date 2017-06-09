@@ -14603,11 +14603,25 @@ static const _ExtendedGDBusPropertyInfo _control_power_property_info_pgood_timeo
   FALSE
 };
 
+static const _ExtendedGDBusPropertyInfo _control_power_property_info_dc_on_off =
+{
+  {
+    -1,
+    (gchar *) "dc_on_off",
+    (gchar *) "i",
+    G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE,
+    NULL
+  },
+  "dc-on-off",
+  FALSE
+};
+
 static const _ExtendedGDBusPropertyInfo * const _control_power_property_info_pointers[] =
 {
   &_control_power_property_info_pgood,
   &_control_power_property_info_state,
   &_control_power_property_info_pgood_timeout,
+  &_control_power_property_info_dc_on_off,
   NULL
 };
 
@@ -14654,6 +14668,7 @@ control_power_override_properties (GObjectClass *klass, guint property_id_begin)
   g_object_class_override_property (klass, property_id_begin++, "pgood");
   g_object_class_override_property (klass, property_id_begin++, "state");
   g_object_class_override_property (klass, property_id_begin++, "pgood-timeout");
+  g_object_class_override_property (klass, property_id_begin++, "dc-on-off");
   return property_id_begin - 1;
 }
 
@@ -14796,6 +14811,15 @@ control_power_default_init (ControlPowerIface *iface)
    */
   g_object_interface_install_property (iface,
     g_param_spec_int ("pgood-timeout", "pgood_timeout", "pgood_timeout", G_MININT32, G_MAXINT32, 0, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+  /**
+   * ControlPower:dc-on-off:
+   *
+   * Represents the D-Bus property <link linkend="gdbus-property-org-openbmc-control-Power.dc_on_off">"dc_on_off"</link>.
+   *
+   * Since the D-Bus property for this #GObject property is both readable and writable, it is meaningful to both read from it and write to it on both the service- and client-side.
+   */
+  g_object_interface_install_property (iface,
+    g_param_spec_int ("dc-on-off", "dc_on_off", "dc_on_off", G_MININT32, G_MAXINT32, 0, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
 /**
@@ -14889,6 +14913,37 @@ void
 control_power_set_pgood_timeout (ControlPower *object, gint value)
 {
   g_object_set (G_OBJECT (object), "pgood-timeout", value, NULL);
+}
+
+/**
+ * control_power_get_dc_on_off: (skip)
+ * @object: A #ControlPower.
+ *
+ * Gets the value of the <link linkend="gdbus-property-org-openbmc-control-Power.dc_on_off">"dc_on_off"</link> D-Bus property.
+ *
+ * Since this D-Bus property is both readable and writable, it is meaningful to use this function on both the client- and service-side.
+ *
+ * Returns: The property value.
+ */
+gint
+control_power_get_dc_on_off (ControlPower *object)
+{
+  return CONTROL_POWER_GET_IFACE (object)->get_dc_on_off (object);
+}
+
+/**
+ * control_power_set_dc_on_off: (skip)
+ * @object: A #ControlPower.
+ * @value: The value to set.
+ *
+ * Sets the <link linkend="gdbus-property-org-openbmc-control-Power.dc_on_off">"pgood_timeout"</link> D-Bus property to @value.
+ *
+ * Since this D-Bus property is both readable and writable, it is meaningful to use this function on both the client- and service-side.
+ */
+void
+control_power_set_dc_on_off (ControlPower *object, gint value)
+{
+  g_object_set (G_OBJECT (object), "dc-on-off", value, NULL);
 }
 
 /**
@@ -15200,7 +15255,7 @@ control_power_proxy_get_property (GObject      *object,
 {
   const _ExtendedGDBusPropertyInfo *info;
   GVariant *variant;
-  g_assert (prop_id != 0 && prop_id - 1 < 3);
+  g_assert (prop_id != 0 && prop_id - 1 < 4);
   info = _control_power_property_info_pointers[prop_id - 1];
   variant = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (object), info->parent_struct.name);
   if (info->use_gvariant)
@@ -15247,7 +15302,7 @@ control_power_proxy_set_property (GObject      *object,
 {
   const _ExtendedGDBusPropertyInfo *info;
   GVariant *variant;
-  g_assert (prop_id != 0 && prop_id - 1 < 3);
+  g_assert (prop_id != 0 && prop_id - 1 < 4);
   info = _control_power_property_info_pointers[prop_id - 1];
   variant = g_dbus_gvalue_to_gvariant (value, G_VARIANT_TYPE (info->parent_struct.signature));
   g_dbus_proxy_call (G_DBUS_PROXY (object),
@@ -15374,6 +15429,21 @@ control_power_proxy_get_pgood_timeout (ControlPower *object)
   return value;
 }
 
+static gint
+control_power_proxy_get_dc_on_off (ControlPower *object)
+{
+  ControlPowerProxy *proxy = CONTROL_POWER_PROXY (object);
+  GVariant *variant;
+  gint value = 0;
+  variant = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (proxy), "dc_on_off");
+  if (variant != NULL)
+    {
+      value = g_variant_get_int32 (variant);
+      g_variant_unref (variant);
+    }
+  return value;
+}
+
 static void
 control_power_proxy_init (ControlPowerProxy *proxy)
 {
@@ -15414,6 +15484,7 @@ control_power_proxy_iface_init (ControlPowerIface *iface)
   iface->get_pgood = control_power_proxy_get_pgood;
   iface->get_state = control_power_proxy_get_state;
   iface->get_pgood_timeout = control_power_proxy_get_pgood_timeout;
+  iface->get_dc_on_off = control_power_proxy_get_dc_on_off;
 }
 
 /**
@@ -15884,7 +15955,7 @@ control_power_skeleton_finalize (GObject *object)
 {
   ControlPowerSkeleton *skeleton = CONTROL_POWER_SKELETON (object);
   guint n;
-  for (n = 0; n < 3; n++)
+  for (n = 0; n < 4; n++)
     g_value_unset (&skeleton->priv->properties[n]);
   g_free (skeleton->priv->properties);
   g_list_free_full (skeleton->priv->changed_properties, (GDestroyNotify) _changed_property_free);
@@ -15902,7 +15973,7 @@ control_power_skeleton_get_property (GObject      *object,
   GParamSpec   *pspec G_GNUC_UNUSED)
 {
   ControlPowerSkeleton *skeleton = CONTROL_POWER_SKELETON (object);
-  g_assert (prop_id != 0 && prop_id - 1 < 3);
+  g_assert (prop_id != 0 && prop_id - 1 < 4);
   g_mutex_lock (&skeleton->priv->lock);
   g_value_copy (&skeleton->priv->properties[prop_id - 1], value);
   g_mutex_unlock (&skeleton->priv->lock);
@@ -16020,7 +16091,7 @@ control_power_skeleton_set_property (GObject      *object,
   GParamSpec   *pspec)
 {
   ControlPowerSkeleton *skeleton = CONTROL_POWER_SKELETON (object);
-  g_assert (prop_id != 0 && prop_id - 1 < 3);
+  g_assert (prop_id != 0 && prop_id - 1 < 4);
   g_mutex_lock (&skeleton->priv->lock);
   g_object_freeze_notify (object);
   if (!_g_value_equal (value, &skeleton->priv->properties[prop_id - 1]))
@@ -16045,10 +16116,11 @@ control_power_skeleton_init (ControlPowerSkeleton *skeleton)
 
   g_mutex_init (&skeleton->priv->lock);
   skeleton->priv->context = g_main_context_ref_thread_default ();
-  skeleton->priv->properties = g_new0 (GValue, 3);
+  skeleton->priv->properties = g_new0 (GValue, 4);
   g_value_init (&skeleton->priv->properties[0], G_TYPE_INT);
   g_value_init (&skeleton->priv->properties[1], G_TYPE_INT);
   g_value_init (&skeleton->priv->properties[2], G_TYPE_INT);
+  g_value_init (&skeleton->priv->properties[3], G_TYPE_INT);
 }
 
 static gint 
@@ -16080,6 +16152,16 @@ control_power_skeleton_get_pgood_timeout (ControlPower *object)
   gint value;
   g_mutex_lock (&skeleton->priv->lock);
   value = g_value_get_int (&(skeleton->priv->properties[2]));
+  g_mutex_unlock (&skeleton->priv->lock);
+  return value;
+}
+
+control_power_skeleton_get_dc_on_off (ControlPower *object)
+{
+  ControlPowerSkeleton *skeleton = CONTROL_POWER_SKELETON (object);
+  gint value;
+  g_mutex_lock (&skeleton->priv->lock);
+  value = g_value_get_int (&(skeleton->priv->properties[3]));
   g_mutex_unlock (&skeleton->priv->lock);
   return value;
 }
@@ -16118,6 +16200,7 @@ control_power_skeleton_iface_init (ControlPowerIface *iface)
   iface->get_pgood = control_power_skeleton_get_pgood;
   iface->get_state = control_power_skeleton_get_state;
   iface->get_pgood_timeout = control_power_skeleton_get_pgood_timeout;
+  iface->get_dc_on_off = control_power_skeleton_get_dc_on_off;
 }
 
 /**
