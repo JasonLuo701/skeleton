@@ -2,13 +2,18 @@
 #include <openbmc_intf.h>
 #include <gpio.h>
 #include <openbmc.h>
+#include <pthread.h>
+#include <fcntl.h>
 
 /* ------------------------------------------------------------------------- */
 static const gchar* dbus_object_path = "/org/openbmc/buttons";
 static const gchar* instance_name = "power0";
 static const gchar* dbus_name = "org.openbmc.buttons.Power";
+static const gchar* dbus_control_power_name = "org.openbmc.control.Power";
+static const gchar* dbus_control_power_objpath = "/org/openbmc/control/power0";
 static const int LONG_PRESS_SECONDS = 3;
 static GDBusObjectManagerServer *manager = NULL;
+static ControlPower *control_power = NULL;
 
 //This object will use these GPIOs
 GPIO gpio_button = (GPIO){ "PWR_BTN_N" };
@@ -30,6 +35,63 @@ on_button_press(Button *btn,
 {
 	button_emit_pressed(btn);
 	button_complete_sim_press(btn,invocation);
+	return TRUE;
+}
+
+static gboolean
+set_dc_on_off_state(gboolean in_progress)
+{
+	int result, count=-1;
+	FILE *fp;
+	int rc;
+
+	fp = fopen("/run/initramfs/dc_on_off.LOCK", "a+");
+	if (fp == NULL)
+		return FALSE;
+	result = flock(fileno(fp), LOCK_EX);
+	if (result < 0)
+		return FALSE;
+	fscanf(fp, "%d", &count);
+	if (count == -1)
+		count = 0;
+	if (ftruncate(fileno(fp), 0) != 0)
+		return FALSE;
+	if (in_progress)
+	{
+		count++;
+		rc = control_power_get_dc_on_off (control_power);
+		control_power_set_dc_on_off(control_power, 1);
+		rc = control_power_get_dc_on_off (control_power);
+	} else {
+		count--;
+		if (count < 0)
+			count = 0;
+		if (count == 0) {
+			rc = control_power_get_dc_on_off (control_power);
+			control_power_set_dc_on_off(control_power, 0);
+			rc = control_power_get_dc_on_off (control_power);
+		}
+	}
+	fflush(fp);
+	fclose(fp);
+
+	return TRUE;
+}
+
+static void
+*post_reset_flag()
+{
+	sleep(10);
+	set_dc_on_off_state(FALSE);
+}
+
+static gboolean
+reset_dc_on_off_flag()
+{
+	pid_t pid;
+	pthread_t tid;
+	pthread_create(&tid, NULL, post_reset_flag, NULL);
+	pthread_detach(tid);
 	return TRUE;
 }
 
@@ -56,7 +118,9 @@ on_button_interrupt( GIOChannel *channel,
 		if(buf[0] == '0')
 		{
 			printf("Power Button pressed\n");
+			set_dc_on_off_state(TRUE);
 			button_emit_pressed(button);
+			reset_dc_on_off_flag();
 			button_set_timer(button,(long)current_time);
 		}
 		else
@@ -65,7 +129,9 @@ on_button_interrupt( GIOChannel *channel,
 			printf("Power Button released, held for %ld seconds\n",press_time);
 			if(press_time > LONG_PRESS_SECONDS)
 			{
+				set_dc_on_off_state(TRUE);
 				button_emit_pressed_long(button);
+				reset_dc_on_off_flag();
 			} else {
 				button_emit_released(button);
 			}
@@ -121,7 +187,15 @@ on_bus_acquired(GDBusConnection *connection,
 	{
 		printf("ERROR PowerButton: GPIO setup (rc=%d)\n",rc);
 	}
+
+	control_power = control_power_proxy_new_sync (connection,
+					G_DBUS_PROXY_FLAGS_NONE,
+					dbus_control_power_name,
+					dbus_control_power_objpath,
+					NULL,
+					NULL);
 }
+
 
 static void
 on_name_acquired(GDBusConnection *connection,

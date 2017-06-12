@@ -51,6 +51,9 @@ $(GDBUS_APPS): libopenbmc_intf
 $(SDBUS_APPS): libopenbmc_sdbus
 	$(MAKE) -C $@ CFLAGS="-I ../$^" LDFLAGS="-L ../$^"
 
+$(GDBUS_APPS): pwrbutton
+	$(MAKE) -C $@ LDFLAGS="-lpthread"
+
 install: subdirs
 	@for d in $(SUBDIRS) $(GDBUS_APPS) $(SDBUS_APPS); do \
 		$(MAKE) -C $$d $@ DESTDIR=$(DESTDIR) PREFIX=$(PREFIX) || exit 1; \
