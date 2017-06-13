@@ -54,10 +54,10 @@ class Hwmons():
 		self.pgood_obj = bus.get_object('org.openbmc.control.Power', '/org/openbmc/control/power0', introspect=False)
 		self.pgood_intf = dbus.Interface(self.pgood_obj,dbus.PROPERTIES_IFACE)
 		self.path_mapping = {}
-		self.scanDirectory()
 		self.event_manager = EventManager()
 		self.check_entity_presence = {}
 		self.check_subsystem_health = {}
+		self.scanDirectory()
 		gobject.timeout_add(DIR_POLL_INTERVAL, self.scanDirectory)
 
 	def readAttribute(self,filename):
@@ -74,44 +74,44 @@ class Hwmons():
 		with open(filename, 'w') as f:
 			f.write(str(value)+'\n')
 
-	def entity_presence_check(self,attribute,hwmon,raw_value):
+	def entity_presence_check(self,objpath,hwmon,raw_value):
 		entity_presence_obj_path = "/org/openbmc/sensors/entity_presence"
-		if attribute not in self.check_entity_presence:
-			self.check_entity_presence[attribute] = 1
+		if objpath not in self.check_entity_presence:
+			self.check_entity_presence[objpath] = 1
 		if hwmon.has_key('entity'):
-			if raw_value <= 0 and self.check_entity_presence[attribute] == 1:
+			if raw_value <= 0 and self.check_entity_presence[objpath] == 1:
 				bmclogevent_ctl.BmcLogEventMessages(entity_presence_obj_path, \
 						"Entity Presence" ,"Asserted", "Entity Presence" , \
 						data={'entity_device':hwmon['entity'], 'entity_index':hwmon['index']})
 				bmclogevent_ctl.bmclogevent_set_value(entity_presence_obj_path ,1, 0x1)
-				self.check_entity_presence[attribute] = 0
+				self.check_entity_presence[objpath] = 0
 			elif raw_value > 0:
-				if self.check_entity_presence[attribute] == 0:
+				if self.check_entity_presence[objpath] == 0:
 					bmclogevent_ctl.BmcLogEventMessages(entity_presence_obj_path, \
 						"Entity Presence" ,"Deasserted", "Entity Presence" , \
 						data={'entity_device':hwmon['entity'], 'entity_index':hwmon['index']})
 					bmclogevent_ctl.bmclogevent_set_value(entity_presence_obj_path, 0, 0)
-				self.check_entity_presence[attribute] = 1
+				self.check_entity_presence[objpath] = 1
 		return True
 
-	def subsystem_health_check(self,attribute,hwmon,raw_value):
+	def subsystem_health_check(self,objpath,hwmon,raw_value):
 		check_subsystem_health_obj_path = "/org/openbmc/sensors/management_subsystem_health"
-		if attribute not in self.check_subsystem_health:
-			self.check_subsystem_health[attribute] = 1
+		if objpath not in self.check_subsystem_health:
+			self.check_subsystem_health[objpath] = 1
 		if hwmon.has_key('sensornumber'):
-			if raw_value == -1 and self.check_subsystem_health[attribute] == 1:
+			if raw_value == -1 and self.check_subsystem_health[objpath] == 1:
 				bmclogevent_ctl.BmcLogEventMessages(check_subsystem_health_obj_path, \
 							"Management Subsystem Health" ,"Asserted", "Management Subsystem Health" , \
 							data={'event_status':0x4, 'sensor_number':hwmon['sensornumber']})
 				bmclogevent_ctl.bmclogevent_set_value(check_subsystem_health_obj_path ,0x4)
-				self.check_subsystem_health[attribute] = 0
+				self.check_subsystem_health[objpath] = 0
 			elif raw_value >= 0:
-				if self.check_subsystem_health[attribute] == 0:
+				if self.check_subsystem_health[objpath] == 0:
 					bmclogevent_ctl.BmcLogEventMessages(check_subsystem_health_obj_path, \
 					"Management Subsystem Health" ,"Deasserted", "Management Subsystem Health", \
 					data={'event_status':0x4, 'sensor_number':hwmon['sensornumber']})
 					bmclogevent_ctl.bmclogevent_set_value(check_subsystem_health_obj_path, 0)
-				self.check_subsystem_health[attribute] = 1
+				self.check_subsystem_health[objpath] = 1
 		return True
 
 	def poll(self,objpath,attribute,hwmon):
@@ -143,8 +143,8 @@ class Hwmons():
 			if (rtn[0] == True):
 				self.writeAttribute(attribute,rtn[1])
 
-			self.entity_presence_check(attribute,hwmon,raw_value)
-			self.subsystem_health_check(attribute,hwmon,raw_value)
+			self.entity_presence_check(objpath,hwmon,raw_value)
+			self.subsystem_health_check(objpath,hwmon,raw_value)
 
 			# do not check threshold while not reading
 			if raw_value == -1:
@@ -270,10 +270,12 @@ class Hwmons():
 					gobject.timeout_add(hwmon['poll_interval'],self.poll,objpath,hwmon_path,hwmon)
 
 	def scanDirectory(self):
+		check_subsystem_health_obj_path = "/org/openbmc/sensors/management_subsystem_health"
 	 	devices = os.listdir(HWMON_PATH)
 		found_hwmon = {}
 		regx = re.compile('([a-z]+)\d+\_')
 		self.path_mapping = {}
+		obj_mapping = []
 		for d in devices:
 			dpath = HWMON_PATH+'/'+d+'/'
 			found_hwmon[dpath] = True
@@ -297,10 +299,23 @@ class Hwmons():
 
 				if hwmon.has_key('names'):
 					for attribute in hwmon['names'].keys():
+						obj_mapping.append(hwmon['names'][attribute]['object_path'])
 						self.addObject(dpath,dpath+attribute,hwmon['names'][attribute])
 
 			else:
 				print "WARNING - hwmon: Unhandled hwmon: "+dpath
+		for dpath in System.HWMON_CONFIG:
+			for attribute in System.HWMON_CONFIG[dpath]['names']:
+				objpath = System.HWMON_CONFIG[dpath]['names'][attribute]['object_path']
+				if objpath not in self.check_subsystem_health:
+					self.check_subsystem_health[objpath] = 1
+				if System.HWMON_CONFIG[dpath]['names'][attribute]['object_path'] not in obj_mapping:
+					if self.check_subsystem_health[objpath] == 1:
+						bmclogevent_ctl.BmcLogEventMessages(check_subsystem_health_obj_path, \
+						"Management Subsystem Health" ,"Asserted", "Management Subsystem Health", \
+						data={'event_status':0x4, 'sensor_number':System.HWMON_CONFIG[dpath]['names'][attribute]['sensornumber']})
+						bmclogevent_ctl.bmclogevent_set_value(check_subsystem_health_obj_path, 1)
+						self.check_subsystem_health[objpath] = 0
 
 		self.addSensorMonitorObject()
 		for k in self.hwmon_root.keys():
