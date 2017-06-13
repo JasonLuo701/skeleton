@@ -13,9 +13,9 @@
 #include <sys/types.h>
 #include <sdbus_property.h>
 
-int
+    int
 fscanf(FILE *__restrict __stream,
-                __const char *__restrict __format, ...)
+        __const char *__restrict __format, ...)
 {
     printf ("SHOUL NOT BE CALLED !!!!!!!!!!!!!!!\n");
     return 0;
@@ -24,7 +24,7 @@ fscanf(FILE *__restrict __stream,
 
 
 #define DEFAULT_BUS     ( 0 )
-#define DEFAULT_SLAVE   ( 0x4c )
+#define DEFAULT_SLAVE  ( 0x4c )
 
 
 
@@ -145,8 +145,8 @@ static void parse_arguments( int argc, char **argv )
             j++;
         }
     }
-  if(cnt < 4)
-      {
+    if(cnt < 4)
+    {
         display_usage();
         exit( EXIT_FAILURE );
     }
@@ -253,200 +253,198 @@ static int CmdArgHandler( int argc, char **argv, int index )
 }
 
 void print_result(char *result) {
-	printf("%s: %s\n", CmdString, result);
-	return;
+    printf("%s: %s\n", CmdString, result);
+    return;
 }
 
 int read_dev_node_string(char *path) {
-	FILE *fp;
-	char buf[100] = {0};
-	float result;
+    FILE *fp;
+    char buf[100] = {0};
+    float result;
 
-	printf("dev_node %s\n", path);
-	fp = fopen(path, "r");
-	if(fp == NULL) {
-		return -1;
-	}
-	fread(buf, sizeof(char), 100, fp);
-	fclose(fp);
-	print_result(buf);
+    fp = fopen(path, "r");
+    if(fp == NULL) {
+        return -1;
+    }
+    fread(buf, sizeof(char), 100, fp);
+    fclose(fp);
+    print_result(buf);
 
-	return 0;
+    return 0;
 }
 
 int read_dev_node_decimal(char *path, int scale) {
-	FILE *fp;
-	char buf[100] = {0};
-	float result;
+    FILE *fp;
+    char buf[100] = {0};
+    float result;
 
-	printf("dev_node %s\n", path);
-	fp = fopen(path, "r");
-	if(fp == NULL) {
-		return -1;
-	}
-	fread(buf, sizeof(char), 100, fp);
-	fclose(fp);
-	sscanf(buf, "%f", &result);
-	result = result / scale;
+    fp = fopen(path, "r");
+    if(fp == NULL) {
+        return -1;
+    }
+    fread(buf, sizeof(char), 100, fp);
+    fclose(fp);
+    sscanf(buf, "%f", &result);
+    result = result / scale;
 
-	if(snprintf( buf, sizeof(buf),"%f", result) >= sizeof(buf))
-	{
-		printf("Buffer Overflow in File :%s Line : %d  Function : %s\n",__func__, __LINE__, __func__);
-		return -1;
-	}
-	print_result(buf);
+    if(snprintf( buf, sizeof(buf),"%f", result) >= sizeof(buf))
+    {
+        printf("Buffer Overflow in File :%s Line : %d  Function : %s\n",__func__, __LINE__, __func__);
+        return -1;
+    }
+    print_result(buf);
 
-	return 0;
+    return 0;
 }
 
 int write_dev_node(char *path, char *buf) {
-	int rc;
-	FILE *fp = fopen(path,"w");
-	if(fp == NULL) {
-		return -1;
-	}
+    int rc;
+    FILE *fp = fopen(path,"w");
+    if(fp == NULL) {
+        return -1;
+    }
 
-	rc = fwrite(buf, strlen(buf), 1, fp);
+    rc = fwrite(buf, strlen(buf), 1, fp);
 
-	fclose(fp);
+    fclose(fp);
 
-	return (rc == 1) ? 0 : -1;
+    return (rc == 1) ? 0 : -1;
 }
 
 int ReadVIN(char *hwmon_path) {
-	int scale = 1000;
+    int scale = 1000;
 
-	strcat(hwmon_path, "in1_input");
-	read_dev_node_decimal(hwmon_path, scale);
+    strcat(hwmon_path, "in1_input");
+    read_dev_node_decimal(hwmon_path, scale);
 
     return 0;
 }
 
 int ReadIIN(char *hwmon_path) {
-	int scale = 1000;
+    int scale = 1000;
 
-	strcat(hwmon_path, "curr1_input");
-	read_dev_node_decimal(hwmon_path, scale);
+    strcat(hwmon_path, "curr1_input");
+    read_dev_node_decimal(hwmon_path, scale);
     return 0;
 }
 
 int ReadPIN(char *hwmon_path) {
-	int scale = 1000000;
+    int scale = 1000000;
 
-	strcat(hwmon_path, "power1_input");
-	read_dev_node_decimal(hwmon_path, scale);
+    strcat(hwmon_path, "power1_input");
+    read_dev_node_decimal(hwmon_path, scale);
 
     return 0;
 }
 
 int ReadStatusWord(char *hwmon_path) {
 
-	strcat(hwmon_path, "pmbus_status_word");
-	read_dev_node_string(hwmon_path);
+    strcat(hwmon_path, "pmbus_status_word");
+    read_dev_node_string(hwmon_path);
 
     return 0;
 }
 
 int ReadVOUT(char *hwmon_path) {
-	int scale = 1000;
+    int scale = 1000;
 
-	strcat(hwmon_path, "in2_input");
-	read_dev_node_decimal(hwmon_path, scale);
+    strcat(hwmon_path, "in2_input");
+    read_dev_node_decimal(hwmon_path, scale);
     return 0;
 }
 
 int ReadIOUT(char *hwmon_path) {
-	int scale = 1000;
+    int scale = 1000;
 
-	strcat(hwmon_path, "curr2_input");
-	read_dev_node_decimal(hwmon_path, scale);
+    strcat(hwmon_path, "curr2_input");
+    read_dev_node_decimal(hwmon_path, scale);
     return 0;
 }
 
 int ReadPOUT(char *hwmon_path) {
-	int scale = 1000000;
+    int scale = 1000000;
 
-	strcat(hwmon_path, "power2_input");
-	read_dev_node_decimal(hwmon_path, scale);
+    strcat(hwmon_path, "power2_input");
+    read_dev_node_decimal(hwmon_path, scale);
     return 0;
 }
 
 int ReadCapability(char *hwmon_path) {
-	strcat(hwmon_path, "pmbus_capability");
-	read_dev_node_string(hwmon_path);
+    strcat(hwmon_path, "pmbus_capability");
+    read_dev_node_string(hwmon_path);
     return 0;
 }
 
 int RWOperation(char *hwmon_path) {
-	char buf[100];
-	strcat(hwmon_path, "pmbus_operation");
+    char buf[100];
+    strcat(hwmon_path, "pmbus_operation");
     if(operation_mode==0) {
-		read_dev_node_string(hwmon_path);
-		return 0;
+        read_dev_node_string(hwmon_path);
+        return 0;
     } else {
-		if (write_buffer[0]) {
-			if(snprintf( buf, sizeof(buf),"%x", write_buffer[0]) >= sizeof(buf))
-			{
-				printf("Buffer Overflow in File :%s Line : %d  Function : %s\n",__func__, __LINE__, __func__);
-				return -1;
-			}
-			write_dev_node(hwmon_path, buf);
-			return 0;
-		}
-	}
+        if (write_buffer[0]) {
+            if(snprintf( buf, sizeof(buf),"%x", write_buffer[0]) >= sizeof(buf))
+            {
+                printf("Buffer Overflow in File :%s Line : %d  Function : %s\n",__func__, __LINE__, __func__);
+                return -1;
+            }
+            write_dev_node(hwmon_path, buf);
+            return 0;
+        }
+    }
 
 }
 
 int SendClearFaults(char *hwmon_path) {
-	char buf[100];
-	strcat(hwmon_path, "pmbus_clear_fault");
-	if (write_buffer[0]) {
-		if(snprintf( buf, sizeof(buf),"%x", write_buffer[0]) >= sizeof(buf))
-		{
-			printf("Buffer Overflow in File :%s Line : %d  Function : %s\n",__func__, __LINE__, __func__);
-			return -1;
-		}
-		write_dev_node(hwmon_path, buf);
-		return 0;
-	}
+    char buf[100];
+    strcat(hwmon_path, "pmbus_clear_fault");
+    if (write_buffer[0]) {
+        if(snprintf( buf, sizeof(buf),"%x", write_buffer[0]) >= sizeof(buf))
+        {
+            printf("Buffer Overflow in File :%s Line : %d  Function : %s\n",__func__, __LINE__, __func__);
+            return -1;
+        }
+        write_dev_node(hwmon_path, buf);
+        return 0;
+    }
     return 0;
 }
 int ReadTemp1(char *hwmon_path)
 {
-	int scale = 1000;
+    int scale = 1000;
 
-	strcat(hwmon_path, "temp1_input");
-	read_dev_node_decimal(hwmon_path, scale);
+    strcat(hwmon_path, "temp1_input");
+    read_dev_node_decimal(hwmon_path, scale);
 
     return 0;
 }
 
 int ReadTemp2(char *hwmon_path)
 {
-	int scale = 1000;
+    int scale = 1000;
 
-	strcat(hwmon_path, "temp2_input");
-	read_dev_node_decimal(hwmon_path, scale);
+    strcat(hwmon_path, "temp2_input");
+    read_dev_node_decimal(hwmon_path, scale);
 
     return 0;
 }
 
 int ReadTemp3(char *hwmon_path)
 {
-	int scale = 1000;
+    int scale = 1000;
 
-	strcat(hwmon_path, "temp3_input");
-	read_dev_node_decimal(hwmon_path, scale);
+    strcat(hwmon_path, "temp3_input");
+    read_dev_node_decimal(hwmon_path, scale);
 
     return 0;
 }
 
 int ReadFan1Speed(char *hwmon_path)
 {
-	int scale = 1;
+    int scale = 1;
 
-	strcat(hwmon_path, "fan1_input");
-	read_dev_node_decimal(hwmon_path, scale);
+    strcat(hwmon_path, "fan1_input");
+    read_dev_node_decimal(hwmon_path, scale);
 
     return 0;
 }
@@ -475,18 +473,18 @@ int main( int argc, char **argv )
     char hwmon_path[256];
     char hwmon_path_device[256];
     char hwmon_name[256]={0};
-	char actual_path[256]={0};
-	char *hwmon_dir = "/sys/class/hwmon/";
+    char actual_path[256]={0};
+    char *hwmon_dir = "/sys/class/hwmon/";
     int bytes_read,i, Index =0;
     int CmdFnd = 0;
-	struct stat st;
+    struct stat st;
     struct dirent entry;
     struct dirent *endp;
     DIR *dirp;
-	char *delim = "/";
+    char *delim = "/";
     char *pch;
-	char *bus_info;
-	char bus_slave_addr[32];
+    char *bus_info;
+    char bus_slave_addr[32];
     char found = 0;
     FILE *fp;
     char buf[100] = {0};
@@ -494,12 +492,12 @@ int main( int argc, char **argv )
     /* Read and interpret the arguments */
     parse_arguments( argc, argv );
 
-	if(snprintf( bus_slave_addr, sizeof(bus_slave_addr),"%d-%.4x", bus, slave_addr) >= sizeof(bus_slave_addr))
-	{
-		printf("Buffer Overflow in File :%s Line : %d  Function : %s\n",__func__, __LINE__, __func__);
-		return -1;
-	}
-	if (stat(hwmon_dir, &st) == -1)
+    if(snprintf( bus_slave_addr, sizeof(bus_slave_addr),"%d-%.4x", bus, slave_addr) >= sizeof(bus_slave_addr))
+    {
+        printf("Buffer Overflow in File :%s Line : %d  Function : %s\n",__func__, __LINE__, __func__);
+        return -1;
+    }
+    if (stat(hwmon_dir, &st) == -1)
         return -1;
 
     if ((dirp = opendir(hwmon_dir)) == NULL)
@@ -513,49 +511,49 @@ int main( int argc, char **argv )
         if (endp == NULL)
             break;
         if (strcmp(entry.d_name, ".") ==0 ||
-            strcmp(entry.d_name, "..") ==0)
+                strcmp(entry.d_name, "..") ==0)
             continue;
         found = 0;
-		if(snprintf( hwmon_name, sizeof(hwmon_name),"%s%s/name", hwmon_dir, entry.d_name) >= sizeof(hwmon_path_device))
-		{
-			printf("Buffer Overflow in File :%s Line : %d  Function : %s\n",__func__, __LINE__, __func__);
-			return -1;
-		}
-		fp = fopen(hwmon_name, "r");
-		if(fp == NULL) {
-			continue;
-		} else {
-			fgets(buf, sizeof(buf), fp);
-			fclose(fp);
-		}
-		if (strncmp(buf, PMBUS, strlen(buf)-1)) {
-			continue;
-		}
-		if(snprintf( hwmon_path_device, sizeof(hwmon_path_device),"%s%s/device", hwmon_dir, entry.d_name) >= sizeof(hwmon_path_device))
-		{
-			printf("Buffer Overflow in File :%s Line : %d  Function : %s\n",__func__, __LINE__, __func__);
-			return -1;
-		}
-		if(snprintf( hwmon_path, sizeof(hwmon_path),"%s%s/", hwmon_dir, entry.d_name) >= sizeof(hwmon_path))
-		{
-			printf("Buffer Overflow in File :%s Line : %d  Function : %s\n",__func__, __LINE__, __func__);
-			return -1;
-		}
-		realpath(hwmon_path_device, actual_path);
-		pch = strtok(actual_path,delim);
-		while(pch!=NULL) {
-			bus_info = pch;
-			pch = strtok(NULL,delim);
-		}
-		if (!strncmp(bus_info, bus_slave_addr, sizeof(bus_slave_addr))) {
-			found = 1;
-			break;
-		}
-	}
-	if (found == 0) {
-		printf("PSU not found on bus: %d, slave address: 0x%x\n", bus, slave_addr);
-		return -1;
-	}
+        if(snprintf( hwmon_name, sizeof(hwmon_name),"%s%s/name", hwmon_dir, entry.d_name) >= sizeof(hwmon_path_device))
+        {
+            printf("Buffer Overflow in File :%s Line : %d  Function : %s\n",__func__, __LINE__, __func__);
+            return -1;
+        }
+        fp = fopen(hwmon_name, "r");
+        if(fp == NULL) {
+            continue;
+        } else {
+            fgets(buf, sizeof(buf), fp);
+            fclose(fp);
+        }
+        if (strncmp(buf, PMBUS, strlen(buf)-1)) {
+            continue;
+        }
+        if(snprintf( hwmon_path_device, sizeof(hwmon_path_device),"%s%s/device", hwmon_dir, entry.d_name) >= sizeof(hwmon_path_device))
+        {
+            printf("Buffer Overflow in File :%s Line : %d  Function : %s\n",__func__, __LINE__, __func__);
+            return -1;
+        }
+        if(snprintf( hwmon_path, sizeof(hwmon_path),"%s%s/", hwmon_dir, entry.d_name) >= sizeof(hwmon_path))
+        {
+            printf("Buffer Overflow in File :%s Line : %d  Function : %s\n",__func__, __LINE__, __func__);
+            return -1;
+        }
+        realpath(hwmon_path_device, actual_path);
+        pch = strtok(actual_path,delim);
+        while(pch!=NULL) {
+            bus_info = pch;
+            pch = strtok(NULL,delim);
+        }
+        if (!strncmp(bus_info, bus_slave_addr, sizeof(bus_slave_addr))) {
+            found = 1;
+            break;
+        }
+    }
+    if (found == 0) {
+        printf("PSU not found on bus: %d, slave address: 0x%x\n", bus, slave_addr);
+        return -1;
+    }
 
     for (Index = 0; Index < (sizeof(PmMenu ) /sizeof (PmbMenu_T)); Index++)
     {
