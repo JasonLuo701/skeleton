@@ -22,7 +22,7 @@ DBUS_INTERFACE = 'org.freedesktop.DBus.Properties'
 SENSOR_VALUE_INTERFACE = 'org.openbmc.SensorValue'
 
 g_bmchealth_obj_path = "/org/openbmc/sensors/bmc_health"
-g_recovery_count = [0,0,0,0,0,0,0,0]
+g_event_count = [0,0,0,0,0,0,0,0]
 g_reboot_flag = 0
 
 #light: 1, light on; 0:light off
@@ -236,7 +236,7 @@ def bmchealth_check_watchdog():
 
 def bmchealth_check_i2c():
     i2c_recovery_check_path = ["/proc/i2c_recovery_bus0","/proc/i2c_recovery_bus1","/proc/i2c_recovery_bus2","/proc/i2c_recovery_bus3","/proc/i2c_recovery_bus4","/proc/i2c_recovery_bus5","/proc/i2c_recovery_bus6","/proc/i2c_recovery_bus7"]
-    global g_recovery_count
+    global g_event_count
 
     for num in range(len(i2c_recovery_check_path)):
         if os.path.exists(i2c_recovery_check_path[num]):
@@ -244,11 +244,17 @@ def bmchealth_check_i2c():
                 with open(i2c_recovery_check_path[num], 'r') as f:
                     bus_id = int(f.readline())
                     error_code = int(f.readline(), 16)
-                    current_recovery_count = int(f.readline())
-                    if current_recovery_count > g_recovery_count[num]:
-                        print "Log i2c recovery event"
-                        LogEventBmcHealthMessages("Asserted", "I2C bus hang", data={'i2c_bus_id':bus_id, 'i2c_error_code':0x1})
-                        g_recovery_count[num] = current_recovery_count
+                    current_event_count = int(f.readline())
+                    state = int(f.readline())
+                    if current_event_count > g_event_count[num]:
+                        if state == 1:
+                            print "Log i2c hang event"
+                            LogEventBmcHealthMessages("Asserted", "I2C bus hang", data={'i2c_bus_id':bus_id, 'i2c_error_code':0x1})
+                            g_event_count[num] = current_event_count
+                        if state == 0:
+                            print "Log i2c recovery event"
+                            LogEventBmcHealthMessages("Deasserted", "I2C bus hang", data={'i2c_bus_id':bus_id, 'i2c_error_code':0})
+                            g_event_count[num] = current_event_count
             except:
                 print "[bmchealth_check_i2c]exception !!!"
 
