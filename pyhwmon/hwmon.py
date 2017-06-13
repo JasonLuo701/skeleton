@@ -131,8 +131,9 @@ class Hwmons():
 						self.writeAttribute(attribute,rtn[1])
 					return True
 
-			if 'firmware_update' in hwmon and hwmon['firmware_update'] == 1:
-				return True
+			if 'firmware_update' in hwmon:
+				if intf_p.Get(HwmonSensor.IFACE_NAME,'firmware_update') == 1:
+					return True
 
 			# skip get sensor readings while dc on/off in progress
 			dc_on_off = self.pgood_intf.Get('org.openbmc.control.Power', 'dc_on_off')
