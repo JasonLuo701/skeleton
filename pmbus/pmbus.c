@@ -40,6 +40,7 @@ static __u8 read_buffer[ 1024 ];
 
 static int operation_mode = -1;
 char CmdString [MAX_CMDSTR_SIZE];
+char *PMBUS = "pmbus";
 
 static char *arglist[] =
 {
@@ -473,6 +474,7 @@ int main( int argc, char **argv )
 {
     char hwmon_path[256];
     char hwmon_path_device[256];
+    char hwmon_name[256]={0};
 	char actual_path[256]={0};
 	char *hwmon_dir = "/sys/class/hwmon/";
     int bytes_read,i, Index =0;
@@ -485,6 +487,9 @@ int main( int argc, char **argv )
     char *pch;
 	char *bus_info;
 	char bus_slave_addr[32];
+    char found = 0;
+    FILE *fp;
+    char buf[100] = {0};
 
     /* Read and interpret the arguments */
     parse_arguments( argc, argv );
@@ -510,6 +515,22 @@ int main( int argc, char **argv )
         if (strcmp(entry.d_name, ".") ==0 ||
             strcmp(entry.d_name, "..") ==0)
             continue;
+        found = 0;
+		if(snprintf( hwmon_name, sizeof(hwmon_name),"%s%s/name", hwmon_dir, entry.d_name) >= sizeof(hwmon_path_device))
+		{
+			printf("Buffer Overflow in File :%s Line : %d  Function : %s\n",__func__, __LINE__, __func__);
+			return -1;
+		}
+		fp = fopen(hwmon_name, "r");
+		if(fp == NULL) {
+			continue;
+		} else {
+			fgets(buf, sizeof(buf), fp);
+			fclose(fp);
+		}
+		if (strncmp(buf, PMBUS, strlen(buf)-1)) {
+			continue;
+		}
 		if(snprintf( hwmon_path_device, sizeof(hwmon_path_device),"%s%s/device", hwmon_dir, entry.d_name) >= sizeof(hwmon_path_device))
 		{
 			printf("Buffer Overflow in File :%s Line : %d  Function : %s\n",__func__, __LINE__, __func__);
@@ -527,8 +548,13 @@ int main( int argc, char **argv )
 			pch = strtok(NULL,delim);
 		}
 		if (!strncmp(bus_info, bus_slave_addr, sizeof(bus_slave_addr))) {
+			found = 1;
 			break;
 		}
+	}
+	if (found == 0) {
+		printf("PSU not found on bus: %d, slave address: 0x%x\n", bus, slave_addr);
+		return -1;
 	}
 
     for (Index = 0; Index < (sizeof(PmMenu ) /sizeof (PmbMenu_T)); Index++)
