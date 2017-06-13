@@ -167,9 +167,15 @@ static int busArgHandler( int argc, char **argv, int index )
 
 static int slaveArgHandler( int argc, char **argv, int index )
 {
+    long raw_slave_addr = 0;
     if( index + 1 <= argc )
     {
-        slave_addr = (__u8)strtol( argv[ index + 1 ], NULL, 16 );
+        raw_slave_addr = strtol( argv[ index + 1 ], NULL, 16 );
+        if (raw_slave_addr > 255) {
+            fprintf( stderr, "Slave address exceed 0xFF.\n" );
+            exit( EXIT_FAILURE );
+        }
+        slave_addr = (__u8)raw_slave_addr;
         if( slave_addr == (__u8)0 )
         {
             fprintf( stderr, "Slave address 0x00 is not valid.\n" );
