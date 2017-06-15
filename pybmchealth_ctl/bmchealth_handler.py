@@ -35,7 +35,6 @@ def bmchealth_set_status_led(light):
         inverse = "no"
         if "inverse" in  System.GPIO_CONFIG["BLADE_ATT_LED_N"]:
             inverse = System.GPIO_CONFIG["BLADE_ATT_LED_N"]["inverse"]
-        print data_reg_addr
         cmd_data = subprocess.check_output("devmem  " + hex(data_reg_addr) , shell=True)
         cmd_data = cmd_data.rstrip("\n")
         cur_data = int(cmd_data, 16)
@@ -67,6 +66,17 @@ def LogEventBmcHealthMessages(s_assert="", s_event_indicator="", \
                 bmclogevent_ctl.bmclogevent_set_value(g_bmchealth_obj_path, 0, offset=result['evd1'])
     except:
         print "LogEventBmcHealthMessages error!! " + s_event_indicator
+
+def bmchealth_check_status_led():
+    try:
+        val = bmclogevent_ctl.bmclogevent_get_value_with_dbus(g_bmchealth_obj_path)
+        if (val == 0):
+            bmchealth_set_status_led(0)
+        else:
+            bmchealth_set_status_led(1)
+    except:
+        print "bmchealth_check_status_led Error!!"
+    return True
 
 def bmchealth_check_network():
     carrier_file_path = "/sys/class/net/eth0/carrier"
@@ -313,12 +323,13 @@ def bmchealth_check_fw_update_complete():
         except:
                 print "[bmchealth_check_fw_updata_complete]exception !!!"
         os.remove(fpga_fw_update_complete_check)
-	return True
+    return True
 
 if __name__ == '__main__':
     mainloop = gobject.MainLoop()
     #set bmchealth default value
     bmclogevent_ctl.bmclogevent_set_value(g_bmchealth_obj_path, 0)
+    bmchealth_set_status_led(0)
     reboot_check_flag()
     bmchealth_fix_and_check_mac()
     bmchealth_check_watchdog()
@@ -326,6 +337,7 @@ if __name__ == '__main__':
     gobject.timeout_add(1000,bmchealth_check_network)
     gobject.timeout_add(1000,bmchealth_check_fw_update_start)
     gobject.timeout_add(1000,bmchealth_check_i2c)
+    gobject.timeout_add(1000,bmchealth_check_status_led)
     print "bmchealth_handler control starting"
     mainloop.run()
 
