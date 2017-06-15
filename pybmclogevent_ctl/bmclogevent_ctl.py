@@ -69,13 +69,13 @@ def BmcLogEventMessages(objpath = "", s_event_identify="", s_assert="", \
     evd3 = 0
     serverity = Event.SEVERITY_INFO
     b_assert = 0
-    event_dir = 0
+    event_type = 0
     result = {'logid':0}
     try:
         if 'BMC_LOGEVENT_CONFIG' not in dir(System) and \
           s_event_identify not in System.BMC_HEALTH_LOGEVENT_CONFIG:
             return result
-        event_dir = System.BMC_LOGEVENT_CONFIG[s_event_identify]['Event Dir']
+        event_type = System.BMC_LOGEVENT_CONFIG[s_event_identify]['Event Type']
 
         if s_assert == "Deasserted":
             b_assert = (1<<7)
@@ -89,6 +89,8 @@ def BmcLogEventMessages(objpath = "", s_event_identify="", s_assert="", \
             serverity = Event.SEVERITY_CRIT
         elif (evd_data['Severity'] == 'Warning'):
             serverity = Event.SEVERITY_WARN
+        elif (evd_data['Severity'] == 'OK'):
+            serverity = Event.SEVERITY_OKAY
 
         evd_data_info = evd_data['Event Data Information'][s_evd_desc]
         if evd_data_info[0] != None:
@@ -119,8 +121,9 @@ def BmcLogEventMessages(objpath = "", s_event_identify="", s_assert="", \
     sensor_number = intf.Get(HwmonSensor.IFACE_NAME, 'sensornumber')
     if isinstance(sensor_number, basestring):
         sensor_number =  int(sensor_number , 16)
-    log = Event(serverity, sensortype, sensor_number, event_dir | b_assert, evd1, evd2, evd3)
-    logid=_EVENT_MANAGER.add_log(log)
+    log = Event.from_binary(serverity, sensortype, sensor_number, event_type | b_assert, evd1, evd2, evd3)
+    logid=_EVENT_MANAGER.create(log)
+    print('BmcLogEventMessages added log with record ID 0x%04X' % logid)
     result['logid'] = logid
     if s_event_identify == "BMC Health":
         result['evd1'] = evd1
