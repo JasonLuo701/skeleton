@@ -423,6 +423,7 @@ def _add_psu_temperature_sensor(configs, index, sensornumber, bus_number):
         'standby_monitor': False,
         'units': 'C',
         'value': -1,
+        'firmware_update': 0, # 0: normal, 1:firmware_update working
         }]
     configs.append(config)
 
@@ -446,6 +447,7 @@ def _add_psu_voltage_sensor(configs, index, sensornumber, bus_number):
         'value': -1,
         'entity': 0xA,
         'index': index,
+        'firmware_update': 0, # 0: normal, 1:firmware_update working
         }]
     configs.append(config)
 
@@ -508,6 +510,24 @@ def _add_bmc_health_sensor(configs, sensornumber):
         'sensornumber': sensornumber,
         'standby_monitor': True,
         'value': 0,
+        }]
+    configs.append(config)
+
+def _add_psu_status_sensor(configs, index, sensornumber, bus_number):
+    config = ['/org/openbmc/sensors/pmbus/pmbus0%d/status' % index, {
+        'bus_number': bus_number,
+        'device_node': 'pmbus_status_word',
+        'object_path': 'sensors/pmbus/pmbus0%d/status' % index,
+        'poll_interval': 5000,
+        'reading_type': '0x6F',
+        'scale': 1,
+        'sensor_name': 'PSU%d Status' % index,
+        'sensor_type': '0x08',
+        'sensornumber': sensornumber,
+        'standby_monitor': True,
+        'units': '',
+        'value': 0,
+        'firmware_update': 0, # 0: normal, 1:firmware_update working
         }]
     configs.append(config)
 
@@ -615,6 +635,12 @@ _add_pex9797(SENSOR_MONITOR_CONFIG, 1, 0x38)
 _add_pex9797(SENSOR_MONITOR_CONFIG, 2, 0x39)
 _add_pex9797(SENSOR_MONITOR_CONFIG, 3, 0x3A)
 _add_bmc_health_sensor(SENSOR_MONITOR_CONFIG, 0x82)
+_add_psu_status_sensor(SENSOR_MONITOR_CONFIG, 1, 0x83, '8-0058')
+_add_psu_status_sensor(SENSOR_MONITOR_CONFIG, 2, 0x84, '9-0058')
+_add_psu_status_sensor(SENSOR_MONITOR_CONFIG, 3, 0x85, '10-0058')
+_add_psu_status_sensor(SENSOR_MONITOR_CONFIG, 4, 0x86, '11-0058')
+_add_psu_status_sensor(SENSOR_MONITOR_CONFIG, 5, 0x87, '12-0058')
+_add_psu_status_sensor(SENSOR_MONITOR_CONFIG, 6, 0x88, '13-0058')
 _add_entity_presence(SENSOR_MONITOR_CONFIG, 0x8A)
 _add_management_subsystem_health(SENSOR_MONITOR_CONFIG, 0x89)
 _add_pcie_slot(SENSOR_MONITOR_CONFIG, 1, 220)

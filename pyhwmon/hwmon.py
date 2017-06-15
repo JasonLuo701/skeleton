@@ -46,11 +46,29 @@ IFACE_LOOKUP = {
 	'firmware_update': HwmonSensor.IFACE_NAME,
 }
 
+# The bit is not supported if not mentioned
+PMBUS_STATUS_HIGH_BYTE = {
+	0x80: 0x01,
+	0x40: 0x01,
+	0x20: 0x01,
+	0x08: 0x04,
+	0x04: 0x01
+}
+PMBUS_STATUS_LOW_BYTE = {
+	0x40: 0x01,
+	0x20: 0x01,
+	0x10: 0x01,
+	0x08: 0x01,
+	0x04: 0x01,
+	0x02: 0x01
+}
+
 class Hwmons():
 	def __init__(self,bus):
 		self.sensors = { }
 		self.hwmon_root = { }
 		self.threshold_state = {}
+		self.psu_state = {}
 		self.pgood_obj = bus.get_object('org.openbmc.control.Power', '/org/openbmc/control/power0', introspect=False)
 		self.pgood_intf = dbus.Interface(self.pgood_obj,dbus.PROPERTIES_IFACE)
 		self.path_mapping = {}
@@ -114,6 +132,52 @@ class Hwmons():
 				self.check_subsystem_health[attribute] = 1
 		return True
 
+	def check_pmbus_state(self, objpath, attribute, hwmon):
+		try:
+			obj = bus.get_object(SENSOR_BUS,objpath,introspect=False)
+			intf_p = dbus.Interface(obj, dbus.PROPERTIES_IFACE)
+			intf = dbus.Interface(obj,HwmonSensor.IFACE_NAME)
+			evd1 = 0xA0
+			if 'firmware_update' in hwmon:
+				if intf_p.Get(HwmonSensor.IFACE_NAME,'firmware_update') == 1:
+					return True
+			raw_value = int(self.readAttribute(attribute), 16)
+			self.entity_presence_check(attribute,hwmon,raw_value)
+			self.subsystem_health_check(attribute,hwmon,raw_value)
+			rtn = intf.setByPoll(raw_value)
+			if raw_value == -1:
+				return True
+
+			if raw_value < 0 or raw_value > 0xFFFF:
+				return True
+			severity = Event.SEVERITY_OKAY
+
+			for bitmap, evd1 in PMBUS_STATUS_HIGH_BYTE.iteritems():
+				if bitmap & (raw_value>>8) & ((self.psu_state[objpath]>>8) ^ 0xFF):
+					event_dir = 0x0
+					evd1 |= 0xA0
+					severity = Event.SEVERITY_CRIT
+					self.LogThresholdEventMessages(objpath, severity, event_dir, hwmon['reading_type'], evd1, raw_value>>8, raw_value&0xF)
+				elif (not(bitmap & (raw_value>>8)) and (bitmap&self.psu_state[objpath]>>8)):
+					event_dir = 0x80
+					evd1 |= 0xA0
+					self.LogThresholdEventMessages(objpath, severity, event_dir, hwmon['reading_type'], evd1, raw_value>>8, raw_value&0xF)
+			for bitmap, evd1 in PMBUS_STATUS_LOW_BYTE.iteritems():
+				if bitmap & (raw_value) & ((self.psu_state[objpath]) ^ 0xFF):
+					event_dir = 0x0
+					evd1 |= 0xA0
+					severity = Event.SEVERITY_CRIT
+					self.LogThresholdEventMessages(objpath, severity, event_dir, hwmon['reading_type'], evd1, raw_value>>8, raw_value&0xF)
+				elif (not(bitmap & (raw_value)) and (bitmap&self.psu_state[objpath])):
+					event_dir = 0x80
+					evd1 |= 0xA0
+					self.LogThresholdEventMessages(objpath, severity, event_dir, hwmon['reading_type'], evd1, raw_value>>8, raw_value&0xF)
+			self.psu_state[objpath] = raw_value
+
+		except Exception as e:
+			print str(e)
+		return True
+
 	def poll(self,objpath,attribute,hwmon):
 		try:
 			standby_monitor = True
@@ -160,10 +224,6 @@ class Hwmons():
 					intf_p.Set(SensorThresholds.IFACE_NAME, 'threshold_state', 'NORMAL')
 					return True
 				self.threshold_state[objpath]  = threshold_state
-				if threshold_state == 'NORMAL':
-					event_dir = 0x80
-				else:
-					event_dir = 0x0
 
 				if threshold_state.find("CRITICAL") != 0 or origin_threshold_type.find("CRITICAL") != 0:
 					severity = Event.SEVERITY_CRIT
@@ -179,6 +239,12 @@ class Hwmons():
 						event_type_code = 0x07
 				# [7:6] Trigger reading, [5:4] trigger threshold value, [3:0] Event/Reading code
 				evd1 = (0b0101 << 4)  | event_type_code
+
+				if threshold_state == 'NORMAL':
+					severity = Event.SEVERITY_OKAY
+					event_dir = 0x80
+				else:
+					event_dir = 0x0
 				self.LogThresholdEventMessages(objpath, severity, event_dir, hwmon['reading_type'], evd1)
 		except:
 			print "HWMON: Attibute no longer exists: "+attribute
@@ -280,8 +346,12 @@ class Hwmons():
 
 				self.sensors[objpath]=True
 				self.threshold_state[objpath] = "NORMAL"
-				if hwmon.has_key('poll_interval'):
-					gobject.timeout_add(hwmon['poll_interval'],self.poll,objpath,hwmon_path,hwmon)
+				if 'sensornumber' in hwmon and hwmon['sensornumber'] >= 0x83 and hwmon['sensornumber'] <= 0x88:
+					self.psu_state[objpath] = 0x0
+					gobject.timeout_add(hwmon['poll_interval'],self.check_pmbus_state,objpath, hwmon_path, hwmon)
+				else:
+					if hwmon.has_key('poll_interval'):
+						gobject.timeout_add(hwmon['poll_interval'],self.poll,objpath,hwmon_path,hwmon)
 
 	def scanDirectory(self):
 	 	devices = os.listdir(HWMON_PATH)
