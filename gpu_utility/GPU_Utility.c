@@ -27,6 +27,7 @@
 #define TYPE_BOARD_PART_NUMBER 0x0
 #define TYPE_SERIAL_NUMBER 0x2
 #define TYPE_MARKETING_NAME 0x3
+#define TYPE_FIRMWARE_VERSION 0x8
 #define MAX_GPU_NUM (8)
 #define MAX_INFO_INDEX 16
 #define MAX_INFO_LENGTH 64
@@ -79,7 +80,7 @@ static int internal_gpu_access(int bus, __u8 slave,__u8 *write_buf, __u8 *read_b
 	int fd;
 	char filename[MAX_I2C_DEV_LEN] = {0};
 	int rc=-1;
-	int retry_gpu = 5;
+	int IsRetry = 1;
 	unsigned char cmd_reg[4];
 
 	memset(cmd_reg, 0x0, sizeof(cmd_reg));
@@ -95,31 +96,23 @@ static int internal_gpu_access(int bus, __u8 slave,__u8 *write_buf, __u8 *read_b
 		fprintf(stderr, "Failed to do iotcl I2C_SLAVE\n");
 		goto error_smbus_access;
 	}
-    PMBUS_DELAY;
 	if(i2c_smbus_write_block_data(fd, MBT_REG_CMD, 4, write_buf) < 0) {
 		goto error_smbus_access;
 	}
-    PMBUS_DELAY;
-	while(retry_gpu) {
+	while(IsRetry) {
 
 		if (i2c_smbus_read_block_data(fd, MBT_REG_CMD, cmd_reg) != 4) {
-			printf("Error: on bus %d reading from 0x5c",bus);
 			goto error_smbus_access;
 		}
-		PMBUS_DELAY;
 		if(cmd_reg[3] == GPU_ACCESS_SUCCESS_RETURN) {
 			if (i2c_smbus_read_block_data(fd, MBT_REG_DATA_KEPLER, read_buf) == 4) { /*success get data*/
 				close(fd);
+                IsRetry = 0;
 				return 0;
 			}
-		} else {
-			printf("read bus %d return 0x%x 0x%x 0x%x 0x%x, not in success state\n",bus ,cmd_reg[0], cmd_reg[1], cmd_reg[2], cmd_reg[3]);
 		}
-		retry_gpu--;
-		PMBUS_DELAY;
 	}
 error_smbus_access:
-    PMBUS_DELAY;
 	close(fd);
 	return -1;
 }
@@ -143,6 +136,7 @@ static int function_get_gpu_info(int gpu_no)
 		{TYPE_BOARD_PART_NUMBER,24},
 		{TYPE_SERIAL_NUMBER,16},
 		{TYPE_MARKETING_NAME,24},
+        {TYPE_FIRMWARE_VERSION,16},
 		{0xFF,0xFF}, //List of end
 	};
 	unsigned char temp_readbuf[MAX_INFO_INDEX][32];
@@ -175,12 +169,14 @@ static int function_get_gpu_info(int gpu_no)
 			temp_writebuf[1]=input_cmd_data[i][0]; /* type*/
 			temp_writebuf[2]=j; /* times*/
 			rc = internal_gpu_access(i2c_bus,  slaveaddr, temp_writebuf, &temp_readbuf[i][j*4]);
-
 			if(rc < 0) {
-				fprintf(stderr, "failed to access gpu info index %d \n",index);
-				return rc;
+                break;
 			}
 		}
+        if(rc < 0){
+            i--;
+            continue;
+        }
 		memroy_index = input_cmd_data[i][0];
 		switch (input_cmd_data[i][0])
 		{
@@ -193,6 +189,9 @@ static int function_get_gpu_info(int gpu_no)
 			case TYPE_BOARD_PART_NUMBER:
 				strcpy(title, "Board Part Number");
 				break;
+            case TYPE_FIRMWARE_VERSION:
+                strcpy(title, "Firmware Version");
+                break;
 			default:
 				title[0] = 0;
 		}
