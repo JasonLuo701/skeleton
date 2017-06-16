@@ -22,7 +22,9 @@ def readNTP():
 def checkNTP():
   ntp_addr = readNTP()
   if ntp_addr == "0.0.0.0" or ntp_addr == "255.255.255.255":
-    print "ntp addr in eeprom is invalid, do nothing (%s)" %ntp_addr
+    print "ntp addr in eeprom is invalid, update default address in eeprom (%s)" %ntp_addr
+    writeNTP("AC1100CA")
+    os.system("/usr/sbin/sntp -d 172.17.0.202")
   else:
     print "found ntp addr in eeprom, restore it to ntp.conf"
     command = "/usr/sbin/sntp -d %s" %ntp_addr
