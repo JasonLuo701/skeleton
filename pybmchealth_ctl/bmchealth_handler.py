@@ -24,6 +24,7 @@ SENSOR_VALUE_INTERFACE = 'org.openbmc.SensorValue'
 g_bmchealth_obj_path = "/org/openbmc/sensors/bmc_health"
 g_recovery_count = [0,0,0,0,0,0,0,0]
 g_reboot_flag = 0
+g_previous_log_rollover = -1
 
 #light: 1, light on; 0:light off
 def bmchealth_set_status_led(light):
@@ -315,6 +316,20 @@ def bmchealth_check_fw_update_complete():
         os.remove(fpga_fw_update_complete_check)
 	return True
 
+def bmchealth_check_log_rollover():
+    current_log_rollover =  bmclogevent_ctl.bmclogevent_get_log_rollover()
+    global g_previous_log_rollover
+    if g_previous_log_rollover == -1:
+        g_previous_log_rollover =0
+    if current_log_rollover > g_previous_log_rollover:
+        print "Log Log Rollover event"
+        LogEventBmcHealthMessages("Asserted", "Log Rollover","Log Rollover",data={'log_rollover_count':current_log_rollover})
+        g_previous_log_rollover = current_log_rollover
+    if current_log_rollover == 0 and g_previous_log_rollover != 0:
+        bmclogevent_ctl.bmclogevent_set_value("/org/openbmc/sensors/bmc_health", 0, offset=0xb)
+        g_previous_log_rollover = current_log_rollover
+    return True
+
 if __name__ == '__main__':
     mainloop = gobject.MainLoop()
     #set bmchealth default value
@@ -326,6 +341,8 @@ if __name__ == '__main__':
     gobject.timeout_add(1000,bmchealth_check_network)
     gobject.timeout_add(1000,bmchealth_check_fw_update_start)
     gobject.timeout_add(1000,bmchealth_check_i2c)
+    gobject.timeout_add(1000,bmchealth_check_status_led)
+    gobject.timeout_add(1000,bmchealth_check_log_rollover)
     print "bmchealth_handler control starting"
     mainloop.run()
 

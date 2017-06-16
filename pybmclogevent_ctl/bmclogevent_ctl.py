@@ -18,6 +18,8 @@ SENSOR_VALUE_INTERFACE = 'org.openbmc.SensorValue'
 
 _EVENT_MANAGER = EventManager()
 
+def bmclogevent_get_log_rollover():
+    return _EVENT_MANAGER.rollover_count()
 
 def bmclogevent_set_value_with_dbus(obj_path, val):
     try:
