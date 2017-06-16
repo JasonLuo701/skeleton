@@ -152,6 +152,8 @@ class Hwmons():
 				return True
 			threshold_state = intf_p.Get(SensorThresholds.IFACE_NAME, 'threshold_state')
 			if threshold_state != self.threshold_state[objpath]:
+				severity = Event.SEVERITY_INFO
+				event_type_code = 0x0
 				origin_threshold_type = self.threshold_state[objpath]
 				dc_on_off = self.pgood_intf.Get('org.openbmc.control.Power', 'dc_on_off')
 				if dc_on_off == 1:
@@ -159,31 +161,42 @@ class Hwmons():
 					return True
 				self.threshold_state[objpath]  = threshold_state
 				if threshold_state == 'NORMAL':
-					event_dir = 'Deasserted'
+					event_dir = 0x80
 				else:
-					event_dir = 'Asserted'
+					event_dir = 0x0
 
-				scale = intf_p.Get(HwmonSensor.IFACE_NAME, 'scale')
-				real_reading = raw_value / scale
-				self.LogThresholdEventMessages(objpath, threshold_state, origin_threshold_type, event_dir, real_reading)
+				if threshold_state.find("CRITICAL") != 0 or origin_threshold_type.find("CRITICAL") != 0:
+					severity = Event.SEVERITY_CRIT
+					if threshold_state.find("LOWER") != 0 or origin_threshold_type.find("LOWER") != 0:
+						event_type_code = 0x02
+					else:
+						event_type_code = 0x09
+				elif threshold_state.find("WARNING") != 0 or origin_threshold_type.find("WARNING") != 0:
+					severity = Event.SEVERITY_WARN
+					if threshold_state.find("LOWER") != 0 or origin_threshold_type.find("LOWER") != 0:
+						event_type_code = 0x0
+					else:
+						event_type_code = 0x07
+				# [7:6] Trigger reading, [5:4] trigger threshold value, [3:0] Event/Reading code
+				evd1 = (0b0101 << 4)  | event_type_code
+				self.LogThresholdEventMessages(objpath, severity, event_dir, hwmon['reading_type'], evd1)
 		except:
 			print "HWMON: Attibute no longer exists: "+attribute
 			self.sensors.pop(objpath,None)
 			return False
 		return True
 
-	def LogThresholdEventMessages(self, objpath, threshold_type, origin_threshold_type, event_dir, reading):
+	def LogThresholdEventMessages(self, objpath, severity, event_dir, event_type, evd1, evd2=0xFF, evd3=0xFF):
 
 		obj = bus.get_object(SENSOR_BUS, objpath, introspect=False)
 		intf = dbus.Interface(obj, dbus.PROPERTIES_IFACE)
 		sensortype = int(intf.Get(HwmonSensor.IFACE_NAME, 'sensor_type'), 16)
 		sensor_number = intf.Get(HwmonSensor.IFACE_NAME, 'sensornumber')
 		sensor_name = intf.Get(HwmonSensor.IFACE_NAME, 'sensor_name')
-		threshold_type_str = threshold_type.title().replace('_', ' ')
 
 		# Add event log
-		log = Event(Event.SEVERITY_INFO, sensortype, sensor_number)
-		self.event_manager.add_log(log)
+		log = Event.from_binary(severity, sensortype, sensor_number, event_dir | event_type, evd1, evd2, evd3)
+		self.event_manager.create(log)
 
 		return True
 
