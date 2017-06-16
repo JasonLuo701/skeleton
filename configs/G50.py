@@ -1291,6 +1291,12 @@ BMC_LOGEVENT_CONFIG = {
 					'I2C bus hang':	[0xA, 'i2c_bus_id', 'i2c_error_code'],
 				},
 			},
+			'Log Rollover': {
+				'Severity': 'OK',
+				'Event Data Information': {
+					'Log Rollover':	[0xB, 'log_rollover_count', None],
+				},
+			},
 			'No MAC address programmed': {
 				'Severity': 'Critical',
 				'Event Data Information': {
@@ -1305,7 +1311,7 @@ BMC_LOGEVENT_CONFIG = {
 					'FPGA Firmware Update Started':	[0xD, 0x3, 'index'],
 				},
 			},
-            'Firmware Update completed': {
+			'Firmware Update completed': {
 				'Severity': 'OK',
 				'Event Data Information': {
 					'BMC Firmware Update completed':	[0xE, 0x1, 'index'],
@@ -1313,20 +1319,20 @@ BMC_LOGEVENT_CONFIG = {
 					'FPGA Firmware Update completed':	[0xE, 0x3, 'index'],
 				},
 			},
-	    },
-    },
-    'Entity Presence': {
-        'Record ID': 0,
-        'Record Type': 0x2,
-        'Timestamp': 0,
-        'Generator Id': 0x20,
-        'Evm Rev': 0x04,
-        'Event Dir': 0x6F,
-        'Event Data Table': {
-            'Entity Presence': {
-                'Severity': 'Critical',
-                'Event Data Information': {
-                    'Entity Presence':	[0x1, 'entity_device', 'entity_index'],
+		},
+	},
+	'Entity Presence': {
+		'Record ID': 0,
+		'Record Type': 0x2,
+		'Timestamp': 0,
+		'Generator Id': 0x20,
+		'Evm Rev': 0x04,
+		'Event Type': 0x6F,
+		'Event Data Table': {
+			'Entity Presence': {
+				'Severity': 'Critical',
+				'Event Data Information': {
+					'Entity Presence':	[0x1, 'entity_device', 'entity_index'],
 				},
 			},
 		},
