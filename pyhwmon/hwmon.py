@@ -177,7 +177,7 @@ class Hwmons():
 		intf = dbus.Interface(obj, dbus.PROPERTIES_IFACE)
 		sensortype = int(intf.Get(HwmonSensor.IFACE_NAME, 'sensor_type'), 16)
 		sensor_number = intf.Get(HwmonSensor.IFACE_NAME, 'sensornumber')
-		sensor_name = objpath.split('/').pop()
+		sensor_name = intf.Get(HwmonSensor.IFACE_NAME, 'sensor_name')
 		threshold_type_str = threshold_type.title().replace('_', ' ')
 
 		# Add event log
