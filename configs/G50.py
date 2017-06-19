@@ -367,7 +367,6 @@ def _add_gpu_temperature_sensor(configs, index, sensornumber):
         'sensornumber': sensornumber,
         'standby_monitor': False,
         'units': 'C',
-        'entity': 0x3,
         'index': index,
         'value': -1
         }]
@@ -446,7 +445,6 @@ def _add_psu_voltage_sensor(configs, index, sensornumber, bus_number):
         'standby_monitor': False,
         'units': 'V',
         'value': -1,
-        'entity': 0xA,
         'index': index,
         'firmware_update': 0, # 0: normal, 1:firmware_update working
         }]
@@ -496,7 +494,6 @@ def _add_pex9797(configs, index, sensornumber):
         'sensor_name': 'PLX Switch %d Temp' % (index+1),
         'standby_monitor': False,
         'units': 'C',
-        'entity': 0xB,
         'index': index,
         }]
     configs.append(config)
@@ -566,6 +563,7 @@ def _add_pcie_slot(configs, index, gpio):
         'scale': 1,
         'standby_monitor': True,
         'units': '',
+        'entity': 0xB,
         'index': index,
         }]
     configs.append(config)
@@ -1302,48 +1300,48 @@ BMC_LOGEVENT_CONFIG = {
 			'Network Error': {
 				'Severity': 'Critical',
 				'Event Data Information': {
-					'Link Down':	[0x1, 0x1, None],
-					'DHCP Failure':	[0x1, 0x2, None],
+					'Link Down':	[0xA1, 0x1, None],
+					'DHCP Failure':	[0xA1, 0x2, None],
 				},
 			},
 			'Hardware WDT expired': {
 				'Severity': 'Critical',
 				'Event Data Information': {
-					'Hardware WDT expired':	[0x3, None, None],
+					'Hardware WDT expired':	[0xA3, None, None],
 				},
 			},
 			'I2C bus hang': {
 				'Severity': 'Warning',
 				'Event Data Information': {
-					'I2C bus hang':	[0xA, 'i2c_bus_id', 'i2c_error_code'],
+					'I2C bus hang':	[0xAA, 'i2c_bus_id', 'i2c_error_code'],
 				},
 			},
 			'Log Rollover': {
 				'Severity': 'OK',
 				'Event Data Information': {
-					'Log Rollover':	[0xB, 'log_rollover_count', None],
+					'Log Rollover':	[0xAB, 'log_rollover_count', None],
 				},
 			},
 			'No MAC address programmed': {
 				'Severity': 'Critical',
 				'Event Data Information': {
-					'No MAC address programmed':	[0xC, None, None],
+					'No MAC address programmed':	[0xAC, None, None],
 				},
 			},
 			'Firmware Update Started': {
 				'Severity': 'OK',
 				'Event Data Information': {
-					'BMC Firmware Update Started':	[0xD, 0x1, 'index'],
-					'PSU Firmware Update Started':	[0xD, 0x2, 'index'],
-					'FPGA Firmware Update Started':	[0xD, 0x3, 'index'],
+					'BMC Firmware Update Started':	[0xAD, 0x1, 'index'],
+					'PSU Firmware Update Started':	[0xAD, 0x2, 'index'],
+					'FPGA Firmware Update Started':	[0xAD, 0x3, 'index'],
 				},
 			},
 			'Firmware Update completed': {
 				'Severity': 'OK',
 				'Event Data Information': {
-					'BMC Firmware Update completed':	[0xE, 0x1, 'index'],
-					'PSU Firmware Update completed':	[0xE, 0x2, 'index'],
-					'FPGA Firmware Update completed':	[0xE, 0x3, 'index'],
+					'BMC Firmware Update completed':	[0xAE, 0x1, 'index'],
+					'PSU Firmware Update completed':	[0xAE, 0x2, 'index'],
+					'FPGA Firmware Update completed':	[0xAE, 0x3, 'index'],
 				},
 			},
 		},
@@ -1359,7 +1357,7 @@ BMC_LOGEVENT_CONFIG = {
 			'Entity Presence': {
 				'Severity': 'Critical',
 				'Event Data Information': {
-					'Entity Presence':	[0x1, 'entity_device', 'entity_index'],
+					'Entity Presence':	[0xA1, 'entity_device', 'entity_index'],
 				},
 			},
 		},
