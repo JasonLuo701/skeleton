@@ -11,7 +11,7 @@
 #include <sys/stat.h>
 
 #define FAN_SHM_KEY  (4320)
-#define FAN_SHM_PATH "skeleton/fan_algorithm"
+#define FAN_SHM_PATH "skeleton/fan_algorithm2"
 
 
 struct st_fan_closeloop_par {
@@ -46,6 +46,7 @@ struct st_fan_parameter {
 	int current_speed;
 	int max_fanspeed;
 	int min_fanspeed;
+	int debug_msg_info_en; //0:close fan alogrithm debug message; 1: open fan alogrithm debug message
 };
 
 
@@ -76,12 +77,15 @@ void usage(const char *prog)
 	       "\t\t pwm parameters setting:\n"
 	       "\t\t\t -s : set max fan speed\n"
 	       "\t\t\t -m : set min fan speed\n"
+	       "\t\t fan_algorithm debug message info setting:\n"
+	       "\t\t\t -g : [0: close debug message; 1:open debug message]\n"
 	       "\n\t-r 'read fan parameters':\n"
 	       "\n\tfor example:\n"
 	       "\t\t %s  -w -e 0 -p 0.45 -i -0.017 -d 0.3 -t 70 -n 20 ==> set closeloop index:0 , GPU\n"
 	       "\t\t %s  -w -e 1 -p 0.45 -i -0.017 -d 0.3 -t 90 -n 20 ==> set closeloop index:1 , PEX9797\n"
 	       "\t\t %s  -w -a 0 -b 2 -c 0 -l 20 -u 38\n"
 	       "\t\t %s  -w -s 255 -m 0 \n"
+	       "\t\t %s  -w -g 1 \n"
 	       "\t\t %s  -r\n"
 	       , prog,prog, prog,prog,prog
 	      );
@@ -114,8 +118,9 @@ main(int argc, char * const argv[])
 	fan_p.openloop_sensor_offset = UNKNOW_VALUE;
 	fan_p.max_fanspeed = UNKNOW_VALUE;
 	fan_p.min_fanspeed = UNKNOW_VALUE;
+	fan_p.debug_msg_info_en = UNKNOW_VALUE;
 
-	while ((opt = getopt(argc, argv, "hwrp:i:d:t:a:b:c:l:u:s:m:n:e:o:")) != -1) {
+	while ((opt = getopt(argc, argv, "hwrp:i:d:t:a:b:c:l:u:s:m:n:e:o:g:")) != -1) {
 		switch (opt) {
 		case 'h':
 			usage(argv[0]);
@@ -171,6 +176,9 @@ main(int argc, char * const argv[])
 			break;
 		case 'o':
 			fan_p.openloop_sensor_offset =  atoi(optarg);
+			break;
+		case 'g':
+			fan_p.debug_msg_info_en =atoi(optarg);
 			break;
 		default:
 			usage(argv[0]);
@@ -278,6 +286,11 @@ main(int argc, char * const argv[])
 		if (fan_p.min_fanspeed != UNKNOW_VALUE) {
 			printf("[PWM] Min fan speed  changed: %d --> %d\n", g_fan_para_shm->min_fanspeed, fan_p.min_fanspeed);
 			g_fan_para_shm->min_fanspeed = fan_p.min_fanspeed;
+		}
+
+		if (fan_p.debug_msg_info_en != UNKNOW_VALUE) {
+			printf("fan_algorithm debug message info setting changed: %d --> %d\n", g_fan_para_shm->debug_msg_info_en, fan_p.debug_msg_info_en);
+			g_fan_para_shm->debug_msg_info_en = fan_p.debug_msg_info_en;
 		}
 
 
