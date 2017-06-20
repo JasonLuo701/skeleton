@@ -16,6 +16,7 @@
 #define MAX_BYTES 255
 #define MBT_REG_CMD            0x5c
 #define MBT_REG_DATA_KEPLER    0x5d
+#define NV_CMD_GET_CAPABILITIES 0x01
 #define NV_CMD_GET_TEMP 0x02
 #define NV_CMD_GET_GPU_INFORMATION    0x05
 #define NV_CMD_SET_RELEASE_THERMAL_ALERT    0xf4
@@ -31,6 +32,7 @@
 #define MAX_GPU_NUM (8)
 #define MAX_INFO_INDEX 16
 #define MAX_INFO_LENGTH 64
+#define MAX_CAPABILITIES_CMD_INDEX 5
 
 static int g_i2c_bus = 19;
 static unsigned long g_slaveaddr = 0x4f;
@@ -360,6 +362,59 @@ static int get_thermal_alert_state(int gpu_no, int show_message)
 	return 0;
 }
 
+static int get_capabilities(int gpu_no, int command_type, int show_message)
+{
+    unsigned char temp_writebuf[4] = {NV_CMD_GET_CAPABILITIES,command_type,0x0,0x80};
+    unsigned char readbuf[4];
+    int i2c_bus;
+    unsigned long slaveaddr;
+    int ret;
+    int gpu_index;
+    int retry = 5;
+
+    gpu_index = find_gpu_index(gpu_no);
+
+    if (gpu_index >= MAX_GPU_NUM || gpu_index == -1)
+    {
+        printf("Error gpu no:%d  exceed max gpu number:%d\n", gpu_no, MAX_GPU_NUM);
+        return -1;
+    }
+
+    if (command_type >= MAX_CAPABILITIES_CMD_INDEX)
+    {
+        printf("Error Arg1 of gpu capabilities command, exceed max Arg1 number:%d\n", MAX_CAPABILITIES_CMD_INDEX);
+        return -1;
+    }
+
+    i2c_bus = gpu_device_bus[gpu_index].bus_no;
+    slaveaddr = gpu_device_bus[gpu_index].slave;
+
+    while(retry > 0){
+        ret = internal_gpu_access(i2c_bus, slaveaddr, temp_writebuf, readbuf);
+        if (ret != 0)
+        {
+            if (show_message == 1){
+                retry--;
+                printf("Fail to get GPU[%d - %d 0x%x] Data: 0x%x 0x%x 0x%x 0x%x\n", gpu_index, i2c_bus, slaveaddr, readbuf[0], readbuf[1], readbuf[2], readbuf[3]);
+                printf("Retrying, the remaining number: %d \n",retry);
+            }
+        }else{
+            retry = 0;
+        }
+    }
+
+    if(ret == 0){
+        printf("DWord(%d): 0x%x 0x%x 0x%x 0x%x (MSB)\n",command_type,readbuf[3],readbuf[2],readbuf[1],readbuf[0]);
+    }
+
+    if (show_message == 1){
+        if (ret == 0){
+            printf("Get GPU capabilities SUCCESS!!\n");
+        }
+    }
+    return 0;
+}
+
 void gpu_data_scan()
 {
 	int i =0;
@@ -639,6 +694,7 @@ usage(const char *prog)
 	       "\t-x [gpu number] [Arg1]: Set/Release the thermal alert\n"
 	       "\t-y [gpu number] :Get power brake state\n"
 	       "\t-z [gpu number] :Get thermal alert state\n"
+	       "\t-c [gpu number] [Arg1]: Get GPU capabilities\n"
 	       "\t-s scan GPU status\n"
 	       "\t-m [gpu number] [i2c number] [i2c slaveaddress] :set GPU map\n"
 	       "\t-p [i2c bus] [i2c slave address] [command code] [i2c data....] :block write i2c smbus command data\n"
@@ -669,7 +725,7 @@ int main(int argc, char **argv)
 	gpu_data_scan();
 	read_gpu_map();
 	
-	while ((opt = getopt(argc, argv, "hst:x:y:z:i:m:p:r:k:a:b:")) != -1) {
+	while ((opt = getopt(argc, argv, "hst:x:y:z:c:i:m:p:r:k:a:b:")) != -1) {
 		switch (opt) {
 		case 'h':
 			usage(argv[0]);
@@ -709,6 +765,25 @@ int main(int argc, char **argv)
 		case 'z':
 			gpu_no =  atoi(optarg);
 			get_thermal_alert_state(gpu_no, 1);
+			break;
+        case 'c':
+			for (i = 0; i<argc; i++)
+			{
+				if (strcmp(opt_start[i], "-c") == 0)
+				{
+					if (i+2 >= argc)
+					{
+						printf("Error parameter\n");
+						usage(argv[0]);
+						return -1;
+					}
+
+					gpu_no = atoi(opt_start[i+1]);
+					command_type = atoi(opt_start[i+2]);
+					break;
+				}
+			}
+			get_capabilities(gpu_no, command_type, 1);
 			break;
 		case 's':
 			scan_gpu_status();
