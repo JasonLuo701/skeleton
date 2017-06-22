@@ -14,6 +14,7 @@ from obmc.events import EventManager
 from obmc.sensors import SensorValue as SensorValue
 from obmc.sensors import HwmonSensor as HwmonSensor
 from obmc.sensors import SensorThresholds as SensorThresholds
+import obmc.sensor_data_record_pool as sdr_tool
 import obmc_system_config as System
 import bmclogevent_ctl
 import traceback
@@ -229,23 +230,33 @@ class Hwmons():
 					severity = Event.SEVERITY_CRIT
 					if threshold_state.find("LOWER") != -1 or origin_threshold_type.find("LOWER") != -1:
 						event_type_code = 0x02
+						evd3 = intf_p.Get(SensorThresholds.IFACE_NAME,'critical_lower')
 					else:
 						event_type_code = 0x09
+						evd3 = intf_p.Get(SensorThresholds.IFACE_NAME,'critical_upper')
 				elif threshold_state.find("WARNING") != -1 or origin_threshold_type.find("WARNING") != -1:
 					severity = Event.SEVERITY_WARN
 					if threshold_state.find("LOWER") != -1 or origin_threshold_type.find("LOWER") != -1:
 						event_type_code = 0x0
+						evd3 = intf_p.Get(SensorThresholds.IFACE_NAME,'warning_lower')
 					else:
 						event_type_code = 0x07
+						evd3 = intf_p.Get(SensorThresholds.IFACE_NAME,'warning_upper')
 				# [7:6] Trigger reading, [5:4] trigger threshold value, [3:0] Event/Reading code
+				scale = intf_p.Get(HwmonSensor.IFACE_NAME,'scale')
 				evd1 = (0b0101 << 4)  | event_type_code
+				evd2 = raw_value / scale
 
+				sdr = sdr_tool.SDRS.get_by_sensor_number(hwmon['sensornumber'])
+				evd2 = sdr.compress_raw_reading(evd2)
+				evd3 = sdr.compress_raw_reading(evd3)
 				if threshold_state == 'NORMAL':
 					severity = Event.SEVERITY_OKAY
 					event_dir = 0x80
 				else:
 					event_dir = 0x0
-				self.LogThresholdEventMessages(objpath, severity, event_dir, hwmon['reading_type'], evd1)
+				self.LogThresholdEventMessages(objpath, severity, event_dir,
+										hwmon['reading_type'], evd1, evd2, evd3)
 		except:
 			print "HWMON: Attibute no longer exists: "+attribute
 			self.sensors.pop(objpath,None)
