@@ -86,7 +86,8 @@ class Hwmons():
 				for line in f:
 					val = line.rstrip('\n')
 		except (OSError, IOError):
-			print "Cannot read attributes:", filename
+			if filename != "N/A":
+				print "Cannot read attributes:", filename
 		return val
 
 	def writeAttribute(self,filename,value):
