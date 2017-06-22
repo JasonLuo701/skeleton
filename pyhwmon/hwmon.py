@@ -47,14 +47,12 @@ IFACE_LOOKUP = {
 }
 
 # The bit is not supported if not mentioned
-PMBUS_STATUS_HIGH_BYTE = {
-	0x80: 0x01,
-	0x40: 0x01,
-	0x20: 0x01,
-	0x08: 0x04,
-	0x04: 0x01
-}
-PMBUS_STATUS_LOW_BYTE = {
+PMBUS_STATUS_BYTES = {
+	0x8000: 0x01,
+	0x4000: 0x01,
+	0x2000: 0x01,
+	0x0800: 0x04,
+	0x0400: 0x01,
 	0x40: 0x01,
 	0x20: 0x01,
 	0x10: 0x01,
@@ -151,27 +149,37 @@ class Hwmons():
 			if raw_value < 0 or raw_value > 0xFFFF:
 				return True
 			severity = Event.SEVERITY_OKAY
+			event_dir = 0x0
+			assertion_failure = False
+			deassertion_failure = False
+			assertion_power_lost = False
+			deassertion_power_lost = False
 
-			for bitmap, evd1 in PMBUS_STATUS_HIGH_BYTE.iteritems():
-				if bitmap & (raw_value>>8) & ((self.psu_state[objpath]>>8) ^ 0xFF):
-					event_dir = 0x0
-					evd1 |= 0xA0
-					severity = Event.SEVERITY_CRIT
-					self.LogThresholdEventMessages(objpath, severity, event_dir, hwmon['reading_type'], evd1, raw_value>>8, raw_value&0xF)
-				elif (not(bitmap & (raw_value>>8)) and (bitmap&self.psu_state[objpath]>>8)):
-					event_dir = 0x80
-					evd1 |= 0xA0
-					self.LogThresholdEventMessages(objpath, severity, event_dir, hwmon['reading_type'], evd1, raw_value>>8, raw_value&0xF)
-			for bitmap, evd1 in PMBUS_STATUS_LOW_BYTE.iteritems():
-				if bitmap & (raw_value) & ((self.psu_state[objpath]) ^ 0xFF):
-					event_dir = 0x0
-					evd1 |= 0xA0
-					severity = Event.SEVERITY_CRIT
-					self.LogThresholdEventMessages(objpath, severity, event_dir, hwmon['reading_type'], evd1, raw_value>>8, raw_value&0xF)
+			for bitmap, event_type in PMBUS_STATUS_BYTES.iteritems():
+				if bitmap & (raw_value) & ((self.psu_state[objpath]) ^ 0xFFFF):
+					if event_type == 0x04:
+						assertion_power_lost = True
+					else:
+						assertion_failure = True
 				elif (not(bitmap & (raw_value)) and (bitmap&self.psu_state[objpath])):
-					event_dir = 0x80
-					evd1 |= 0xA0
-					self.LogThresholdEventMessages(objpath, severity, event_dir, hwmon['reading_type'], evd1, raw_value>>8, raw_value&0xF)
+					if event_type == 0x04:
+						deassertion_power_lost = True
+					else:
+						deassertion_failure = True
+			if assertion_failure:
+				event_dir = 0x0
+				severity = Event.SEVERITY_CRIT
+				self.LogThresholdEventMessages(objpath, severity, event_dir, hwmon['reading_type'], evd1|0x01, raw_value>>8, raw_value&0xF)
+			if assertion_power_lost:
+				event_dir = 0x0
+				severity = Event.SEVERITY_CRIT
+				self.LogThresholdEventMessages(objpath, severity, event_dir, hwmon['reading_type'], evd1|0x04, raw_value>>8, raw_value&0xF)
+			if deassertion_failure:
+				event_dir = 0x8
+				self.LogThresholdEventMessages(objpath, severity, event_dir, hwmon['reading_type'], evd1|0x01, raw_value>>8, raw_value&0xF)
+			if deassertion_power_lost:
+				event_dir = 0x8
+				self.LogThresholdEventMessages(objpath, severity, event_dir, hwmon['reading_type'], evd1|0x04, raw_value>>8, raw_value&0xF)
 			self.psu_state[objpath] = raw_value
 
 		except Exception as e:
