@@ -225,15 +225,15 @@ class Hwmons():
 					return True
 				self.threshold_state[objpath]  = threshold_state
 
-				if threshold_state.find("CRITICAL") != 0 or origin_threshold_type.find("CRITICAL") != 0:
+				if threshold_state.find("CRITICAL") != -1 or origin_threshold_type.find("CRITICAL") != -1:
 					severity = Event.SEVERITY_CRIT
-					if threshold_state.find("LOWER") != 0 or origin_threshold_type.find("LOWER") != 0:
+					if threshold_state.find("LOWER") != -1 or origin_threshold_type.find("LOWER") != -1:
 						event_type_code = 0x02
 					else:
 						event_type_code = 0x09
-				elif threshold_state.find("WARNING") != 0 or origin_threshold_type.find("WARNING") != 0:
+				elif threshold_state.find("WARNING") != -1 or origin_threshold_type.find("WARNING") != -1:
 					severity = Event.SEVERITY_WARN
-					if threshold_state.find("LOWER") != 0 or origin_threshold_type.find("LOWER") != 0:
+					if threshold_state.find("LOWER") != -1 or origin_threshold_type.find("LOWER") != -1:
 						event_type_code = 0x0
 					else:
 						event_type_code = 0x07
