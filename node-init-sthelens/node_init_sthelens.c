@@ -29,6 +29,51 @@ void init_pcie_slot_gpio()
     }
 }
 
+void init_therm_overt_gpio()
+{
+    int SlotPRSNTGPIO[] = {196, 197, 198, 199, 200, 201, 202, 203};
+    int i = 0;
+    char buff_path[256] = "";
+
+    for(i=0; i<(sizeof(SlotPRSNTGPIO)/sizeof(SlotPRSNTGPIO[0])); i++) {
+        sprintf(buff_path, "echo %d > /sys/class/gpio/export", SlotPRSNTGPIO[i]);
+        system(buff_path);
+
+        sprintf(buff_path, "echo in > /sys/class/gpio/gpio%d/direction", SlotPRSNTGPIO[i]);
+        system(buff_path);
+    }
+}
+
+void init_power_good_gpio()
+{
+    int SlotPRSNTGPIO[] = {204, 205, 206, 207, 208, 209, 210, 211};
+    int i = 0;
+    char buff_path[256] = "";
+
+    for(i=0; i<(sizeof(SlotPRSNTGPIO)/sizeof(SlotPRSNTGPIO[0])); i++) {
+        sprintf(buff_path, "echo %d > /sys/class/gpio/export", SlotPRSNTGPIO[i]);
+        system(buff_path);
+
+        sprintf(buff_path, "echo in > /sys/class/gpio/gpio%d/direction", SlotPRSNTGPIO[i]);
+        system(buff_path);
+    }
+}
+
+void init_gpu_gpio()
+{
+    int SlotPRSNTGPIO[] = {212, 213, 214, 215, 216, 217, 218, 219};
+    int i = 0;
+    char buff_path[256] = "";
+
+    for(i=0; i<(sizeof(SlotPRSNTGPIO)/sizeof(SlotPRSNTGPIO[0])); i++) {
+        sprintf(buff_path, "echo %d > /sys/class/gpio/export", SlotPRSNTGPIO[i]);
+        system(buff_path);
+
+        sprintf(buff_path, "echo in > /sys/class/gpio/gpio%d/direction", SlotPRSNTGPIO[i]);
+        system(buff_path);
+    }
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -70,6 +115,11 @@ main(int argc, char *argv[])
 
     /* Init PCIE slot present GPIO*/
     init_pcie_slot_gpio();
+
+    /* Init GPU present & PWR GOOD & thermal GPIO*/
+    init_gpu_gpio();
+    init_power_good_gpio();
+    init_therm_overt_gpio();
 
     return 0;
 }

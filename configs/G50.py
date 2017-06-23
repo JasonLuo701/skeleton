@@ -568,6 +568,43 @@ def _add_pcie_slot(configs, index, gpio):
         }]
     configs.append(config)
 
+def _add_gpu_slot(configs, index, gpio):
+    config = ['/org/openbmc/control/gpu/slot%d' % index, {
+        'device_node': '/sys/class/gpio/gpio%d/value' % gpio,
+        'object_path': 'control/gpu/slot%d' % index,
+        'poll_interval': 10000,
+        'scale': 1,
+        'standby_monitor': True,
+        'units': '',
+        'entity': 0x3,
+        'index': index,
+        }]
+    configs.append(config)
+
+def _add_powergood_gpio(configs, index, gpio):
+    config = ['/org/openbmc/control/powergood/slot%d' % index, {
+        'device_node': '/sys/class/gpio/gpio%d/value' % gpio,
+        'object_path': 'control/powergood/slot%d' % index,
+        'poll_interval': 10000,
+        'scale': 1,
+        'standby_monitor': True,
+        'units': '',
+        'index': index,
+        }]
+    configs.append(config)
+
+def _add_thermal_gpio(configs, index, gpio):
+    config = ['/org/openbmc/control/thermal/slot%d' % index, {
+        'device_node': '/sys/class/gpio/gpio%d/value' % gpio,
+        'object_path': 'control/thermal/slot%d' % index,
+        'poll_interval': 10000,
+        'scale': 1,
+        'standby_monitor': True,
+        'units': '',
+        'index': index,
+        }]
+    configs.append(config)
+
 SENSOR_MONITOR_CONFIG = []
 _add_gpu_temperature_sensor(SENSOR_MONITOR_CONFIG, 1, 0x41)
 _add_gpu_temperature_sensor(SENSOR_MONITOR_CONFIG, 2, 0x42)
@@ -646,6 +683,30 @@ _add_pcie_slot(SENSOR_MONITOR_CONFIG, 1, 220)
 _add_pcie_slot(SENSOR_MONITOR_CONFIG, 2, 221)
 _add_pcie_slot(SENSOR_MONITOR_CONFIG, 3, 222)
 _add_pcie_slot(SENSOR_MONITOR_CONFIG, 4, 223)
+_add_gpu_slot(SENSOR_MONITOR_CONFIG, 1, 212)
+_add_gpu_slot(SENSOR_MONITOR_CONFIG, 2, 213)
+_add_gpu_slot(SENSOR_MONITOR_CONFIG, 3, 214)
+_add_gpu_slot(SENSOR_MONITOR_CONFIG, 4, 215)
+_add_gpu_slot(SENSOR_MONITOR_CONFIG, 5, 216)
+_add_gpu_slot(SENSOR_MONITOR_CONFIG, 6, 217)
+_add_gpu_slot(SENSOR_MONITOR_CONFIG, 7, 218)
+_add_gpu_slot(SENSOR_MONITOR_CONFIG, 8, 219)
+_add_powergood_gpio(SENSOR_MONITOR_CONFIG, 1, 204)
+_add_powergood_gpio(SENSOR_MONITOR_CONFIG, 2, 205)
+_add_powergood_gpio(SENSOR_MONITOR_CONFIG, 3, 206)
+_add_powergood_gpio(SENSOR_MONITOR_CONFIG, 4, 207)
+_add_powergood_gpio(SENSOR_MONITOR_CONFIG, 5, 208)
+_add_powergood_gpio(SENSOR_MONITOR_CONFIG, 6, 209)
+_add_powergood_gpio(SENSOR_MONITOR_CONFIG, 7, 210)
+_add_powergood_gpio(SENSOR_MONITOR_CONFIG, 8, 211)
+_add_thermal_gpio(SENSOR_MONITOR_CONFIG, 1, 196)
+_add_thermal_gpio(SENSOR_MONITOR_CONFIG, 2, 197)
+_add_thermal_gpio(SENSOR_MONITOR_CONFIG, 3, 198)
+_add_thermal_gpio(SENSOR_MONITOR_CONFIG, 4, 199)
+_add_thermal_gpio(SENSOR_MONITOR_CONFIG, 5, 200)
+_add_thermal_gpio(SENSOR_MONITOR_CONFIG, 6, 201)
+_add_thermal_gpio(SENSOR_MONITOR_CONFIG, 7, 202)
+_add_thermal_gpio(SENSOR_MONITOR_CONFIG, 8, 203)
 
 HWMON_CONFIG = {
     '0-0010' :  {
