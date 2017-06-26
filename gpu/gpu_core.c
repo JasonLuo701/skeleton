@@ -11,8 +11,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sdbus_property.h>
-#include "../libocs_semlock/ocslock.h"
-
 
 #define MAX_I2C_DEV_LEN 32
 #define MBT_REG_CMD            0x5c
@@ -95,46 +93,6 @@ gpu_device_mapping gpu_device_bus[MAX_GPU_NUM] = {
 	{19, 0x4f, EM_GPU_DEVICE_8},
 };
 
-static void gpu_ocslock(int bus)
-{
-	switch(bus) {
-	case 16:
-		ocs_lock(I2C16_CHARDEV);
-		break;
-	case 17:
-		ocs_lock(I2C17_CHARDEV);
-		break;
-	case 18:
-		ocs_lock(I2C18_CHARDEV);
-		break;
-	case 19:
-		ocs_lock(I2C19_CHARDEV);
-		break;
-	default:
-		break;
-	}
-}
-
-static void gpu_ocsunlock(int bus)
-{
-	switch(bus) {
-	case 16:
-		ocs_unlock(I2C16_CHARDEV);
-		break;
-	case 17:
-		ocs_unlock(I2C17_CHARDEV);
-		break;
-	case 18:
-		ocs_unlock(I2C18_CHARDEV);
-		break;
-	case 19:
-		ocs_unlock(I2C19_CHARDEV);
-		break;
-	default:
-		break;
-	}
-}
-
 static int internal_gpu_access(int bus, __u8 slave,__u8 *write_buf, __u8 *read_buf)
 {
 	int fd;
@@ -145,16 +103,12 @@ static int internal_gpu_access(int bus, __u8 slave,__u8 *write_buf, __u8 *read_b
 
 	memset(cmd_reg, 0x0, sizeof(cmd_reg));
 	sprintf(filename,"/dev/i2c-%d",bus);
-
-
-	gpu_ocslock(bus);
 	fd = open(filename,O_RDWR);
+
 	if (fd == -1) {
 		fprintf(stderr, "Failed to open i2c device %s", filename);
-		gpu_ocsunlock(bus);
 		return rc;
 	}
-
 	rc = ioctl(fd,I2C_SLAVE,slave);
 	if(rc < 0) {
 		fprintf(stderr, "Failed to do iotcl I2C_SLAVE\n");
@@ -177,7 +131,6 @@ static int internal_gpu_access(int bus, __u8 slave,__u8 *write_buf, __u8 *read_b
 			if (i2c_smbus_read_block_data(fd, MBT_REG_DATA_KEPLER, read_buf) == 4) { /*success get data*/
 				close(fd);
 				PMBUS_DELAY;
-				gpu_ocsunlock(bus);
 				return 0;
 			}
 		} else {
@@ -189,7 +142,6 @@ static int internal_gpu_access(int bus, __u8 slave,__u8 *write_buf, __u8 *read_b
 error_smbus_access:
 	PMBUS_DELAY;
 	close(fd);
-	gpu_ocsunlock(bus);
 	return rc;
 }
 

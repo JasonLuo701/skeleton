@@ -249,12 +249,6 @@ APPS = {
         'monitor_process' : True,
         'process_name'    : 'pex_core.exe',
     },
-    'ocslock_ctl' : {
-        'system_state'    : 'BASE_APPS',
-        'start_process'   : True,
-        'monitor_process' : True,
-        'process_name'    : 'ocslock_generic_obj.exe',
-    },
 }
 
 CACHED_INTERFACES = {

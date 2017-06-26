@@ -5,5 +5,3 @@
 *.swp
 *.swo
 */build
-libocs_semlock/lib/*
-libocs_semlock/obj/*

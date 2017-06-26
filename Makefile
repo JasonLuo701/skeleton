@@ -9,14 +9,12 @@ GDBUS_APPS = bmcctl \
 
 SDBUS_APPS = gpu \
 	     pex9797_ctl \
-	     ocslock_ctl \
 	     pmbus \
 	     psu_fwupdate_ctl
 
 SUBDIRS = hacks \
 	  libopenbmc_intf \
 	  libopenbmc_sdbus \
-	  libocs_semlock \
 	  ledctl \
 	  fanctl \
 	  fan_tool \
@@ -37,8 +35,7 @@ SUBDIRS = hacks \
 	  node-init-sthelens \
 	  pybmchealth_ctl \
 	  pybmclogevent_ctl \
-	  gpu_utility \
-	  pyocslock_monitor
+	  gpu_utility
 
 REVERSE_SUBDIRS = $(shell echo $(SUBDIRS) $(GDBUS_APPS) $(SDBUS_APPS) | tr ' ' '\n' | tac |tr '\n' ' ')
 
@@ -53,13 +50,7 @@ $(GDBUS_APPS): libopenbmc_intf
 	$(MAKE) -C $@ CFLAGS="-I ../$^" LDFLAGS="-L ../$^"
 
 $(SDBUS_APPS): libopenbmc_sdbus
-	$(MAKE) -C $@ CFLAGS="-I ../$<" LDFLAGS="-L ../$<"
-
-ocslock_ctl: libocs_semlock
-
-gpu: libocs_semlock
-
-pex9797_ctl: libocs_semlock
+	$(MAKE) -C $@ CFLAGS="-I ../$^" LDFLAGS="-L ../$^"
 
 install: subdirs
 	@for d in $(SUBDIRS) $(GDBUS_APPS) $(SDBUS_APPS); do \

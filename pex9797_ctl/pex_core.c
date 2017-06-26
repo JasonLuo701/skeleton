@@ -11,8 +11,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sdbus_property.h>
-#include "../libocs_semlock/ocslock.h"
-
 
 
 #define MAX_I2C_DEV_LEN 32
@@ -140,48 +138,6 @@ pex_device_i2c_cmd pex_device_cmd_tab[EM_PEX_CMD_MAX] = {
 
 static int g_use_pec = 0;
 
-
-static void pex_ocslock(int bus)
-{
-	switch(bus) {
-	case 16:
-		ocs_lock(I2C16_CHARDEV);
-		break;
-	case 17:
-		ocs_lock(I2C17_CHARDEV);
-		break;
-	case 18:
-		ocs_lock(I2C18_CHARDEV);
-		break;
-	case 19:
-		ocs_lock(I2C19_CHARDEV);
-		break;
-	default:
-		break;
-	}
-}
-
-static void pex_ocsunlock(int bus)
-{
-	switch(bus) {
-	case 16:
-		ocs_unlock(I2C16_CHARDEV);
-		break;
-	case 17:
-		ocs_unlock(I2C17_CHARDEV);
-		break;
-	case 18:
-		ocs_unlock(I2C18_CHARDEV);
-		break;
-	case 19:
-		ocs_unlock(I2C19_CHARDEV);
-		break;
-	default:
-		break;
-	}
-}
-
-
 static int i2c_io(int fd, int slave_addr, int write_len , __u8 *write_data_bytes, int read_len, __u8 *read_data_bytes)
 {
 	struct i2c_rdwr_ioctl_data data;
@@ -236,12 +192,10 @@ static i2c_raw_access(int i2c_bus, int i2c_addr ,int write_len , __u8 *write_dat
 	int i;
 
 	sprintf(filename,"/dev/i2c-%d",i2c_bus);
-	pex_ocslock(i2c_bus);
 	fd = open(filename,O_RDWR);
 
 	if (fd == -1) {
 		fprintf(stderr, "Failed to open i2c device %s, error:%s", filename, strerror(errno));
-		pex_ocsunlock(i2c_bus);
 		return rc;
 	}
 
@@ -249,7 +203,6 @@ static i2c_raw_access(int i2c_bus, int i2c_addr ,int write_len , __u8 *write_dat
 	if(rc < 0) {
 		fprintf(stderr, "Failed to do iotcl I2C_SLAVE, error:%s\n", strerror(errno));
 		close(fd);
-		pex_ocsunlock(i2c_bus);
 		return rc;
 	}
 
@@ -259,7 +212,7 @@ static i2c_raw_access(int i2c_bus, int i2c_addr ,int write_len , __u8 *write_dat
 	rc = i2c_io(fd, i2c_addr, write_len, write_data_bytes, read_len, read_data_bytes);
 
 	close(fd);
-	pex_ocsunlock(i2c_bus);
+
 	return rc;
 
 }
@@ -275,22 +228,18 @@ static int smbus_commmand_write(int i2c_bus, int i2c_addr, __u8 *write_data, int
 	int i;
 
 	sprintf(filename,"/dev/i2c-%d",i2c_bus);
-	pex_ocslock(i2c_bus);
 	fd = open(filename,O_RDWR);
 
 	if (fd == -1) {
 		fprintf(stderr, "Failed to open i2c device %s", filename);
-		pex_ocsunlock(i2c_bus);
 		return rc;
 	}
 
 	if(i2c_smbus_write_block_data(fd, i2c_command, write_count, write_data) < 0) {
 		close(fd);
-		pex_ocsunlock(i2c_bus);
 		return -1;
 	}
 	close(fd);
-	pex_ocsunlock(i2c_bus);
 	return 0;
 }
 
