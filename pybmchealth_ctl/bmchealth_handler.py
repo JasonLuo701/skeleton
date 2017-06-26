@@ -24,6 +24,7 @@ SENSOR_VALUE_INTERFACE = 'org.openbmc.SensorValue'
 g_bmchealth_obj_path = "/org/openbmc/sensors/bmc_health"
 g_event_count = [0,0,0,0,0,0,0,0]
 g_reboot_flag = 0
+g_watchdog_reset = 0
 g_previous_log_rollover = -1
 
 #light: 1, light on; 0:light off
@@ -187,6 +188,7 @@ def reboot_check_flag():
     return True
 
 def bmchealth_check_watchdog():
+    global g_watchdog_reset
     print "check watchdog timeout start"
     check_watchdog1_command = "devmem 0x1e785010"
     check_watchdog2_command = "devmem 0x1e785030"
@@ -243,6 +245,7 @@ def bmchealth_check_watchdog():
         f.close()
         print "Log watchdog expired event"
         LogEventBmcHealthMessages("Asserted", "Hardware WDT expired")
+        g_watchdog_reset = 1
     return True
 
 def bmchealth_check_i2c():
@@ -332,6 +335,46 @@ def bmchealth_check_fw_update_complete():
         os.remove(fpga_fw_update_complete_check)
     return True
 
+#To skip fwu case, it should be invoked before fw_update_complete removed
+def bmchealth_check_bmc_reset():
+    fw_update_complete_check = "/var/lib/obmc/fw_update_complete"
+    reset_flag_file = '/var/lib/obmc/redfish_reset'
+    check_scu3c_command = "devmem 0x1e6e203c 8"
+    unlock_scu_command = "devmem 0x1e6e2000 32 0x1688a8a8"
+    #lock_scu_command = "devmem 0x1e6e203c 32 0"
+    reset_flag = redfish_reset = 0
+
+    print "check system reset control/status register"
+
+    if os.path.exists(reset_flag_file):
+        redfish_reset = 1
+        os.remove(reset_flag_file)
+
+    try:
+        scu3c_str_data = subprocess.check_output(check_scu3c_command, shell=True)
+        reset_flag = int(scu3c_str_data, 16) & 0xe
+        if g_watchdog_reset == 1:
+            reset_flag = reset_flag & 0xc
+        if reset_flag != 0:
+            if os.path.exists(fw_update_complete_check):
+                return True
+            subprocess.check_output(unlock_scu_command, shell=True)
+            clear_scu3c = "devmem 0x1e6e203c 32 %d" % (int(scu3c_str_data, 16) & 1)
+            subprocess.check_output(clear_scu3c, shell=True)
+            #subprocess.check_output(lock_scu_command, shell=True)
+    except:
+        print "[bmchealth_check_bmc_reset] exception!!!"
+        return False
+
+    if reset_flag == 0:
+        return True;
+
+    if redfish_reset == 1:
+        LogEventBmcHealthMessages("Asserted", "BMC Reset", "Redfish Reset")
+    else:
+        LogEventBmcHealthMessages("Asserted", "BMC Reset", "Register/Pin Reset")
+    return True
+
 def bmchealth_check_log_rollover():
     current_log_rollover =  bmclogevent_ctl.bmclogevent_get_log_rollover()
     global g_previous_log_rollover
@@ -354,6 +397,7 @@ if __name__ == '__main__':
     reboot_check_flag()
     bmchealth_fix_and_check_mac()
     bmchealth_check_watchdog()
+    bmchealth_check_bmc_reset() # Before check fwu, after check watchdog
     bmchealth_check_fw_update_complete()
     gobject.timeout_add(1000,bmchealth_check_network)
     gobject.timeout_add(1000,bmchealth_check_fw_update_start)
