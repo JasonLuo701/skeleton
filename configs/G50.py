@@ -1479,6 +1479,12 @@ BMC_LOGEVENT_CONFIG = {
 					'Hardware WDT expired':	[0xA3, None, None],
 				},
 			},
+			'BMC CPU utilization': {
+				'Severity': 'Warning',
+				'Event Data Information': {
+					'BMC CPU utilization':	[0xA6, 'cpu_utilization', None],
+				},
+			},
 			'BMC Memory utilization': {
 				'Severity': 'Warning',
 				'Event Data Information': {

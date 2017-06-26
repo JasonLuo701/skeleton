@@ -29,6 +29,9 @@ g_previous_log_rollover = -1
 g_memory_utilization = -1
 g_record_fru_status={}
 g_record_bmchealth_severity={}
+g_CPU_utilization = -1
+g_previous_total = 0
+g_previous_idle_cpu = 0
 
 #light: 1, light on; 0:light off
 def bmchealth_set_status_led(light):
@@ -385,6 +388,47 @@ def bmchealth_check_log_rollover():
         g_previous_log_rollover = current_log_rollover
     return True
 
+def bmchealth_check_CPU_utilization():
+    CPU_stat_path = "/proc/stat"
+    global g_CPU_utilization
+    global g_previous_total
+    global g_previous_idle_cpu
+
+    try:
+        with open(CPU_stat_path, 'r') as f:
+            cpu = f.readline()
+            usr_cpu = float(cpu.split(' ')[2])
+            nice_cpu = float(cpu.split(' ')[3])
+            system_cpu = float(cpu.split(' ')[4])
+            idle_cpu = float(cpu.split(' ')[5])
+            iowait_cpu = float(cpu.split(' ')[6])
+            irq_cpu = float(cpu.split(' ')[7])
+            softirq_cpu = float(cpu.split(' ')[8])
+            current_total = usr_cpu + nice_cpu + system_cpu + idle_cpu + iowait_cpu + irq_cpu + softirq_cpu
+            if g_CPU_utilization == -1:
+                g_CPU_utilization =0
+                g_previous_total = current_total
+                g_previous_idle_cpu = idle_cpu
+                return True
+            total = current_total-g_previous_total
+            idle = idle_cpu-g_previous_idle_cpu
+            cpu_usage =  (total - idle)/total
+            g_previous_total = current_total
+            g_previous_idle_cpu = idle_cpu
+            cpu_utilization = int(cpu_usage*100)
+            if cpu_utilization >= 80 and g_CPU_utilization == 0:
+                print "Log Asserted CPU utilization"
+                LogEventBmcHealthMessages("Asserted", "BMC CPU utilization","BMC CPU utilization",data={'cpu_utilization':cpu_utilization})
+                g_CPU_utilization = 1
+            elif cpu_utilization < 80 and g_CPU_utilization == 1:
+                print "Log Deasserted CPU utilization"
+                LogEventBmcHealthMessages("Deasserted", "BMC CPU utilization","BMC CPU utilization",data={'cpu_utilization':cpu_utilization})
+                g_CPU_utilization = 0
+                time.sleep(60)
+    except:
+            print "[bmchealth_check_CPU_utilization]exception !!!"
+    return True
+
 def bmchealth_check_memory_utilization():
     meminfo_path = "/proc/meminfo"
     global g_memory_utilization
@@ -469,6 +513,7 @@ if __name__ == '__main__':
     gobject.timeout_add(1000,bmchealth_check_log_rollover)
     gobject.timeout_add(1000,bmchealth_check_memory_utilization)
     gobject.timeout_add(20000,bmchealth_check_empty_invalid_fru)
+    gobject.timeout_add(1000,bmchealth_check_CPU_utilization)
     print "bmchealth_handler control starting"
     mainloop.run()
 
