@@ -369,9 +369,40 @@ class Hwmons():
 				if 'sensornumber' in hwmon and hwmon['sensornumber'] >= 0x83 and hwmon['sensornumber'] <= 0x88:
 					self.psu_state[objpath] = 0x0
 					gobject.timeout_add(hwmon['poll_interval'],self.check_pmbus_state,objpath, hwmon_path, hwmon)
+				elif 'sensornumber' in hwmon and hwmon['sensornumber'] == 0x81:
+					self.check_ntp_init_status(hwmon)
 				else:
 					if hwmon.has_key('poll_interval'):
 						gobject.timeout_add(hwmon['poll_interval'],self.poll,objpath,hwmon_path,hwmon)
+
+	def check_ntp_init_status(self, hwmon):
+		status = None
+		ntp_init_status = '/var/tmp/ntp_init_status'
+		try:
+			with open(ntp_init_status, 'r') as f:
+				status = int(f.readline())
+		except IOError as e:
+			print e
+			return
+		except ValueError as e:
+			print e
+			return
+
+		event_dir = 0
+		event_type = 0x71
+		sensor_type = int(hwmon['sensor_type'], 0)
+		sensor_number = hwmon['sensornumber']
+		if status == 0:
+			evd1 = 0x01
+			severity = Event.SEVERITY_INFO
+		else:
+			evd1 = 0x03
+			severity = Event.SEVERITY_CRIT
+		log = Event.from_binary(severity, sensor_type, sensor_number, \
+				event_dir | event_type, evd1)
+		self.event_manager.create(log)
+
+		os.remove(ntp_init_status)
 
 	def scanDirectory(self):
 		check_subsystem_health_obj_path = "/org/openbmc/sensors/management_subsystem_health"
