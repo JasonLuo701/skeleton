@@ -37,6 +37,8 @@ IFACE_LOOKUP = {
 	'critical_lower' : SensorThresholds.IFACE_NAME,
 	'warning_lower' : SensorThresholds.IFACE_NAME,
 	'emergency_enabled' : SensorThresholds.IFACE_NAME,
+	'positive_hysteresis' : SensorThresholds.IFACE_NAME,
+	'negative_hysteresis' : SensorThresholds.IFACE_NAME,
 	'sensornumber': HwmonSensor.IFACE_NAME,
 	'sensor_name': HwmonSensor.IFACE_NAME,
 	'sensor_type': HwmonSensor.IFACE_NAME,
