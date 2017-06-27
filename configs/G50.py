@@ -487,6 +487,7 @@ def _add_cable_led(configs, index, gpio):
 def _add_pex9797(configs, index, sensornumber):
     config = ['/org/openbmc/sensors/pex/pex%d' % index, {
         'device_node': '/tmp/pex/pex%d_temp' % index,
+        'critical_upper': 111,
         'positive_hysteresis': 2,
         'object_path': 'sensors/pex/pex%d' % index,
         'poll_interval': 5000,
