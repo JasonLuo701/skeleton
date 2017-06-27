@@ -62,9 +62,9 @@ def LogEventBmcHealthMessages(s_assert="", s_event_indicator="", \
                     s_assert,  s_event_indicator, s_evd_desc, data)
         if result['logid'] != 0:
             if s_assert == "Asserted":
-                bmclogevent_ctl.bmclogevent_set_value(g_bmchealth_obj_path, 1, offset=result['evd1'])
+                bmclogevent_ctl.bmclogevent_set_value(g_bmchealth_obj_path, 1, offset=(result['evd1']&0xf))
             elif s_assert == "Deasserted":
-                bmclogevent_ctl.bmclogevent_set_value(g_bmchealth_obj_path, 0, offset=result['evd1'])
+                bmclogevent_ctl.bmclogevent_set_value(g_bmchealth_obj_path, 0, offset=(result['evd1']&0xf))
     except:
         print "LogEventBmcHealthMessages error!! " + s_event_indicator
 
