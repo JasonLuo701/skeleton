@@ -1059,7 +1059,7 @@ HWMON_CONFIG = {
                 },
         }
     },
-    '21-0048' :  {
+    '21-0037' :  {
         'names' : {
             'temp1_input' : {
                 'object_path' : 'sensors/temperature/TMP1',

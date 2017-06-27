@@ -17,7 +17,7 @@ typedef struct {
 #define CABLE_SW1      0
 #define CABLE_SW2      1
 #define CABLE_SW3      2
-#define CABLE_SW3      3
+#define CABLE_SW4      3
 #define PORT1          0
 #define PORT2          1
 #define MAX_CABLE_SW   4
