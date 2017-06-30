@@ -1403,6 +1403,13 @@ BMC_LOGEVENT_CONFIG = {
 					'Hardware WDT expired':	[0xA3, None, None],
 				},
 			},
+			'BMC Reset': {
+				'Severity': 'Critical',
+				'Event Data Information': {
+					'Register/Pin Reset': [0xA8, 0x1, None],
+					'Redfish Reset':      [0xA8, 0x2, None],
+				},
+			},
 			'I2C bus hang': {
 				'Severity': 'Warning',
 				'Event Data Information': {
