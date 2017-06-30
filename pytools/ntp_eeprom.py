@@ -4,6 +4,7 @@ import getopt
 import sys
 import string
 import os
+import subprocess
 
 g_eeprom_path = "/sys/devices/platform/ahb/ahb:apb/1e78a000.i2c/i2c-4/i2c-4/4-0050/eeprom"
 g_ntp_offset = 0x2030
@@ -24,11 +25,13 @@ def checkNTP():
   if ntp_addr == "0.0.0.0" or ntp_addr == "255.255.255.255":
     print "ntp addr in eeprom is invalid, update default address in eeprom (%s)" %ntp_addr
     writeNTP("AC1100CA")
-    os.system("/usr/sbin/sntp -d 172.17.0.202")
+    command = "/usr/sbin/sntp -d -S 172.17.0.202"
   else:
     print "found ntp addr in eeprom, restore it to ntp.conf"
-    command = "/usr/sbin/sntp -d %s" %ntp_addr
-    os.system(command)
+    command = "/usr/sbin/sntp -d -S %s" %ntp_addr
+  status = subprocess.call(command.split())
+  with open('/var/tmp/ntp_init_status', 'w') as f:
+    f.write(str(status))
   return 0
 
 def writeNTP(ntpaddr):
