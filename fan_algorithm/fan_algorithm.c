@@ -22,11 +22,11 @@
 #define CMD_OUTPUT_PORT_0 2
 
 #define FAN_SHM_KEY  (4320)
-#define FAN_SHM_PATH "skeleton/fan_algorithm"
+#define FAN_SHM_PATH "skeleton/fan_algorithm2"
 #define MAX_WAIT_TIMEOUT  (50000)
 
 struct st_closeloop_obj_data {
-    int index;
+	int index;
 	int sensor_tracking;
 	int warning_temp;
 	int sensor_reading;
@@ -79,6 +79,7 @@ struct st_fan_parameter {
 	int current_speed;
 	int max_fanspeed;
 	int min_fanspeed;
+	int debug_msg_info_en; //0:close fan alogrithm debug message; 1: open fan alogrithm debug message
 };
 
 
@@ -232,7 +233,8 @@ static int calculate_closeloop(struct st_closeloop_obj_data *sensor_data, int cu
 	else
 		sample_n = SAMPLING_N;
 
-	printf("[FAN_ALGORITHM][%s, %d] [PID value] kp:%f, Ki:%f, Kd:%f, target: %d\n", __FUNCTION__, __LINE__, Kp, Ki, Kd, sensor_data->sensor_tracking);
+	if (g_fan_para_shm->debug_msg_info_en == 1)
+		printf("[FAN_ALGORITHM][%s, %d] [PID value] kp:%f, Ki:%f, Kd:%f, target: %d\n", __FUNCTION__, __LINE__, Kp, Ki, Kd, sensor_data->sensor_tracking);
 
 	cur_interal_Err =(int) (sensor_data->sensor_reading - sensor_data->sensor_tracking);
 	sensor_data->intergral_i = sensor_data->intergral_i % sample_n;
@@ -259,7 +261,8 @@ static int calculate_closeloop(struct st_closeloop_obj_data *sensor_data, int cu
 	g_fan_para_shm->closeloop_param[index].pid_value = pid_value;
 	g_fan_para_shm->closeloop_param[index].closeloop_speed = pwm_speed;
 
-	printf("[FAN_ALGORITHM][%s, %d] [Closeloop pid_value] %d; [Closeloop Calculate Fan Speed]: %d\n", __FUNCTION__, __LINE__, pid_value, pwm_speed);
+	if (g_fan_para_shm->debug_msg_info_en == 1)
+		printf("[FAN_ALGORITHM][%s, %d] [Closeloop pid_value] %d; [Closeloop Calculate Fan Speed]: %d\n", __FUNCTION__, __LINE__, pid_value, pwm_speed);
 
 	if(pwm_speed > 100)
 		pwm_speed = 100;
@@ -304,8 +307,9 @@ static int calculate_openloop (int sensorreading)
 
 	g_fan_para_shm->openloop_speed = speed;
 
-	printf("[FAN_ALGORITHM][%s, %d] [Openloop Parameters: g_UpAmb, g_LowAmb, A, B, C] %d ,%d, %f, %f, %f; [Openloop Calculate Fan Speed]: %d\n", __FUNCTION__, __LINE__,
-	       g_UpAmb, g_LowAmb, g_ParamA, g_ParamB, g_ParamC, speed);
+	if (g_fan_para_shm->debug_msg_info_en == 1)
+		printf("[FAN_ALGORITHM][%s, %d] [Openloop Parameters: g_UpAmb, g_LowAmb, A, B, C] %d ,%d, %f, %f, %f; [Openloop Calculate Fan Speed]: %d\n", __FUNCTION__, __LINE__,
+		       g_UpAmb, g_LowAmb, g_ParamA, g_ParamB, g_ParamC, speed);
 
 	g_Openloopspeed = speed;
 	return 1;
@@ -517,7 +521,8 @@ static int fan_control_algorithm_monitor(void)
 
 			current_fanspeed = get_max_sensor_reading_Fan(bus, &g_FanSpeedObjPath);
 			g_fan_para_shm->current_speed = current_fanspeed;
-			printf("[FAN_ALGORITHM][Current FanSpeed value] :%d\n", current_fanspeed);
+			if (g_fan_para_shm->debug_msg_info_en == 1)
+				printf("[FAN_ALGORITHM][Current FanSpeed value] :%d\n", current_fanspeed);
 			if (current_fanspeed <0)
 				current_fanspeed = 0;
 			else {
@@ -589,7 +594,8 @@ static int fan_control_algorithm_monitor(void)
 			}
 			for(i=0; i<g_FanInputObjPath.size; i++) {
 				rc = get_sensor_reading(bus, g_FanInputObjPath.path[i], &Fan_tach, &g_FanInputObjPath);
-				printf("[FAN_ALGORITHM][Fan Tach: %d] value:%d\n", i,  Fan_tach);
+				if (g_fan_para_shm->debug_msg_info_en == 1)
+					printf("[FAN_ALGORITHM][Fan Tach: %d] value:%d\n", i,  Fan_tach);
 				if (rc < 0)
 					Fan_tach = 0;
 
@@ -625,7 +631,8 @@ static int fan_control_algorithm_monitor(void)
 				FinalFanSpeed = g_fan_para_shm->max_fanspeed;
 		}
 
-		printf("[FAN_ALGORITHM][Set FanSpeed value] :%d\n", FinalFanSpeed);
+		if (g_fan_para_shm->debug_msg_info_en == 1)
+			printf("[FAN_ALGORITHM][Set FanSpeed value] :%d\n", FinalFanSpeed);
 		for(i=0; i<g_FanSpeedObjPath.size; i++) {
 			rc = sd_bus_call_method(bus,
 						g_FanSpeedObjPath.service_bus,
@@ -831,7 +838,7 @@ static int initial_fan_config(sd_bus *bus)
 			t_closeloop_data->intergral_i = 0;
 		}
 		t_fan_obj->obj_data = (void*)t_closeloop_data;
-		
+
 
 		push_fan_obj(&g_Closeloop_Header, t_fan_obj);
 		obj_count++;
@@ -955,6 +962,7 @@ static void inital_fan_pid_shm()
 		}
 		g_fan_para_shm->closeloop_count = 0;
 		g_fan_para_shm->openloop_sensor_offset = -7;
+		g_fan_para_shm->debug_msg_info_en = 0;
 	}
 }
 
