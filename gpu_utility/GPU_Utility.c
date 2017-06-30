@@ -35,7 +35,7 @@
 #define MAX_CAPABILITIES_CMD_INDEX 5
 
 static int g_i2c_bus = 19;
-static unsigned long g_slaveaddr = 0x4f;
+static unsigned long g_slaveaddr = 0x4d;
 int fd;
 unsigned char cmd_reg[4];
 static int g_use_pec = 0;
@@ -67,14 +67,14 @@ typedef struct {
 } gpu_device_mapping;
 
 gpu_device_mapping gpu_device_bus[MAX_GPU_NUM] = {
-	{28, 0x4f, EM_GPU_DEVICE_1},
-	{29, 0x4f, EM_GPU_DEVICE_2},
-	{30, 0x4f, EM_GPU_DEVICE_3},
-	{31, 0x4f, EM_GPU_DEVICE_4},
-	{32, 0x4f, EM_GPU_DEVICE_5},
-	{33, 0x4f, EM_GPU_DEVICE_6},
-	{34, 0x4f, EM_GPU_DEVICE_7},
-	{35, 0x4f, EM_GPU_DEVICE_8},
+	{28, 0x4d, EM_GPU_DEVICE_1},
+	{29, 0x4d, EM_GPU_DEVICE_2},
+	{30, 0x4d, EM_GPU_DEVICE_3},
+	{31, 0x4d, EM_GPU_DEVICE_4},
+	{32, 0x4d, EM_GPU_DEVICE_5},
+	{33, 0x4d, EM_GPU_DEVICE_6},
+	{34, 0x4d, EM_GPU_DEVICE_7},
+	{35, 0x4d, EM_GPU_DEVICE_8},
 };
 
 static int internal_gpu_access(int bus, __u8 slave,__u8 *write_buf, __u8 *read_buf)
