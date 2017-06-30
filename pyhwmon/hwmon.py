@@ -441,20 +441,23 @@ class Hwmons():
 
 			else:
 				print "WARNING - hwmon: Unhandled hwmon: "+dpath
+
+		self.addSensorMonitorObject()
 		for dpath in System.HWMON_CONFIG:
 			for attribute in System.HWMON_CONFIG[dpath]['names']:
 				objpath = System.HWMON_CONFIG[dpath]['names'][attribute]['object_path']
-				if objpath not in self.check_subsystem_health:
-					self.check_subsystem_health[objpath] = 1
-				if System.HWMON_CONFIG[dpath]['names'][attribute]['object_path'] not in obj_mapping:
-					if self.check_subsystem_health[objpath] == 1:
-						bmclogevent_ctl.BmcLogEventMessages(check_subsystem_health_obj_path, \
-						"Management Subsystem Health" ,"Asserted", "Management Subsystem Health", \
-						data={'event_status':0x4, 'sensor_number':System.HWMON_CONFIG[dpath]['names'][attribute]['sensornumber']})
-						bmclogevent_ctl.bmclogevent_set_value(check_subsystem_health_obj_path, 1)
-						self.check_subsystem_health[objpath] = 0
+				if (System.HWMON_CONFIG[dpath]['names'][attribute].has_key('sensornumber')):
+					if (System.HWMON_CONFIG[dpath]['names'][attribute]['sensornumber'] != ''):
+						if objpath not in self.check_subsystem_health:
+							self.check_subsystem_health[objpath] = 1
+						if System.HWMON_CONFIG[dpath]['names'][attribute]['object_path'] not in obj_mapping:
+							if self.check_subsystem_health[objpath] == 1:
+								bmclogevent_ctl.BmcLogEventMessages(check_subsystem_health_obj_path, \
+								"Management Subsystem Health" ,"Asserted", "Management Subsystem Health", \
+								data={'event_status':0x4, 'sensor_number':System.HWMON_CONFIG[dpath]['names'][attribute]['sensornumber']})
+								bmclogevent_ctl.bmclogevent_set_value(check_subsystem_health_obj_path, 1)
+								self.check_subsystem_health[objpath] = 0
 
-		self.addSensorMonitorObject()
 		for k in self.hwmon_root.keys():
 			if (found_hwmon.has_key(k) == False):
 				## need to remove all objects associated with this path
