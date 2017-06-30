@@ -83,14 +83,14 @@ typedef struct {
 } gpu_device_mapping;
 
 gpu_device_mapping gpu_device_bus[MAX_GPU_NUM] = {
-	{16, 0x4e, EM_GPU_DEVICE_1},
-	{16, 0x4f, EM_GPU_DEVICE_3},
-	{17, 0x4e, EM_GPU_DEVICE_2},
-	{17, 0x4f, EM_GPU_DEVICE_4},
-	{18, 0x4e, EM_GPU_DEVICE_5},
-	{18, 0x4f, EM_GPU_DEVICE_7},
-	{19, 0x4e, EM_GPU_DEVICE_6},
-	{19, 0x4f, EM_GPU_DEVICE_8},
+	{28, 0x4d, EM_GPU_DEVICE_1},
+	{29, 0x4d, EM_GPU_DEVICE_2},
+	{30, 0x4d, EM_GPU_DEVICE_3},
+	{31, 0x4d, EM_GPU_DEVICE_4},
+	{32, 0x4d, EM_GPU_DEVICE_5},
+	{33, 0x4d, EM_GPU_DEVICE_6},
+	{34, 0x4d, EM_GPU_DEVICE_7},
+	{35, 0x4d, EM_GPU_DEVICE_8},
 };
 
 static int internal_gpu_access(int bus, __u8 slave,__u8 *write_buf, __u8 *read_buf)

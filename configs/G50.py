@@ -697,34 +697,34 @@ _add_psu_status_sensor(SENSOR_MONITOR_CONFIG, 5, 0x87, '12-0058')
 _add_psu_status_sensor(SENSOR_MONITOR_CONFIG, 6, 0x88, '13-0058')
 _add_entity_presence(SENSOR_MONITOR_CONFIG, 0x8A)
 _add_management_subsystem_health(SENSOR_MONITOR_CONFIG, 0x89)
-_add_pcie_slot(SENSOR_MONITOR_CONFIG, 1, 220)
-_add_pcie_slot(SENSOR_MONITOR_CONFIG, 2, 221)
-_add_pcie_slot(SENSOR_MONITOR_CONFIG, 3, 222)
-_add_pcie_slot(SENSOR_MONITOR_CONFIG, 4, 223)
-_add_gpu_slot(SENSOR_MONITOR_CONFIG, 1, 212)
-_add_gpu_slot(SENSOR_MONITOR_CONFIG, 2, 213)
-_add_gpu_slot(SENSOR_MONITOR_CONFIG, 3, 214)
-_add_gpu_slot(SENSOR_MONITOR_CONFIG, 4, 215)
-_add_gpu_slot(SENSOR_MONITOR_CONFIG, 5, 216)
-_add_gpu_slot(SENSOR_MONITOR_CONFIG, 6, 217)
-_add_gpu_slot(SENSOR_MONITOR_CONFIG, 7, 218)
-_add_gpu_slot(SENSOR_MONITOR_CONFIG, 8, 219)
-_add_powergood_gpio(SENSOR_MONITOR_CONFIG, 1, 204)
-_add_powergood_gpio(SENSOR_MONITOR_CONFIG, 2, 205)
-_add_powergood_gpio(SENSOR_MONITOR_CONFIG, 3, 206)
-_add_powergood_gpio(SENSOR_MONITOR_CONFIG, 4, 207)
-_add_powergood_gpio(SENSOR_MONITOR_CONFIG, 5, 208)
-_add_powergood_gpio(SENSOR_MONITOR_CONFIG, 6, 209)
-_add_powergood_gpio(SENSOR_MONITOR_CONFIG, 7, 210)
-_add_powergood_gpio(SENSOR_MONITOR_CONFIG, 8, 211)
-_add_thermal_gpio(SENSOR_MONITOR_CONFIG, 1, 196)
-_add_thermal_gpio(SENSOR_MONITOR_CONFIG, 2, 197)
-_add_thermal_gpio(SENSOR_MONITOR_CONFIG, 3, 198)
-_add_thermal_gpio(SENSOR_MONITOR_CONFIG, 4, 199)
-_add_thermal_gpio(SENSOR_MONITOR_CONFIG, 5, 200)
-_add_thermal_gpio(SENSOR_MONITOR_CONFIG, 6, 201)
-_add_thermal_gpio(SENSOR_MONITOR_CONFIG, 7, 202)
-_add_thermal_gpio(SENSOR_MONITOR_CONFIG, 8, 203)
+_add_pcie_slot(SENSOR_MONITOR_CONFIG, 1, 252)
+_add_pcie_slot(SENSOR_MONITOR_CONFIG, 2, 253)
+_add_pcie_slot(SENSOR_MONITOR_CONFIG, 3, 254)
+_add_pcie_slot(SENSOR_MONITOR_CONFIG, 4, 255)
+_add_gpu_slot(SENSOR_MONITOR_CONFIG, 1, 236)
+_add_gpu_slot(SENSOR_MONITOR_CONFIG, 2, 237)
+_add_gpu_slot(SENSOR_MONITOR_CONFIG, 3, 238)
+_add_gpu_slot(SENSOR_MONITOR_CONFIG, 4, 239)
+_add_gpu_slot(SENSOR_MONITOR_CONFIG, 5, 240)
+_add_gpu_slot(SENSOR_MONITOR_CONFIG, 6, 241)
+_add_gpu_slot(SENSOR_MONITOR_CONFIG, 7, 242)
+_add_gpu_slot(SENSOR_MONITOR_CONFIG, 8, 243)
+_add_powergood_gpio(SENSOR_MONITOR_CONFIG, 1, 228)
+_add_powergood_gpio(SENSOR_MONITOR_CONFIG, 2, 229)
+_add_powergood_gpio(SENSOR_MONITOR_CONFIG, 3, 230)
+_add_powergood_gpio(SENSOR_MONITOR_CONFIG, 4, 231)
+_add_powergood_gpio(SENSOR_MONITOR_CONFIG, 5, 232)
+_add_powergood_gpio(SENSOR_MONITOR_CONFIG, 6, 233)
+_add_powergood_gpio(SENSOR_MONITOR_CONFIG, 7, 234)
+_add_powergood_gpio(SENSOR_MONITOR_CONFIG, 8, 235)
+_add_thermal_gpio(SENSOR_MONITOR_CONFIG, 1, 244)
+_add_thermal_gpio(SENSOR_MONITOR_CONFIG, 2, 245)
+_add_thermal_gpio(SENSOR_MONITOR_CONFIG, 3, 246)
+_add_thermal_gpio(SENSOR_MONITOR_CONFIG, 4, 247)
+_add_thermal_gpio(SENSOR_MONITOR_CONFIG, 5, 248)
+_add_thermal_gpio(SENSOR_MONITOR_CONFIG, 6, 249)
+_add_thermal_gpio(SENSOR_MONITOR_CONFIG, 7, 250)
+_add_thermal_gpio(SENSOR_MONITOR_CONFIG, 8, 251)
 
 HWMON_CONFIG = {
     '0-0010' :  {
@@ -1087,7 +1087,58 @@ HWMON_CONFIG = {
                 },
         }
     },
-    '21-0048' :  {
+    # FIO Temperature sensor for inlet, add by pvt
+    '0-0049' :  {
+        'names' : {
+            'temp1_input' : {
+                'object_path' : 'sensors/temperature/TMP9',
+                'poll_interval' : 5000,
+                'scale' : 1000,
+                'units' : 'C',
+                'sensor_type' : '0x01',
+                'sensornumber' : '0x5',
+                'sensor_name':'FIO Inlet Temp 1',
+                'reading_type' : 0x01,
+                'emergency_enabled' : True,
+                'standby_monitor': False,
+                },
+        }
+    },
+    # FIO Temperature sensor for inlet, add by pvt
+    '0-004a' :  {
+        'names' : {
+            'temp1_input' : {
+                'object_path' : 'sensors/temperature/TMP10',
+                'poll_interval' : 5000,
+                'scale' : 1000,
+                'units' : 'C',
+                'sensor_type' : '0x01',
+                'sensornumber' : '0x6',
+                'sensor_name':'FIO Inlet Temp 2',
+                'reading_type' : 0x01,
+                'emergency_enabled' : True,
+                'standby_monitor': False,
+                },
+        }
+    },
+    # CM Temperature sensor for inlet, add by pvt
+    '0-004b' :  {
+        'names' : {
+            'temp1_input' : {
+                'object_path' : 'sensors/temperature/TMP11',
+                'poll_interval' : 5000,
+                'scale' : 1000,
+                'units' : 'C',
+                'sensor_type' : '0x01',
+                'sensornumber' : '0x7',
+                'sensor_name':'CM Outlet Temp 1',
+                'reading_type' : 0x01,
+                'emergency_enabled' : True,
+                'standby_monitor': False,
+                },
+        }
+    },
+    '21-0037' :  {
         'names' : {
             'temp1_input' : {
                 'object_path' : 'sensors/temperature/TMP1',
