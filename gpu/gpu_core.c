@@ -93,7 +93,7 @@ gpu_device_mapping gpu_device_bus[MAX_GPU_NUM] = {
 	{35, 0x4d, EM_GPU_DEVICE_8},
 };
 
-static int internal_gpu_access(int bus, __u8 slave,__u8 *write_buf, __u8 *read_buf)
+static int internal_gpu_access(int bus, __u8 slave,__u8 *write_buf, __u8 *read_buf, int flag)
 {
 	int fd;
 	char filename[MAX_I2C_DEV_LEN] = {0};
@@ -134,7 +134,12 @@ static int internal_gpu_access(int bus, __u8 slave,__u8 *write_buf, __u8 *read_b
 				return 0;
 			}
 		} else {
-			printf("read bus %d return 0x%x 0x%x 0x%x 0x%x, not in success state\n",bus ,cmd_reg[0], cmd_reg[1], cmd_reg[2], cmd_reg[3]);
+			if (flag == 1) { 
+				close(fd);
+				PMBUS_DELAY;
+				return -2;
+			} else
+			    printf("read bus %d return 0x%x 0x%x 0x%x 0x%x, not in success state\n",bus ,cmd_reg[0], cmd_reg[1], cmd_reg[2], cmd_reg[3]);
 		}
 		retry_gpu--;
 		PMBUS_DELAY;
@@ -172,7 +177,7 @@ static int function_get_gpu_info(int index)
 			temp_writebuf[1]=input_cmd_data[i][0]; /* type*/
 			temp_writebuf[2]=read_times_count; /* times*/
 			rc = internal_gpu_access(gpu_device_bus[index].bus_no,
-						 gpu_device_bus[index].slave,temp_writebuf,&temp_readbuf[i][read_times_count*4]);
+						 gpu_device_bus[index].slave,temp_writebuf,&temp_readbuf[i][read_times_count*4], 0);
 
 			if(rc < 0) {
 				fprintf(stderr, "failed to access gpu info index %d \n",index);
@@ -203,7 +208,23 @@ int function_get_gpu_data(int index)
 	int i=0;
 	FILE *fp;
 	/*get gpu temp data*/
-	rc = internal_gpu_access(gpu_device_bus[index].bus_no,gpu_device_bus[index].slave,temp_writebuf,readbuf);
+	int retry_temp = 5;
+	while(retry_temp >= 0)
+	{
+		int flag_temp = 1;
+		if (retry_temp == 0)
+			flag_temp = 0;
+		rc = internal_gpu_access(gpu_device_bus[index].bus_no,gpu_device_bus[index].slave,temp_writebuf,readbuf, flag_temp);
+		if (rc >=0)
+			break;
+		else if (rc == -2)
+		{
+			unsigned char temp_nop_writebuf[4] = {0x00,0x0,0x0,0x80};
+			unsigned char readbuf_nop[4];
+			internal_gpu_access(gpu_device_bus[index].bus_no,gpu_device_bus[index].slave,temp_nop_writebuf,readbuf_nop, 0);
+		}
+		retry_temp-=1;
+	}
 	if(rc==0) {
 		G_gpu_data[gpu_device_bus[index].device_index].temp_ready = 1;
 		G_gpu_data[gpu_device_bus[index].device_index].temp = readbuf[1];

@@ -40,7 +40,7 @@ struct st_fan_parameter {
 	int g_LowSpeed;
 	int g_HighSpeed;
 	int openloop_speed;
-	int openloop_sensor_reading;
+	double openloop_sensor_reading;
 	int openloop_sensor_offset;
 
 	int current_speed;
@@ -213,8 +213,8 @@ main(int argc, char * const argv[])
 		    	   closeloop->pid_value, closeloop->closeloop_speed);
 
 		}
-		printf("[Openloop Info] sensor_reading:%d , openloop speed:%d\n",
-		       g_fan_para_shm->openloop_sensor_reading, g_fan_para_shm->openloop_speed);
+		printf("[Openloop Info] sensor_reading:%f , sensor_reading_offset:%d openloop speed:%d\n",
+		       g_fan_para_shm->openloop_sensor_reading, g_fan_para_shm->openloop_sensor_offset ,  g_fan_para_shm->openloop_speed);
 
 		printf("[PWM Info] current fan speed:%d (%d~%d)\n",
 		       g_fan_para_shm->current_speed, g_fan_para_shm->min_fanspeed, g_fan_para_shm->max_fanspeed);
