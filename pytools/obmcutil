@@ -255,8 +255,8 @@ if (method_name != ""):
 			for sensor in pydata:
 				if getsensors_param != "":
 					if getsensors_param == "-num":
-						if pydata[sensor]['org.openbmc.HwmonSensor'].has_key('sensornumber') and \
-						    pydata[sensor]['org.openbmc.HwmonSensor']['sensornumber'] == getsensors_value:
+						if 'sensornumber' in pydata[sensor]['org.openbmc.HwmonSensor'] and \
+						    pydata[sensor]['org.openbmc.HwmonSensor']['sensornumber'] == int(getsensors_value,0):
 								if pydata[sensor]['org.openbmc.SensorValue'].has_key('value'):
 									pydata[sensor]['org.openbmc.SensorValue']['value'] = sensor_reading_convert(pydata[sensor]['org.openbmc.SensorValue']['value'])
 								continue
