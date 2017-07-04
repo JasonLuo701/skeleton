@@ -12,6 +12,7 @@ import obmc.dbuslib.propertycacher as PropertyCacher
 from obmc.dbuslib.bindings import DbusProperties, DbusObjectManager, get_dbus
 import obmc.enums
 import obmc_system_config as System
+import traceback
 
 DBUS_NAME = 'org.openbmc.managers.System'
 OBJ_NAME = '/org/openbmc/managers/System'
@@ -274,10 +275,26 @@ class SystemManager(DbusProperties,DbusObjectManager):
 				r = [obmc.enums.GPIO_DEV, gpio_num, gpio['direction'], gpio['inverse']]
 		return r
 
-		
+def wait_redfish():
+    while True:
+        try:
+            lines = []
+            with open('/proc/net/tcp') as tcp_file:
+                lines = tcp_file.readlines()
+                lines = lines[1:]
+            for line in lines:
+                fields = line.strip().split()
+                local_address = fields[1]
+                _, port = local_address.split(':')
+                if int(port, 16) == 443:
+                    return
+        except StandardError as err:
+            traceback.print_exc(err)
+        time.sleep(1)
 
 if __name__ == '__main__':
     os.system("ln -s /usr/lib/python2.7/site-packages/subprocess32.py /usr/lib/python2.7/site-packages/subprocess.py")
+    wait_redfish()
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
     bus = get_dbus()
     name = dbus.service.BusName(DBUS_NAME,bus)
