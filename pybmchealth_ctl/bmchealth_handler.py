@@ -26,6 +26,7 @@ g_event_count = [0,0,0,0,0,0,0,0]
 g_reboot_flag = 0
 g_watchdog_reset = 0
 g_previous_log_rollover = -1
+g_record_bmchealth_severity={}
 
 #light: 1, light on; 0:light off
 def bmchealth_set_status_led(light):
@@ -61,11 +62,30 @@ def LogEventBmcHealthMessages(s_assert="", s_event_indicator="", \
     try:
         result = bmclogevent_ctl.BmcLogEventMessages(g_bmchealth_obj_path, "BMC Health", \
                     s_assert,  s_event_indicator, s_evd_desc, data)
+        s_severity_key = s_event_indicator + "-" + s_evd_desc
         if result['logid'] != 0:
             if s_assert == "Asserted":
                 bmclogevent_ctl.bmclogevent_set_value(g_bmchealth_obj_path, 1, offset=(result['evd1']&0xf))
+                g_record_bmchealth_severity[s_severity_key] = result['Severity']
             elif s_assert == "Deasserted":
                 bmclogevent_ctl.bmclogevent_set_value(g_bmchealth_obj_path, 0, offset=(result['evd1']&0xf))
+                del g_record_bmchealth_severity[s_severity_key]
+            s_severity_critical = ''
+            s_severity_warning = ''
+            for item in g_record_bmchealth_severity:
+                if g_record_bmchealth_severity[item] == 'Critical':
+                    s_severity_critical = 'Critical'
+                if g_record_bmchealth_severity[item] == 'Warning':
+                    s_severity_warning = 'Warning'
+            s_bmchealth_severity = 'OK'
+            if s_severity_critical != '':
+                s_bmchealth_severity = s_severity_critical
+            elif s_severity_warning != '':
+                s_bmchealth_severity = s_severity_warning
+
+            bmclogevent_ctl.bmclogevent_set_property_with_dbus(g_bmchealth_obj_path,
+                                        bmclogevent_ctl.HWMON_INTERFACE,
+                                        'severity_health', s_bmchealth_severity)  
     except:
         print "LogEventBmcHealthMessages error!! " + s_event_indicator
 

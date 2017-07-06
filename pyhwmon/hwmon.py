@@ -47,6 +47,7 @@ IFACE_LOOKUP = {
 	'max_reading': HwmonSensor.IFACE_NAME,
 	'standby_monitor': HwmonSensor.IFACE_NAME,
 	'firmware_update': HwmonSensor.IFACE_NAME,
+	'severity_health': HwmonSensor.IFACE_NAME,
 }
 
 # The bit is not supported if not mentioned
