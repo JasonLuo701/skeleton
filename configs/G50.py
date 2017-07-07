@@ -518,9 +518,9 @@ def _add_bmc_health_sensor(configs, sensornumber):
 def _add_ntp_status_sensor(configs, sensornumber):
     config = ['/org/openbmc/sensors/ntp_status', {
         'device_node': '',
-        'object_path': 'sensors/bmc_health',
+        'object_path': 'sensors/ntp_status',
         'reading_type': 0x71,
-        'sensor_name': 'BMC Health',
+        'sensor_name': 'NTP Status',
         'sensor_type': '0x12',
         'sensornumber': sensornumber,
         'standby_monitor': True,
