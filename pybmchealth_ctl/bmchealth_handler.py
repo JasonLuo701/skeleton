@@ -300,6 +300,7 @@ def bmchealth_check_fw_update_start():
     fpga_fw_update_start_check =  "/var/lib/obmc/fpga_fwupdate_record"
     #check BMC fw update start
     if os.path.exists(fw_update_start_check):
+        print "Log BMC FW update start"
         LogEventBmcHealthMessages("Asserted", "Firmware Update Started","BMC Firmware Update Started",data={'index':0x1})
         os.rename(fw_update_start_check, "/var/lib/obmc/fw_update_complete")
     #check PSU fw update start
@@ -332,9 +333,10 @@ def bmchealth_check_fw_update_complete():
     #check BMC fw update complete
     if os.path.exists(fw_update_complete_check) and g_reboot_flag == 1:
         os.remove(fw_update_complete_check)
-        LogEventBmcHealthMessages("Asserted", "Firmware Update completed","BMC Firmware Update completed",data={'index':0x1})
+        print "Log BMC FW update completed"
+        LogEventBmcHealthMessages("Asserted", "Firmware Update completed","BMC Firmware Update completed",data={'index':0})
     #check PSU fw update complete
-    if os.path.exists(psu_fw_update_complete_check) and g_reboot_flag == 1:
+    if os.path.exists(psu_fw_update_complete_check):
         try:
             with open(psu_fw_update_complete_check, 'r') as f:
                 psu_id = int(f.readline())
@@ -344,7 +346,7 @@ def bmchealth_check_fw_update_complete():
                 print "[bmchealth_check_fw_updata_complete]exception !!!"
         os.remove(psu_fw_update_complete_check)
     #check FPGA fw update complete
-    if os.path.exists(fpga_fw_update_complete_check) and g_reboot_flag == 1:
+    if os.path.exists(fpga_fw_update_complete_check):
         try:
             with open(fpga_fw_update_complete_check, 'r') as f:
                 fpga_id = int(f.readline())
