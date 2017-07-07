@@ -27,6 +27,7 @@ g_reboot_flag = 0
 g_watchdog_reset = 0
 g_previous_log_rollover = -1
 g_memory_utilization = -1
+g_record_bmchealth_severity={}
 
 #light: 1, light on; 0:light off
 def bmchealth_set_status_led(light):
@@ -62,11 +63,30 @@ def LogEventBmcHealthMessages(s_assert="", s_event_indicator="", \
     try:
         result = bmclogevent_ctl.BmcLogEventMessages(g_bmchealth_obj_path, "BMC Health", \
                     s_assert,  s_event_indicator, s_evd_desc, data)
+        s_severity_key = s_event_indicator + "-" + s_evd_desc
         if result['logid'] != 0:
             if s_assert == "Asserted":
                 bmclogevent_ctl.bmclogevent_set_value(g_bmchealth_obj_path, 1, offset=(result['evd1']&0xf))
+                g_record_bmchealth_severity[s_severity_key] = result['Severity']
             elif s_assert == "Deasserted":
                 bmclogevent_ctl.bmclogevent_set_value(g_bmchealth_obj_path, 0, offset=(result['evd1']&0xf))
+                del g_record_bmchealth_severity[s_severity_key]
+            s_severity_critical = ''
+            s_severity_warning = ''
+            for item in g_record_bmchealth_severity:
+                if g_record_bmchealth_severity[item] == 'Critical':
+                    s_severity_critical = 'Critical'
+                if g_record_bmchealth_severity[item] == 'Warning':
+                    s_severity_warning = 'Warning'
+            s_bmchealth_severity = 'OK'
+            if s_severity_critical != '':
+                s_bmchealth_severity = s_severity_critical
+            elif s_severity_warning != '':
+                s_bmchealth_severity = s_severity_warning
+
+            bmclogevent_ctl.bmclogevent_set_property_with_dbus(g_bmchealth_obj_path,
+                                        bmclogevent_ctl.HWMON_INTERFACE,
+                                        'severity_health', s_bmchealth_severity)  
     except:
         print "LogEventBmcHealthMessages error!! " + s_event_indicator
 
@@ -195,10 +215,8 @@ def bmchealth_check_watchdog():
     print "check watchdog timeout start"
     check_watchdog1_command = "devmem 0x1e785010"
     check_watchdog2_command = "devmem 0x1e785030"
-    watchdog1_event_counter_path = "/var/lib/obmc/watchdog1"
-    watchdog2_event_counter_path = "/var/lib/obmc/watchdog2"
-    watchdog1_exist_counter = 0
-    watchdog2_exist_counter = 0
+    clear_watchdog1_command = "devmem 0x1e785014 w 0x76"
+    clear_watchdog2_command = "devmem 0x1e785034 w 0x76"
 
     #read event counters
     try:
@@ -215,39 +233,11 @@ def bmchealth_check_watchdog():
         print "[bmchealth_check_watchdog]Error conduct operstate!!!"
         return False
 
-    #check reboot timeout or WDT timeout
-    if g_reboot_flag == 1:
-            f = file(watchdog1_event_counter_path,"w")
-            f.write(str(watchdog1_timeout_counter))
-            f.close()
-            f = file(watchdog2_event_counter_path,"w")
-            f.write(str(watchdog2_timeout_counter))
-            f.close()
-            return True
-    else:
-        try:
-            with open(watchdog1_event_counter_path, 'r') as f:
-                for line in f:
-                    watchdog1_exist_counter = int(line.rstrip('\n'))
-        except:
-            pass
-
-        try:
-            with open(watchdog2_event_counter_path, 'r') as f:
-                for line in f:
-                    watchdog2_exist_counter = int(line.rstrip('\n'))
-        except:
-            pass
-
-    if watchdog1_timeout_counter > watchdog1_exist_counter or watchdog2_timeout_counter > watchdog2_exist_counter:
-        f = file(watchdog1_event_counter_path,"w")
-        f.write(str(watchdog1_timeout_counter))
-        f.close()
-        f = file(watchdog2_event_counter_path,"w")
-        f.write(str(watchdog2_timeout_counter))
-        f.close()
+    if watchdog1_timeout_counter > 0 or watchdog2_timeout_counter > 0:
         print "Log watchdog expired event"
         LogEventBmcHealthMessages("Asserted", "Hardware WDT expired")
+        subprocess.check_output(clear_watchdog1_command, shell=True)
+        subprocess.check_output(clear_watchdog2_command, shell=True)
         g_watchdog_reset = 1
     return True
 
@@ -283,6 +273,7 @@ def bmchealth_check_fw_update_start():
     fpga_fw_update_start_check =  "/var/lib/obmc/fpga_fwupdate_record"
     #check BMC fw update start
     if os.path.exists(fw_update_start_check):
+        print "Log BMC FW update start"
         LogEventBmcHealthMessages("Asserted", "Firmware Update Started","BMC Firmware Update Started",data={'index':0x1})
         os.rename(fw_update_start_check, "/var/lib/obmc/fw_update_complete")
     #check PSU fw update start
@@ -315,9 +306,10 @@ def bmchealth_check_fw_update_complete():
     #check BMC fw update complete
     if os.path.exists(fw_update_complete_check) and g_reboot_flag == 1:
         os.remove(fw_update_complete_check)
-        LogEventBmcHealthMessages("Asserted", "Firmware Update completed","BMC Firmware Update completed",data={'index':0x1})
+        print "Log BMC FW update completed"
+        LogEventBmcHealthMessages("Asserted", "Firmware Update completed","BMC Firmware Update completed",data={'index':0})
     #check PSU fw update complete
-    if os.path.exists(psu_fw_update_complete_check) and g_reboot_flag == 1:
+    if os.path.exists(psu_fw_update_complete_check):
         try:
             with open(psu_fw_update_complete_check, 'r') as f:
                 psu_id = int(f.readline())
@@ -327,7 +319,7 @@ def bmchealth_check_fw_update_complete():
                 print "[bmchealth_check_fw_updata_complete]exception !!!"
         os.remove(psu_fw_update_complete_check)
     #check FPGA fw update complete
-    if os.path.exists(fpga_fw_update_complete_check) and g_reboot_flag == 1:
+    if os.path.exists(fpga_fw_update_complete_check):
         try:
             with open(fpga_fw_update_complete_check, 'r') as f:
                 fpga_id = int(f.readline())

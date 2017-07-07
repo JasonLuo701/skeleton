@@ -15,34 +15,41 @@ import time
 DBUS_NAME = 'org.openbmc.Sensors'
 DBUS_INTERFACE = 'org.freedesktop.DBus.Properties'
 SENSOR_VALUE_INTERFACE = 'org.openbmc.SensorValue'
+HWMON_INTERFACE = 'org.openbmc.HwmonSensor'
 
 _EVENT_MANAGER = EventManager()
 
 def bmclogevent_get_log_rollover():
     return _EVENT_MANAGER.rollover_count()
 
-def bmclogevent_set_value_with_dbus(obj_path, val):
+def bmclogevent_set_property_with_dbus(obj_path, intf, property, val):
     try:
         b_bus = get_dbus()
         b_obj= b_bus.get_object(DBUS_NAME, obj_path)
         b_interface = dbus.Interface(b_obj,  DBUS_INTERFACE)
-        b_interface.Set(SENSOR_VALUE_INTERFACE, 'value', val)
+        b_interface.Set(intf, property, val)
     except:
         print "bmclogevent_set_value_with_dbus Error!!! " + obj_path
         return -1
     return 0
 
-def bmclogevent_get_value_with_dbus(obj_path):
+def bmclogevent_get_property_with_dbus(obj_path, intf, property):
     val = 0
     try:
         b_bus = get_dbus()
         b_obj= b_bus.get_object(DBUS_NAME, obj_path)
         b_interface = dbus.Interface(b_obj,  DBUS_INTERFACE)
-        val = b_interface.Get(SENSOR_VALUE_INTERFACE, 'value')
+        val = b_interface.Get(intf, property)
     except:
         print "bmclogevent_get_value_with_dbus Error!!! " + obj_path
         return -1
     return val
+
+def bmclogevent_set_value_with_dbus(obj_path, val):
+    return bmclogevent_set_property_with_dbus(obj_path, SENSOR_VALUE_INTERFACE, 'value', val)
+
+def bmclogevent_get_value_with_dbus(obj_path):
+    return bmclogevent_get_property_with_dbus(obj_path, SENSOR_VALUE_INTERFACE, 'value')
 
 def bmclogevent_set_value(obj_path, val, mask=0xFFFF, offset=-1):
     retry = 20
@@ -129,4 +136,5 @@ def BmcLogEventMessages(objpath = "", s_event_identify="", s_assert="", \
     result['logid'] = logid
     if s_event_identify == "BMC Health":
         result['evd1'] = evd1
+        result['Severity'] = evd_data['Severity']
     return result

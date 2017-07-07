@@ -325,7 +325,7 @@ GPIO_CONFIG = {}
 GPIO_CONFIG['UBB_SMB_RST_N'] = {'gpio_pin': 'C6', 'direction': 'out', 'inverse': 'yes'}
 GPIO_CONFIG['PDB_SMB_RST_N'] = {'gpio_pin': 'C7', 'direction': 'out', 'inverse': 'yes'}
 GPIO_CONFIG['BLADE_ATT_LED_N'] = {'gpio_pin': 'F0', 'direction': 'out', 'inverse': 'yes', 'data_reg_addr': 0x1e780020, 'offset': 8}
-GPIO_CONFIG['PWR_BTN_N'] = {'gpio_pin': 'F1', 'direction': 'both'}
+GPIO_CONFIG['PWR_BTN_N'] = {'gpio_pin': 'F1', 'direction': 'in'}
 GPIO_CONFIG['PWR_STA_LED_N'] = {'gpio_pin': 'F2', 'direction': 'out', 'inverse': 'yes'}
 GPIO_CONFIG['UID_BTN_N'] = {'gpio_pin': 'F3', 'direction': 'both'}
 GPIO_CONFIG['UID_LED_N'] = {'gpio_pin': 'F4', 'direction': 'out', 'inverse': 'yes'}
@@ -512,15 +512,16 @@ def _add_bmc_health_sensor(configs, sensornumber):
         'sensornumber': sensornumber,
         'standby_monitor': True,
         'value': 0,
+        'severity_health': 'OK',
         }]
     configs.append(config)
 
 def _add_ntp_status_sensor(configs, sensornumber):
     config = ['/org/openbmc/sensors/ntp_status', {
         'device_node': '',
-        'object_path': 'sensors/bmc_health',
+        'object_path': 'sensors/ntp_status',
         'reading_type': 0x71,
-        'sensor_name': 'BMC Health',
+        'sensor_name': 'NTP Status',
         'sensor_type': '0x12',
         'sensornumber': sensornumber,
         'standby_monitor': True,
@@ -619,6 +620,22 @@ def _add_thermal_gpio(configs, index, gpio):
         'standby_monitor': True,
         'units': '',
         'index': index,
+        }]
+    configs.append(config)
+
+def _add_sys_throttle_gpio(configs, sensornumber, gpio):
+    config = ['/org/openbmc/sensors/system_throttle', {
+        'device_node': '/sys/class/gpio/gpio%d/value' % gpio,
+        'object_path': 'sensors/system_throttle',
+        'poll_interval': 1000,
+        'reading_type': 0x72,
+        'scale': 1,
+        'sensor_name': 'System Throttle',
+        'sensor_type': '0xc0',
+        'sensornumber': sensornumber,
+        'standby_monitor': True,
+        'units': '',
+        'value': 0,
         }]
     configs.append(config)
 
@@ -725,6 +742,7 @@ _add_thermal_gpio(SENSOR_MONITOR_CONFIG, 5, 248)
 _add_thermal_gpio(SENSOR_MONITOR_CONFIG, 6, 249)
 _add_thermal_gpio(SENSOR_MONITOR_CONFIG, 7, 250)
 _add_thermal_gpio(SENSOR_MONITOR_CONFIG, 8, 251)
+_add_sys_throttle_gpio(SENSOR_MONITOR_CONFIG, 0x8B, 388)
 
 HWMON_CONFIG = {
     '0-0010' :  {
@@ -1096,7 +1114,7 @@ HWMON_CONFIG = {
                 'scale' : 1000,
                 'units' : 'C',
                 'sensor_type' : '0x01',
-                'sensornumber' : '0x5',
+                'sensornumber' : 0x5,
                 'sensor_name':'FIO Inlet Temp 1',
                 'reading_type' : 0x01,
                 'emergency_enabled' : True,
@@ -1113,7 +1131,7 @@ HWMON_CONFIG = {
                 'scale' : 1000,
                 'units' : 'C',
                 'sensor_type' : '0x01',
-                'sensornumber' : '0x6',
+                'sensornumber' : 0x6,
                 'sensor_name':'FIO Inlet Temp 2',
                 'reading_type' : 0x01,
                 'emergency_enabled' : True,
@@ -1130,7 +1148,7 @@ HWMON_CONFIG = {
                 'scale' : 1000,
                 'units' : 'C',
                 'sensor_type' : '0x01',
-                'sensornumber' : '0x7',
+                'sensornumber' : 0x7,
                 'sensor_name':'CM Outlet Temp 1',
                 'reading_type' : 0x01,
                 'emergency_enabled' : True,
