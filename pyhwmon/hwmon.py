@@ -71,6 +71,7 @@ class Hwmons():
 		self.hwmon_root = { }
 		self.threshold_state = {}
 		self.psu_state = {}
+		self.throttle_state = {}
 		self.pgood_obj = bus.get_object('org.openbmc.control.Power', '/org/openbmc/control/power0', introspect=False)
 		self.pgood_intf = dbus.Interface(self.pgood_obj,dbus.PROPERTIES_IFACE)
 		self.path_mapping = {}
@@ -78,6 +79,12 @@ class Hwmons():
 		self.check_entity_presence = {}
 		self.check_subsystem_health = {}
 		self.scanDirectory()
+		self.pmbus1_hwmon = ""
+		self.pmbus2_hwmon = ""
+		self.pmbus3_hwmon = ""
+		self.pmbus4_hwmon = ""
+		self.pmbus5_hwmon = ""
+		self.pmbus6_hwmon = ""
 		gobject.timeout_add(DIR_POLL_INTERVAL, self.scanDirectory)
 
 	def readAttribute(self,filename):
@@ -133,6 +140,54 @@ class Hwmons():
 					data={'event_status':0xC4, 'sensor_number':hwmon['sensornumber']})
 					bmclogevent_ctl.bmclogevent_set_value(check_subsystem_health_obj_path, 0)
 				self.check_subsystem_health[objpath] = 1
+		return True
+
+	def check_throttle_state(self, objpath, attribute, hwmon):
+		try:
+			power_consum = 0
+			power_consum += int(self.readAttribute(self.pmbus1_hwmon), 10)
+			power_consum += int(self.readAttribute(self.pmbus2_hwmon), 10)
+			power_consum += int(self.readAttribute(self.pmbus3_hwmon), 10)
+			power_consum += int(self.readAttribute(self.pmbus4_hwmon), 10)
+			power_consum += int(self.readAttribute(self.pmbus5_hwmon), 10)
+			power_consum += int(self.readAttribute(self.pmbus6_hwmon), 10)
+			power_consum = power_consum / 1000000
+			power_LSB = hex(power_consum & 0xFF)
+			power_MSB = hex(power_consum >> 8)
+			raw_value = int(self.readAttribute(attribute), 16)
+			if raw_value == 0 and self.throttle_state[objpath] == 0:
+				event_dir = 0
+				event_type = 0x3
+				sensor_type = int(hwmon['sensor_type'], 0)
+				sensor_number = hwmon['sensornumber']
+				evd1 = 0x1
+				evd2 = power_MSB
+				evd3 = power_LSB
+				severity = Event.SEVERITY_CRIT
+				if int(power_MSB, 0) >= 0 and int(power_MSB, 0) <= 255 \
+						and int(power_LSB, 0) >=0 and int(power_LSB, 0) <= 255:
+							log = Event.from_binary(severity, sensor_type, sensor_number, \
+									event_dir | event_type, evd1, int(evd2, 16), int(evd3, 16))
+							self.event_manager.create(log)
+							self.throttle_state[objpath] = 1
+			elif raw_value == 1 and self.throttle_state[objpath] == 1:
+				event_dir = 0
+				event_type = 0x3
+				sensor_type = int(hwmon['sensor_type'], 0)
+				sensor_number = hwmon['sensornumber']
+				evd1 = 0x0
+				evd2 = power_MSB
+				evd3 = power_LSB
+				severity = Event.SEVERITY_OKAY
+				if int(power_MSB, 0) >= 0 and int(power_MSB, 0) <= 255 \
+						and int(power_LSB, 0) >=0 and int(power_LSB, 0) <= 255:
+							log = Event.from_binary(severity, sensor_type, sensor_number, \
+									event_dir | event_type, evd1, int(evd2, 16), int(evd3, 16))
+							self.event_manager.create(log)
+							self.throttle_state[objpath] = 0
+
+		except Exception as e:
+			print str(e)
 		return True
 
 	def check_pmbus_state(self, objpath, attribute, hwmon):
@@ -374,6 +429,9 @@ class Hwmons():
 					gobject.timeout_add(hwmon['poll_interval'],self.check_pmbus_state,objpath, hwmon_path, hwmon)
 				elif 'sensornumber' in hwmon and hwmon['sensornumber'] == 0x81:
 					self.check_ntp_init_status(hwmon)
+				elif 'sensornumber' in hwmon and hwmon['sensornumber'] == 0x8B:
+					self.throttle_state[objpath] = 0
+					gobject.timeout_add(hwmon['poll_interval'],self.check_throttle_state,objpath, hwmon_path, hwmon)
 				else:
 					if hwmon.has_key('poll_interval'):
 						gobject.timeout_add(hwmon['poll_interval'],self.poll,objpath,hwmon_path,hwmon)
@@ -407,6 +465,20 @@ class Hwmons():
 
 		os.remove(ntp_init_status)
 
+	def checkPmbusHwmon(self, instance_name, dpath):
+		if instance_name == "8-0058":
+			self.pmbus1_hwmon = dpath+"power2_input"
+		elif instance_name == "9-0058":
+			self.pmbus2_hwmon = dpath+"power2_input"
+		elif instance_name == "10-0058":
+			self.pmbus3_hwmon = dpath+"power2_input"
+		elif instance_name == "11-0058":
+			self.pmbus4_hwmon = dpath+"power2_input"
+		elif instance_name == "12-0058":
+			self.pmbus5_hwmon = dpath+"power2_input"
+		elif instance_name == "13-0058":
+			self.pmbus6_hwmon = dpath+"power2_input"
+
 	def scanDirectory(self):
 		check_subsystem_health_obj_path = "/org/openbmc/sensors/management_subsystem_health"
 	 	devices = os.listdir(HWMON_PATH)
@@ -421,6 +493,7 @@ class Hwmons():
 				self.hwmon_root[dpath] = []
 			## the instance name is a soft link
 			instance_name = os.path.realpath(dpath+'device').split('/').pop()
+			self.checkPmbusHwmon(instance_name, dpath)
 			self.path_mapping[instance_name] = dpath
 			if (System.HWMON_CONFIG.has_key(instance_name)):
 				hwmon = System.HWMON_CONFIG[instance_name]

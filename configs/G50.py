@@ -623,6 +623,22 @@ def _add_thermal_gpio(configs, index, gpio):
         }]
     configs.append(config)
 
+def _add_sys_throttle_gpio(configs, sensornumber, gpio):
+    config = ['/org/openbmc/sensors/system_throttle', {
+        'device_node': '/sys/class/gpio/gpio%d/value' % gpio,
+        'object_path': 'sensors/system_throttle',
+        'poll_interval': 1000,
+        'reading_type': 0x72,
+        'scale': 1,
+        'sensor_name': 'System Throttle',
+        'sensor_type': '0xc0',
+        'sensornumber': sensornumber,
+        'standby_monitor': True,
+        'units': '',
+        'value': 0,
+        }]
+    configs.append(config)
+
 SENSOR_MONITOR_CONFIG = []
 _add_gpu_temperature_sensor(SENSOR_MONITOR_CONFIG, 1, 0x41)
 _add_gpu_temperature_sensor(SENSOR_MONITOR_CONFIG, 2, 0x42)
@@ -726,6 +742,7 @@ _add_thermal_gpio(SENSOR_MONITOR_CONFIG, 5, 248)
 _add_thermal_gpio(SENSOR_MONITOR_CONFIG, 6, 249)
 _add_thermal_gpio(SENSOR_MONITOR_CONFIG, 7, 250)
 _add_thermal_gpio(SENSOR_MONITOR_CONFIG, 8, 251)
+_add_sys_throttle_gpio(SENSOR_MONITOR_CONFIG, 0x8B, 388)
 
 HWMON_CONFIG = {
     '0-0010' :  {

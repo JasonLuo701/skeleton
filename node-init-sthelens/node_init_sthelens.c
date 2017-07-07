@@ -133,5 +133,8 @@ main(int argc, char *argv[])
     init_therm_overt_gpio();
     init_gpu_power_en();
 
+    /* Export sys throttle gpio node */
+    system("gpioutil -n RM_SYS_THROTTLE_N");
+
     return 0;
 }
