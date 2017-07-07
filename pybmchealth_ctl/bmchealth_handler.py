@@ -212,10 +212,8 @@ def bmchealth_check_watchdog():
     print "check watchdog timeout start"
     check_watchdog1_command = "devmem 0x1e785010"
     check_watchdog2_command = "devmem 0x1e785030"
-    watchdog1_event_counter_path = "/var/lib/obmc/watchdog1"
-    watchdog2_event_counter_path = "/var/lib/obmc/watchdog2"
-    watchdog1_exist_counter = 0
-    watchdog2_exist_counter = 0
+    clear_watchdog1_command = "devmem 0x1e785014 w 0x76"
+    clear_watchdog2_command = "devmem 0x1e785034 w 0x76"
 
     #read event counters
     try:
@@ -232,39 +230,11 @@ def bmchealth_check_watchdog():
         print "[bmchealth_check_watchdog]Error conduct operstate!!!"
         return False
 
-    #check reboot timeout or WDT timeout
-    if g_reboot_flag == 1:
-            f = file(watchdog1_event_counter_path,"w")
-            f.write(str(watchdog1_timeout_counter))
-            f.close()
-            f = file(watchdog2_event_counter_path,"w")
-            f.write(str(watchdog2_timeout_counter))
-            f.close()
-            return True
-    else:
-        try:
-            with open(watchdog1_event_counter_path, 'r') as f:
-                for line in f:
-                    watchdog1_exist_counter = int(line.rstrip('\n'))
-        except:
-            pass
-
-        try:
-            with open(watchdog2_event_counter_path, 'r') as f:
-                for line in f:
-                    watchdog2_exist_counter = int(line.rstrip('\n'))
-        except:
-            pass
-
-    if watchdog1_timeout_counter > watchdog1_exist_counter or watchdog2_timeout_counter > watchdog2_exist_counter:
-        f = file(watchdog1_event_counter_path,"w")
-        f.write(str(watchdog1_timeout_counter))
-        f.close()
-        f = file(watchdog2_event_counter_path,"w")
-        f.write(str(watchdog2_timeout_counter))
-        f.close()
+    if watchdog1_timeout_counter > 0 or watchdog2_timeout_counter > 0:
         print "Log watchdog expired event"
         LogEventBmcHealthMessages("Asserted", "Hardware WDT expired")
+        subprocess.check_output(clear_watchdog1_command, shell=True)
+        subprocess.check_output(clear_watchdog2_command, shell=True)
         g_watchdog_reset = 1
     return True
 
