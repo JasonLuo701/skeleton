@@ -512,6 +512,7 @@ def _add_bmc_health_sensor(configs, sensornumber):
         'sensornumber': sensornumber,
         'standby_monitor': True,
         'value': 0,
+        'severity_health': 'OK',
         }]
     configs.append(config)
 
