@@ -26,6 +26,7 @@ g_event_count = [0,0,0,0,0,0,0,0]
 g_reboot_flag = 0
 g_watchdog_reset = 0
 g_previous_log_rollover = -1
+g_record_fru_status={}
 g_record_bmchealth_severity={}
 
 #light: 1, light on; 0:light off
@@ -381,6 +382,45 @@ def bmchealth_check_log_rollover():
         g_previous_log_rollover = current_log_rollover
     return True
 
+def bmchealth_check_empty_invalid_fru():
+    global g_record_fru_status
+    if 'ID_LOOKUP' not in dir(System):
+        return False
+    if 'FRU_STR' not in System.ID_LOOKUP  or 'FRU_SLAVE' not in System.ID_LOOKUP:
+        return False
+
+    for fur_item in System.ID_LOOKUP['FRU_STR']:
+        if fur_item in System.ID_LOOKUP['FRU_SLAVE']:
+            i2c_bus = System.ID_LOOKUP['FRU_SLAVE'][fur_item]['I2C_BUS']
+            i2c_slave = System.ID_LOOKUP['FRU_SLAVE'][fur_item]['I2C_SLAVE']
+            fru_id = int(fur_item.split("_")[1])
+
+            # read fru to check fru data is correct with 'ocs-fru' or 'phosphor-read-eeprom'
+            fru_chk_status = -1
+            for i in range(2):
+                if i == 0:
+                    fru_chk_cmd = ['ocs-fru', '-c', str(i2c_bus), '-s', hex(i2c_slave), '-r']
+                elif i == 1:
+                    fru_chk_cmd = ['phosphor-read-eeprom',
+                                     '--eeprom=/sys/bus/i2c/devices/%d-00%x/eeprom' % (i2c_bus, i2c_slave) ,
+                                     '--fruid=%x' % fru_id]
+                with open(os.devnull, 'w') as FNULL:
+                    try:
+                        fru_chk_status = subprocess.call(fru_chk_cmd, stdout=FNULL, stderr=subprocess.STDOUT)
+                    except:
+                        pass
+                if fru_chk_status == 0:
+                    break
+            if fur_item not in g_record_fru_status:
+                g_record_fru_status[fur_item]  = 0
+            if fru_chk_status != 0 and g_record_fru_status[fur_item] == 0: #assert
+                LogEventBmcHealthMessages("Asserted", "Empty Invalid FRU",data={'fru_id':fru_id})
+                g_record_fru_status[fur_item] = 1
+            elif fru_chk_status == 0 and g_record_fru_status[fur_item] == 1: #deassert
+                LogEventBmcHealthMessages("Deasserted", "Empty Invalid FRU",data={'fru_id':fru_id})
+                g_record_fru_status[fur_item] = 0
+    return True
+
 if __name__ == '__main__':
     mainloop = gobject.MainLoop()
     #set bmchealth default value
@@ -396,6 +436,7 @@ if __name__ == '__main__':
     gobject.timeout_add(1000,bmchealth_check_i2c)
     gobject.timeout_add(1000,bmchealth_check_status_led)
     gobject.timeout_add(1000,bmchealth_check_log_rollover)
+    gobject.timeout_add(20000,bmchealth_check_empty_invalid_fru)
     print "bmchealth_handler control starting"
     mainloop.run()
 
