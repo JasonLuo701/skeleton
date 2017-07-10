@@ -48,8 +48,9 @@ class SystemManager(DbusProperties,DbusObjectManager):
 		for category in System.ID_LOOKUP:
 			for key in System.ID_LOOKUP[category]:
 				val = System.ID_LOOKUP[category][key]
-				new_val = val.replace("<inventory_root>",System.INVENTORY_ROOT)
-				System.ID_LOOKUP[category][key] = new_val
+				if isinstance(val, basestring):
+					new_val = val.replace("<inventory_root>",System.INVENTORY_ROOT)
+					System.ID_LOOKUP[category][key] = new_val
 	
 		self.SystemStateHandler(System.SYSTEM_STATES[0])
 
