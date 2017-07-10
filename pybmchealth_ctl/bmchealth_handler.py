@@ -26,6 +26,7 @@ g_event_count = [0,0,0,0,0,0,0,0]
 g_reboot_flag = 0
 g_watchdog_reset = 0
 g_previous_log_rollover = -1
+g_memory_utilization = -1
 g_record_fru_status={}
 g_record_bmchealth_severity={}
 
@@ -166,6 +167,7 @@ def bmchealth_check_network():
     else:
         if g_dhcp_status == 0:
             LogEventBmcHealthMessages("Deasserted", "Network Error", "DHCP Failure")
+            time.sleep(60)
         g_dhcp_status = 1
 
     #check network down
@@ -177,6 +179,7 @@ def bmchealth_check_network():
     else:
         if g_net_down_status == 0:
             LogEventBmcHealthMessages("Deasserted", "Network Error", "Link Down")
+            time.sleep(60)
         g_net_down_status = 1
 
     if org_dhcp_status != g_dhcp_status:
@@ -382,6 +385,33 @@ def bmchealth_check_log_rollover():
         g_previous_log_rollover = current_log_rollover
     return True
 
+def bmchealth_check_memory_utilization():
+    meminfo_path = "/proc/meminfo"
+    global g_memory_utilization
+    if g_memory_utilization == -1:
+        g_memory_utilization = 0
+    try:
+        with open(meminfo_path, 'r') as f:
+            line1 = f.readline()
+            line2 = f.readline()
+            memory_total = float(line1.replace(' ', '').split(':')[1].split('k')[0])
+            memory_free = float(line2.replace(' ', '').split(':')[1].split('k')[0])
+            memory_used = memory_total - memory_free
+            memory_usage = memory_used / memory_total
+            memory_utilization = int(memory_usage*100)
+            memory_utilization_in_MB = int(memory_used/1000)
+            if memory_utilization >= 80 and g_memory_utilization == 0:
+                print "Log Asserted memory utilization"
+                LogEventBmcHealthMessages("Asserted", "BMC Memory utilization","BMC Memory utilization",data={'memory_utilization':memory_utilization_in_MB})
+                g_memory_utilization = 1
+            elif memory_utilization < 80 and g_memory_utilization == 1:
+                print "Log Deasserted memory utilization"
+                LogEventBmcHealthMessages("Deasserted", "BMC Memory utilization","BMC Memory utilization",data={'memory_utilization':memory_utilization_in_MB})
+                g_memory_utilization = 0
+                time.sleep(60)
+    except:
+            print "[bmchealth_check_memory_utilization]exception !!!"
+
 def bmchealth_check_empty_invalid_fru():
     global g_record_fru_status
     if 'ID_LOOKUP' not in dir(System):
@@ -436,6 +466,7 @@ if __name__ == '__main__':
     gobject.timeout_add(1000,bmchealth_check_i2c)
     gobject.timeout_add(1000,bmchealth_check_status_led)
     gobject.timeout_add(1000,bmchealth_check_log_rollover)
+    gobject.timeout_add(1000,bmchealth_check_memory_utilization)
     gobject.timeout_add(20000,bmchealth_check_empty_invalid_fru)
     print "bmchealth_handler control starting"
     mainloop.run()
