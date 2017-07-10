@@ -23,6 +23,7 @@
 #define NV_CMD_SET_RELEASE_THERMAL_ALERT    0xf4
 #define NV_CMD_GET_POWER_BARKE_STATE        0xf5
 #define NV_CMD_GET_THERMAL_ALERT_STATE      0xf6
+#define NV_CMD_GET_POWER_SUPPLY_STATUS      0xf1
 #define GPU_ACCESS_SUCCESS_RETURN 0x1f
 #define MAX_I2C_DEV_LEN 32
 #define PMBUS_DELAY usleep(400*1000)
@@ -469,6 +470,39 @@ static int get_power(int gpu_no, int command_type, int show_message)
     return 0;
 }
 
+static int get_power_supply_status(int gpu_no, int show_message)
+{
+    unsigned char temp_writebuf[4] = {NV_CMD_GET_POWER_SUPPLY_STATUS,0x0,0x0,0x80};
+	unsigned char readbuf[4];
+	int i2c_bus;
+	unsigned long slaveaddr;
+	int ret;
+	int gpu_index;
+
+	gpu_index = find_gpu_index(gpu_no);
+
+	if (gpu_index >= MAX_GPU_NUM || gpu_index == -1)
+	{
+		printf("Error gpu no:%d  exceed max gpu number:%d\n", gpu_no, MAX_GPU_NUM);
+		return -1;
+	}
+
+	i2c_bus = gpu_device_bus[gpu_index].bus_no;
+	slaveaddr = gpu_device_bus[gpu_index].slave;
+
+	ret = internal_gpu_access(i2c_bus, slaveaddr, temp_writebuf, readbuf);
+	if (ret != 0)
+	{
+		if (show_message == 1)
+			printf("Fail to get GPU[%d - %d 0x%x] read data: 0x%x 0x%x 0x%x 0x%x\n", gpu_index, i2c_bus, slaveaddr, readbuf[0], readbuf[1], readbuf[2], readbuf[3]);
+		return -1;
+	}
+
+	if (show_message == 1)
+		printf("GPU power supply status: %d \n",readbuf[0]);
+	return 0;
+}
+
 void gpu_data_scan()
 {
 	int i =0;
@@ -750,6 +784,7 @@ usage(const char *prog)
 	       "\t-z [gpu number] :Get thermal alert state\n"
 	       "\t-c [gpu number] [Arg1]: Get GPU capabilities\n"
 	       "\t-w [gpu number] [Arg1]: Get GPU power(mW)\n"
+		   "\t-v [gpu number] :Get power supply status\n"
 	       "\t-s scan GPU status\n"
 	       "\t-m [gpu number] [i2c number] [i2c slaveaddress] :set GPU map\n"
 	       "\t-p [i2c bus] [i2c slave address] [command code] [i2c data....] :block write i2c smbus command data\n"
@@ -780,7 +815,7 @@ int main(int argc, char **argv)
 	gpu_data_scan();
 	read_gpu_map();
 	
-	while ((opt = getopt(argc, argv, "hst:x:y:z:c:w:i:m:p:r:k:a:b:")) != -1) {
+	while ((opt = getopt(argc, argv, "hst:x:y:z:c:w:v:i:m:p:r:k:a:b:")) != -1) {
 		switch (opt) {
 		case 'h':
 			usage(argv[0]);
@@ -859,6 +894,10 @@ int main(int argc, char **argv)
             }
             get_power(gpu_no, command_type, 1);
             break;
+		case 'v':
+			gpu_no =  atoi(optarg);
+			get_power_supply_status(gpu_no, 1);
+			break;
 		case 's':
 			scan_gpu_status();
 			break;
