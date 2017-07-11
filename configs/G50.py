@@ -618,6 +618,21 @@ def _add_sys_throttle_gpio(configs, sensornumber, gpio):
         }]
     configs.append(config)
 
+def _add_session_audit(configs, sensornumber):
+    config = ['/org/openbmc/sensors/session_audit', {
+        'device_node': '',
+        'object_path': 'sensors/session_audit',
+        'poll_interval': 5000,
+        'reading_type': 0x6F,
+        'sensor_name': 'Sensor audit',
+        'sensor_type': '0x2a',
+        'sensornumber': sensornumber,
+        'standby_monitor': True,
+        'units': '',
+        'value': 0,
+        }]
+    configs.append(config)
+
 SENSOR_MONITOR_CONFIG = []
 _add_gpu_temperature_sensor(SENSOR_MONITOR_CONFIG, 1, 0x41)
 _add_gpu_temperature_sensor(SENSOR_MONITOR_CONFIG, 2, 0x42)
@@ -722,6 +737,7 @@ _add_thermal_gpio(SENSOR_MONITOR_CONFIG, 6, 249)
 _add_thermal_gpio(SENSOR_MONITOR_CONFIG, 7, 250)
 _add_thermal_gpio(SENSOR_MONITOR_CONFIG, 8, 251)
 _add_sys_throttle_gpio(SENSOR_MONITOR_CONFIG, 0x8B, 388)
+_add_session_audit(SENSOR_MONITOR_CONFIG, 0x8C)
 
 HWMON_CONFIG = {
     '0-0010' :  {

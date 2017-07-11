@@ -72,6 +72,7 @@ class Hwmons():
 		self.threshold_state = {}
 		self.psu_state = {}
 		self.throttle_state = {}
+		self.session_audit = {}
 		self.pgood_obj = bus.get_object('org.openbmc.control.Power', '/org/openbmc/control/power0', introspect=False)
 		self.pgood_intf = dbus.Interface(self.pgood_obj,dbus.PROPERTIES_IFACE)
 		self.path_mapping = {}
@@ -185,6 +186,49 @@ class Hwmons():
 									event_dir | event_type, evd1, int(evd2, 16), int(evd3, 16))
 							self.event_manager.create(log)
 							self.throttle_state[objpath] = 0
+
+		except Exception as e:
+			print str(e)
+		return True
+
+	def sesson_audit_check(self, objpath, attribute, hwmon):
+		try:
+			sensor_type = int(hwmon['sensor_type'], 0)
+			sensor_number = hwmon['sensornumber']
+			severity = Event.SEVERITY_CRIT
+
+			patch = '/var/log/auth.log'
+			file = open(patch, 'r')
+
+			for line in file:
+				idPosition = -1
+				fileString = line
+				idFilter = 'Accepted password for sysadmin'
+				idPosition = fileString.find(idFilter)
+				if idPosition != -1:
+					event_dir = 0
+					event_type = 0x6f
+					evd1 = 0x0
+					evd2 = 0x1
+					evd3 = 0x2
+					log = Event.from_binary(severity, sensor_type, sensor_number, \
+								event_dir | event_type, evd1, evd2, evd3)
+					self.event_manager.create(log)
+
+				idFilter = 'Failed password for sysadmin'
+				idPosition = fileString.find(idFilter)
+				if idPosition != -1:
+					event_dir = 0
+					event_type = 0x6f
+					evd1 = 0x2
+					evd2 = 0x1
+					evd3 = 0x2
+					log = Event.from_binary(severity, sensor_type, sensor_number, \
+								event_dir | event_type, evd1, evd2, evd3)
+					self.event_manager.create(log)
+
+			file.close()
+			os.remove(patch)
 
 		except Exception as e:
 			print str(e)
@@ -432,6 +476,8 @@ class Hwmons():
 				elif 'sensornumber' in hwmon and hwmon['sensornumber'] == 0x8B:
 					self.throttle_state[objpath] = 0
 					gobject.timeout_add(hwmon['poll_interval'],self.check_throttle_state,objpath, hwmon_path, hwmon)
+				elif 'sensornumber' in hwmon and hwmon['sensornumber'] == 0x8C:
+					gobject.timeout_add(hwmon['poll_interval'],self.sesson_audit_check,objpath, hwmon_path, hwmon)
 				else:
 					if hwmon.has_key('poll_interval'):
 						gobject.timeout_add(hwmon['poll_interval'],self.poll,objpath,hwmon_path,hwmon)
