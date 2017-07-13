@@ -17,6 +17,12 @@ threshold_types = ['critical_lower', 'critical_upper', \
 def get_objpath(sensor_number):
     found = False
     objpath = None
+    for objpath, sensors in System.HWMON_SENSOR_CONFIG.iteritems():
+        for sensor in sensors:
+            if 'sensornumber' in sensor:
+                if sensor_number == sensor['sensornumber']:
+                    return objpath
+
     for nodes in System.HWMON_CONFIG.values():
         if 'names' in nodes:
             for node in nodes['names'].values():
@@ -50,10 +56,7 @@ def set_threshold(sensor_number, threshold_type, threshold_value):
             exit(1)
         obj = bus.get_object(SENSOR_BUS, obj_path,introspect=False)
         intf = dbus.Interface(obj,dbus.PROPERTIES_IFACE)
-        intf.Set(SensorThresholds.IFACE_NAME, threshold_type, threshold_value)
-        # reset cached value in obmc/sensors.py
-        intf_h = dbus.Interface(obj,HwmonSensor.IFACE_NAME)
-        intf_h.setByPoll(-1)
+        intf.Set(SensorThresholds.IFACE_NAME, threshold_type+'_'+str(sensor_number), threshold_value)
     except:
         print 'Set threshold failed'
     print "Set sensor {0} {1} to {2}".format(sensor_number, threshold_type, \
@@ -76,7 +79,6 @@ if __name__ == '__main__':
     except:
         print "Invalid sensor number"
         exit(1)
-    obj_path = get_objpath(sensor_number)
     threshold_type = sys.argv.pop(0)
     if not threshold_type in threshold_types:
         print "Incorrect threshold type"
