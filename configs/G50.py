@@ -460,6 +460,7 @@ def _add_cable_led(configs, index, gpio):
         'units': '',
         'entity': 0x1F,
         'index': index,
+        'inverse': 0,
         }]
     configs.append(config)
 
@@ -575,6 +576,7 @@ def _add_pcie_slot(configs, index, gpio):
         'units': '',
         'entity': 0xB,
         'index': index,
+        'inverse': 1,
         }]
     configs.append(config)
 
@@ -588,6 +590,7 @@ def _add_gpu_slot(configs, index, gpio):
         'units': '',
         'entity': 0x3,
         'index': index,
+        'inverse': 1,
         }]
     configs.append(config)
 
@@ -600,6 +603,7 @@ def _add_powergood_gpio(configs, index, gpio):
         'standby_monitor': True,
         'units': '',
         'index': index,
+        'inverse': 1,
         }]
     configs.append(config)
 
@@ -612,6 +616,7 @@ def _add_thermal_gpio(configs, index, gpio):
         'standby_monitor': True,
         'units': '',
         'index': index,
+        'inverse': 1,
         }]
     configs.append(config)
 
@@ -628,6 +633,7 @@ def _add_sys_throttle_gpio(configs, sensornumber, gpio):
         'standby_monitor': True,
         'units': '',
         'value': 0,
+        'inverse': 1,
         }]
     configs.append(config)
 
@@ -691,14 +697,14 @@ _add_psu_power_sensor(SENSOR_MONITOR_CONFIG, 5, 0x5C, '12-0058')
 _add_psu_temperature_sensor(SENSOR_MONITOR_CONFIG, 6, 0x61, '13-0058')
 _add_psu_voltage_sensor(SENSOR_MONITOR_CONFIG, 6, 0x60, '13-0058')
 _add_psu_power_sensor(SENSOR_MONITOR_CONFIG, 6, 0x5F, '13-0058')
-_add_cable_led(SENSOR_MONITOR_CONFIG, 0, 234)
-_add_cable_led(SENSOR_MONITOR_CONFIG, 1, 235)
-_add_cable_led(SENSOR_MONITOR_CONFIG, 2, 242)
-_add_cable_led(SENSOR_MONITOR_CONFIG, 3, 243)
-_add_cable_led(SENSOR_MONITOR_CONFIG, 4, 250)
-_add_cable_led(SENSOR_MONITOR_CONFIG, 5, 251)
-_add_cable_led(SENSOR_MONITOR_CONFIG, 6, 258)
-_add_cable_led(SENSOR_MONITOR_CONFIG, 7, 259)
+_add_cable_led(SENSOR_MONITOR_CONFIG, 0, 279)
+_add_cable_led(SENSOR_MONITOR_CONFIG, 1, 283)
+_add_cable_led(SENSOR_MONITOR_CONFIG, 2, 287)
+_add_cable_led(SENSOR_MONITOR_CONFIG, 3, 291)
+_add_cable_led(SENSOR_MONITOR_CONFIG, 4, 263)
+_add_cable_led(SENSOR_MONITOR_CONFIG, 5, 267)
+_add_cable_led(SENSOR_MONITOR_CONFIG, 6, 271)
+_add_cable_led(SENSOR_MONITOR_CONFIG, 7, 275)
 _add_pex9797(SENSOR_MONITOR_CONFIG, 0, 0x37)
 _add_pex9797(SENSOR_MONITOR_CONFIG, 1, 0x38)
 _add_pex9797(SENSOR_MONITOR_CONFIG, 2, 0x39)

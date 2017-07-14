@@ -411,6 +411,7 @@ def bmchealth_check_memory_utilization():
                 time.sleep(60)
     except:
             print "[bmchealth_check_memory_utilization]exception !!!"
+    return True
 
 def bmchealth_check_empty_invalid_fru():
     global g_record_fru_status

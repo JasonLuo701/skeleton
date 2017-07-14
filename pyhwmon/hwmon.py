@@ -109,13 +109,13 @@ class Hwmons():
 		if objpath not in self.check_entity_presence:
 			self.check_entity_presence[objpath] = 1
 		if hwmon.has_key('entity'):
-			if raw_value == 1 and self.check_entity_presence[objpath] == 1:
+			if raw_value == hwmon['inverse'] and self.check_entity_presence[objpath] == 1:
 				bmclogevent_ctl.BmcLogEventMessages(entity_presence_obj_path, \
 						"Entity Presence" ,"Asserted", "Entity Presence" , \
 						data={'entity_device':hwmon['entity'], 'entity_index':hwmon['index']})
 				bmclogevent_ctl.bmclogevent_set_value(entity_presence_obj_path ,1)
 				self.check_entity_presence[objpath] = 0
-			elif raw_value == 0:
+			elif raw_value != hwmon['inverse']:
 				if self.check_entity_presence[objpath] == 0:
 					bmclogevent_ctl.BmcLogEventMessages(entity_presence_obj_path, \
 						"Entity Presence" ,"Deasserted", "Entity Presence" , \
