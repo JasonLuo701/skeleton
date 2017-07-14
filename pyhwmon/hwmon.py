@@ -78,6 +78,7 @@ class Hwmons():
 		self.event_manager = EventManager()
 		self.check_entity_presence = {}
 		self.check_subsystem_health = {}
+		self.retry_subsystem_health = {}
 		self.scanDirectory()
 		self.pmbus1_hwmon = ""
 		self.pmbus2_hwmon = ""
@@ -126,13 +127,16 @@ class Hwmons():
 		check_subsystem_health_obj_path = "/org/openbmc/sensors/management_subsystem_health"
 		if objpath not in self.check_subsystem_health:
 			self.check_subsystem_health[objpath] = 1
+			self.retry_subsystem_health[objpath] = 0
 		if hwmon.has_key('sensornumber'):
 			if raw_value == -1 and self.check_subsystem_health[objpath] == 1:
-				bmclogevent_ctl.BmcLogEventMessages(check_subsystem_health_obj_path, \
+				self.retry_subsystem_health[objpath]+=1
+				if self.retry_subsystem_health[objpath] >=10:
+					bmclogevent_ctl.BmcLogEventMessages(check_subsystem_health_obj_path, \
 							"Management Subsystem Health" ,"Asserted", "Management Subsystem Health" , \
 							data={'event_status':0xC4, 'sensor_number':hwmon['sensornumber']})
-				bmclogevent_ctl.bmclogevent_set_value(check_subsystem_health_obj_path , 1)
-				self.check_subsystem_health[objpath] = 0
+					bmclogevent_ctl.bmclogevent_set_value(check_subsystem_health_obj_path , 1)
+					self.check_subsystem_health[objpath] = 0
 			elif raw_value >= 0:
 				if self.check_subsystem_health[objpath] == 0:
 					bmclogevent_ctl.BmcLogEventMessages(check_subsystem_health_obj_path, \
@@ -140,6 +144,7 @@ class Hwmons():
 					data={'event_status':0xC4, 'sensor_number':hwmon['sensornumber']})
 					bmclogevent_ctl.bmclogevent_set_value(check_subsystem_health_obj_path, 0)
 				self.check_subsystem_health[objpath] = 1
+				self.retry_subsystem_health[objpath] = 0
 		return True
 
 	def check_throttle_state(self, objpath, attribute, hwmon):
