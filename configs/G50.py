@@ -495,6 +495,19 @@ def _add_bmc_health_sensor(configs, sensornumber):
         }]
     configs.append(config)
 
+def _add_event_log_sensor(configs, sensornumber):
+    config = ['/org/openbmc/sensors/event_log', {
+        'device_node': '',
+        'object_path': 'sensors/event_log',
+        'reading_type': 0x6F,
+        'sensor_name': 'Event log',
+        'sensor_type': '0x10',
+        'sensornumber': sensornumber,
+        'standby_monitor': True,
+        'value': 0,
+        }]
+    configs.append(config)
+
 def _add_ntp_status_sensor(configs, sensornumber):
     config = ['/org/openbmc/sensors/ntp_status', {
         'device_node': '',
@@ -683,6 +696,7 @@ _add_pex9797(SENSOR_MONITOR_CONFIG, 0, 0x37)
 _add_pex9797(SENSOR_MONITOR_CONFIG, 1, 0x38)
 _add_pex9797(SENSOR_MONITOR_CONFIG, 2, 0x39)
 _add_pex9797(SENSOR_MONITOR_CONFIG, 3, 0x3A)
+_add_event_log_sensor(SENSOR_MONITOR_CONFIG, 0x80)
 _add_ntp_status_sensor(SENSOR_MONITOR_CONFIG, 0x81)
 _add_bmc_health_sensor(SENSOR_MONITOR_CONFIG, 0x82)
 _add_psu_status_sensor(SENSOR_MONITOR_CONFIG, 1, 0x83, '8-0058')
