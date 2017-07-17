@@ -71,6 +71,12 @@ APPS = {
         'monitor_process' : False,
         'process_name'    : 'startup_hacks.sh',
     },
+    'set_hostname' : {
+        'system_state'    : 'BASE_APPS',
+        'start_process'   : True,
+        'monitor_process' : False,
+        'process_name'    : 'set_hostname.sh',
+    },
     'inventory' : {
         'system_state'    : 'BMC_STARTING',
         'start_process'   : True,
