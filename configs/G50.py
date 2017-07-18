@@ -334,11 +334,12 @@ def convertGpio(name):
     return base + offset
 
 def _add_gpu_temperature_sensor(configs, index, sensornumber):
-    config = ['/org/openbmc/sensors/gpu/gpu%d_temp' % index, {
+    objpath = '/org/openbmc/sensors/gpu/gpu_temp'
+    config = {
         'critical_upper': 81,
         'positive_hysteresis': 2,
         'device_node': '/tmp/gpu/gpu%d_temp' % index,
-        'object_path': 'sensors/gpu/gpu%d_temp' % index,
+        'object_path': 'sensors/gpu/gpu_temp',
         'poll_interval': 5000,
         'reading_type': 0x01,
         'scale': 1,
@@ -349,14 +350,19 @@ def _add_gpu_temperature_sensor(configs, index, sensornumber):
         'units': 'C',
         'index': index,
         'value': -1
-        }]
-    configs.append(config)
+        }
+    if objpath in configs:
+        configs[objpath].append(config)
+    else:
+        configs[objpath] = []
+        configs[objpath].append(config)
 
 def _add_fan_pwm_sensor(configs, index, sensornumber):
-    config = ['/org/openbmc/control/fan/pwm%d' % index, {
+    objpath = '/org/openbmc/control/fan/pwm'
+    config = {
         'device_node':
             '/sys/devices/platform/ast_pwm_tacho.0/pwm%d_falling' % index,
-        'object_path': 'control/fan/pwm%d' % index,
+        'object_path': 'control/fan/pwm',
         'warning_lower': 18,
         'poll_interval': 10000,
         'reading_type': 0x01,
@@ -367,15 +373,20 @@ def _add_fan_pwm_sensor(configs, index, sensornumber):
         'standby_monitor': False,
         'units': '%',
         'value': -1,
-        }]
-    configs.append(config)
+        }
+    if objpath in configs:
+        configs[objpath].append(config)
+    else:
+        configs[objpath] = []
+        configs[objpath].append(config)
 
 def _add_fan_tach_sensor(configs, index, sensornumber):
-    config = ['/org/openbmc/sensors/fan/fan_tacho%d' % index, {
+    objpath = '/org/openbmc/sensors/fan/fan_tacho'
+    config = {
         'critical_lower': 3800,
         'device_node':
             '/sys/devices/platform/ast_pwm_tacho.0/tacho%d_rpm' % index,
-        'object_path': 'sensors/fan/fan_tacho%d' % index,
+        'object_path': 'sensors/fan/fan_tacho',
         'poll_interval': 10000,
         'reading_type': 0x01,
         'scale': 1,
@@ -385,70 +396,92 @@ def _add_fan_tach_sensor(configs, index, sensornumber):
         'standby_monitor': False,
         'units': 'rpm',
         'value': -1,
-        }]
-    configs.append(config)
+        }
+    if objpath in configs:
+        configs[objpath].append(config)
+    else:
+        configs[objpath] = []
+        configs[objpath].append(config)
 
 def _add_psu_temperature_sensor(configs, index, sensornumber, bus_number):
-    config = ['/org/openbmc/sensors/pmbus/pmbus0%d/temp_02' % index, {
+    objpath = '/org/openbmc/sensors/pmbus/pmbus/temp_02'
+    config = {
         'bus_number': bus_number,
         'critical_upper': 95,
         'positive_hysteresis': 2,
         'device_node': 'temp2_input',
-        'object_path': 'sensors/pmbus/pmbus0%d/temp_02' % index,
+        'object_path': 'sensors/pmbus/pmbus/temp_02',
         'poll_interval': 10000,
         'reading_type': 0x01,
         'scale': 1000,
         'sensor_name': 'PSU%d Temp 2' % index,
         'sensor_type': '0x09',
         'sensornumber': sensornumber,
+        'index': index,
         'standby_monitor': False,
         'units': 'C',
         'value': -1,
         'firmware_update': 0, # 0: normal, 1:firmware_update working
-        }]
-    configs.append(config)
+        }
+    if objpath in configs:
+        configs[objpath].append(config)
+    else:
+        configs[objpath] = []
+        configs[objpath].append(config)
 
 def _add_psu_voltage_sensor(configs, index, sensornumber, bus_number):
-    config = ['/org/openbmc/sensors/pmbus/pmbus0%d/Voltage_vout' % index, {
+    objpath = '/org/openbmc/sensors/pmbus/pmbus/Voltage_vout'
+    config = {
         'bus_number': bus_number,
         'critical_lower': 10.5,
         'critical_upper': 14.25,
         'device_node': 'in2_input',
         'max_reading': '20',
         'min_reading': '0',
-        'object_path': 'sensors/pmbus/pmbus0%d/Voltage_vout' % index,
+        'object_path': 'sensors/pmbus/pmbus/Voltage_vout',
         'poll_interval': 10000,
         'reading_type': 0x01,
         'scale': 1000,
         'sensor_name': 'PSU%d Voltage Output' % index,
         'sensor_type': '0x09',
         'sensornumber': sensornumber,
+        'index': index,
         'standby_monitor': False,
         'units': 'V',
         'value': -1,
         'index': index,
         'firmware_update': 0, # 0: normal, 1:firmware_update working
-        }]
-    configs.append(config)
+        }
+    if objpath in configs:
+        configs[objpath].append(config)
+    else:
+        configs[objpath] = []
+        configs[objpath].append(config)
 
 def _add_psu_power_sensor(configs, index, sensornumber, bus_number):
-    config = ['/org/openbmc/sensors/pmbus/pmbus0%d/Power_pout' % index, {
+    objpath = '/org/openbmc/sensors/pmbus/pmbus/Power_pout'
+    config = {
         'bus_number': bus_number,
         'critical_upper': 1760,
         'device_node': 'power2_input',
-        'object_path': 'sensors/pmbus/pmbus0%d/Power_pout' % index,
+        'object_path': 'sensors/pmbus/pmbus/Power_pout',
         'poll_interval': 10000,
         'reading_type': 0x01,
         'scale': 1000000,
         'sensor_name': 'PSU%d Power Output' % index,
         'sensor_type': '0x09',
         'sensornumber': sensornumber,
+        'index': index,
         'standby_monitor': False,
         'units': 'W',
         'value': -1,
         'firmware_update': 0, # 0: normal, 1:firmware_update working
-        }]
-    configs.append(config)
+        }
+    if objpath in configs:
+        configs[objpath].append(config)
+    else:
+        configs[objpath] = []
+        configs[objpath].append(config)
 
 def _add_cable_led(configs, index, gpio):
     config = ['/org/openbmc/control/cable_led/led%d' % index, {
@@ -465,11 +498,12 @@ def _add_cable_led(configs, index, gpio):
     configs.append(config)
 
 def _add_pex9797(configs, index, sensornumber):
-    config = ['/org/openbmc/sensors/pex/pex%d' % index, {
+    objpath = '/org/openbmc/sensors/pex/pex'
+    config = {
         'device_node': '/tmp/pex/pex%d_temp' % index,
         'critical_upper': 111,
         'positive_hysteresis': 2,
-        'object_path': 'sensors/pex/pex%d' % index,
+        'object_path': 'sensors/pex/pex',
         'poll_interval': 5000,
         'scale': 1,
         'sensornumber': sensornumber,
@@ -479,8 +513,12 @@ def _add_pex9797(configs, index, sensornumber):
         'standby_monitor': False,
         'units': 'C',
         'index': index,
-        }]
-    configs.append(config)
+        }
+    if objpath in configs:
+        configs[objpath].append(config)
+    else:
+        configs[objpath] = []
+        configs[objpath].append(config)
 
 def _add_bmc_health_sensor(configs, sensornumber):
     config = ['/org/openbmc/sensors/bmc_health', {
@@ -523,22 +561,111 @@ def _add_ntp_status_sensor(configs, sensornumber):
     configs.append(config)
 
 def _add_psu_status_sensor(configs, index, sensornumber, bus_number):
-    config = ['/org/openbmc/sensors/pmbus/pmbus0%d/status' % index, {
+    objpath = '/org/openbmc/sensors/pmbus/pmbus/status'
+    config = {
         'bus_number': bus_number,
         'device_node': 'pmbus_status_word',
-        'object_path': 'sensors/pmbus/pmbus0%d/status' % index,
+        'object_path': 'sensors/pmbus/pmbus/status',
         'poll_interval': 5000,
         'reading_type': 0x6F,
         'scale': 1,
         'sensor_name': 'PSU%d Status' % index,
         'sensor_type': '0x08',
         'sensornumber': sensornumber,
+        'index': index,
         'standby_monitor': True,
         'units': '',
         'value': 0,
         'firmware_update': 0, # 0: normal, 1:firmware_update working
-        }]
-    configs.append(config)
+        }
+    if objpath in configs:
+        configs[objpath].append(config)
+    else:
+        configs[objpath] = []
+        configs[objpath].append(config)
+
+def _add_hsc_temperature_sensor(configs, index, sensornumber, sensor_name, bus_number):
+    objpath = '/org/openbmc/sensors/HSC/HSC_TMP'
+    config = {
+        'bus_number': bus_number,
+        'critical_upper':125,
+        'positive_hysteresis': 2,
+        'device_node': 'temp1_input',
+        'object_path' : 'sensors/HSC/HSC_TMP',
+        'poll_interval' : 5000,
+        'reading_type': 0x01,
+        'scale': 1000,
+        'sensor_name': sensor_name,
+        'sensor_type' : '0x01',
+        'sensornumber': sensornumber,
+        'index': index,
+        'standby_monitor': False,
+        'emergency_enabled' : False,
+        'units': 'C',
+        'value': -1,
+        'min_reading':'0',
+        'max_reading':'20',
+        }
+    if objpath in configs:
+        configs[objpath].append(config)
+    else:
+        configs[objpath] = []
+        configs[objpath].append(config)
+
+def _add_hsc_voltage_sensor(configs, index, sensornumber, sensor_name, bus_number):
+    objpath = '/org/openbmc/sensors/HSC/HSC_VOUT'
+    config = {
+        'bus_number': bus_number,
+        'critical_lower':10.6,
+        'critical_upper':13.8,
+        'positive_hysteresis': 2,
+        'device_node': 'in3_input',
+        'object_path' : 'sensors/HSC/HSC_VOUT',
+        'poll_interval' : 5000,
+        'reading_type': 0x01,
+        'scale': 1000,
+        'sensor_name': sensor_name,
+        'sensor_type' : '0x02',
+        'sensornumber': sensornumber,
+        'index': index,
+        'standby_monitor': False,
+        'emergency_enabled' : False,
+        'units' : 'V',
+        'value': -1,
+        'min_reading':'0',
+        'max_reading':'20',
+        }
+    if objpath in configs:
+        configs[objpath].append(config)
+    else:
+        configs[objpath] = []
+        configs[objpath].append(config)
+
+def _add_temp_sensor(configs, index, sensornumber, sensor_name, bus_number):
+    objpath = '/org/openbmc/sensors/temperature/TMP'
+    config = {
+        'bus_number': bus_number,
+        'critical_upper':37,
+        'positive_hysteresis': 2,
+        'device_node': 'temp1_input',
+        'object_path' : 'sensors/temperature/TMP',
+        'poll_interval' : 5000,
+        'reading_type': 0x01,
+        'scale': 1000,
+        'sensor_name': sensor_name,
+        'sensor_type' : '0x01',
+        'sensornumber': sensornumber,
+        'index': index,
+        'standby_monitor': False,
+        'emergency_enabled' : True,
+        'units' : 'C',
+        'value': -1,
+        }
+    if objpath in configs:
+        configs[objpath].append(config)
+    else:
+        configs[objpath] = []
+        configs[objpath].append(config)
 
 def _add_entity_presence(configs, sensornumber):
     config = ['/org/openbmc/sensors/entity_presence', {
@@ -652,51 +779,90 @@ def _add_session_audit(configs, sensornumber):
         }]
     configs.append(config)
 
+HWMON_SENSOR_CONFIG = {}
 SENSOR_MONITOR_CONFIG = []
-_add_gpu_temperature_sensor(SENSOR_MONITOR_CONFIG, 1, 0x41)
-_add_gpu_temperature_sensor(SENSOR_MONITOR_CONFIG, 2, 0x42)
-_add_gpu_temperature_sensor(SENSOR_MONITOR_CONFIG, 3, 0x43)
-_add_gpu_temperature_sensor(SENSOR_MONITOR_CONFIG, 4, 0x44)
-_add_gpu_temperature_sensor(SENSOR_MONITOR_CONFIG, 5, 0x45)
-_add_gpu_temperature_sensor(SENSOR_MONITOR_CONFIG, 6, 0x46)
-_add_gpu_temperature_sensor(SENSOR_MONITOR_CONFIG, 7, 0x47)
-_add_gpu_temperature_sensor(SENSOR_MONITOR_CONFIG, 8, 0x48)
-_add_fan_pwm_sensor(SENSOR_MONITOR_CONFIG, 1, 0x1D)
-_add_fan_pwm_sensor(SENSOR_MONITOR_CONFIG, 2, 0x1E)
-_add_fan_pwm_sensor(SENSOR_MONITOR_CONFIG, 3, 0x1F)
-_add_fan_pwm_sensor(SENSOR_MONITOR_CONFIG, 4, 0x20)
-_add_fan_pwm_sensor(SENSOR_MONITOR_CONFIG, 5, 0x21)
-_add_fan_pwm_sensor(SENSOR_MONITOR_CONFIG, 6, 0x22)
-_add_fan_tach_sensor(SENSOR_MONITOR_CONFIG, 1, 0x11)
-_add_fan_tach_sensor(SENSOR_MONITOR_CONFIG, 2, 0x12)
-_add_fan_tach_sensor(SENSOR_MONITOR_CONFIG, 3, 0x13)
-_add_fan_tach_sensor(SENSOR_MONITOR_CONFIG, 4, 0x14)
-_add_fan_tach_sensor(SENSOR_MONITOR_CONFIG, 5, 0x15)
-_add_fan_tach_sensor(SENSOR_MONITOR_CONFIG, 6, 0x16)
-_add_fan_tach_sensor(SENSOR_MONITOR_CONFIG, 7, 0x17)
-_add_fan_tach_sensor(SENSOR_MONITOR_CONFIG, 8, 0x18)
-_add_fan_tach_sensor(SENSOR_MONITOR_CONFIG, 9, 0x19)
-_add_fan_tach_sensor(SENSOR_MONITOR_CONFIG, 10, 0x1A)
-_add_fan_tach_sensor(SENSOR_MONITOR_CONFIG, 11, 0x1B)
-_add_fan_tach_sensor(SENSOR_MONITOR_CONFIG, 12, 0x1C)
-_add_psu_temperature_sensor(SENSOR_MONITOR_CONFIG, 1, 0x52, '8-0058')
-_add_psu_voltage_sensor(SENSOR_MONITOR_CONFIG, 1, 0x51, '8-0058')
-_add_psu_power_sensor(SENSOR_MONITOR_CONFIG, 1, 0x50, '8-0058')
-_add_psu_temperature_sensor(SENSOR_MONITOR_CONFIG, 2, 0x55, '9-0058')
-_add_psu_voltage_sensor(SENSOR_MONITOR_CONFIG, 2, 0x54, '9-0058')
-_add_psu_power_sensor(SENSOR_MONITOR_CONFIG, 2, 0x53, '9-0058')
-_add_psu_temperature_sensor(SENSOR_MONITOR_CONFIG, 3, 0x58, '10-0058')
-_add_psu_voltage_sensor(SENSOR_MONITOR_CONFIG, 3, 0x57, '10-0058')
-_add_psu_power_sensor(SENSOR_MONITOR_CONFIG, 3, 0x56, '10-0058')
-_add_psu_temperature_sensor(SENSOR_MONITOR_CONFIG, 4, 0x5B, '11-0058')
-_add_psu_voltage_sensor(SENSOR_MONITOR_CONFIG, 4, 0x5A, '11-0058')
-_add_psu_power_sensor(SENSOR_MONITOR_CONFIG, 4, 0x59, '11-0058')
-_add_psu_temperature_sensor(SENSOR_MONITOR_CONFIG, 5, 0x5E, '12-0058')
-_add_psu_voltage_sensor(SENSOR_MONITOR_CONFIG, 5, 0x5D, '12-0058')
-_add_psu_power_sensor(SENSOR_MONITOR_CONFIG, 5, 0x5C, '12-0058')
-_add_psu_temperature_sensor(SENSOR_MONITOR_CONFIG, 6, 0x61, '13-0058')
-_add_psu_voltage_sensor(SENSOR_MONITOR_CONFIG, 6, 0x60, '13-0058')
-_add_psu_power_sensor(SENSOR_MONITOR_CONFIG, 6, 0x5F, '13-0058')
+_add_temp_sensor(HWMON_SENSOR_CONFIG, 5, 0x01, 'Inlet Temp 5', '21-004c')
+_add_temp_sensor(HWMON_SENSOR_CONFIG, 6, 0x02, 'Inlet Temp 6', '21-004d')
+_add_temp_sensor(HWMON_SENSOR_CONFIG, 7, 0x03, 'Inlet Temp 7', '21-004e')
+_add_temp_sensor(HWMON_SENSOR_CONFIG, 8, 0x04, 'Inlet Temp 8', '21-004f')
+_add_temp_sensor(HWMON_SENSOR_CONFIG, 9, 0x05, 'FIO Inlet Temp 1', '00-0049')
+_add_temp_sensor(HWMON_SENSOR_CONFIG, 10, 0x06, 'FIO Inlet Temp 2', '00-004a')
+_add_temp_sensor(HWMON_SENSOR_CONFIG, 11, 0x07, 'CM Outlet Temp 1', '00-004b')
+_add_hsc_temperature_sensor(HWMON_SENSOR_CONFIG, 1, 0x24, 'HSC1 Temp', '0-0010')
+_add_hsc_temperature_sensor(HWMON_SENSOR_CONFIG, 2, 0x26, 'HSC2 STBY Temp', '0-0011')
+_add_hsc_temperature_sensor(HWMON_SENSOR_CONFIG, 3, 0x28, 'HSC3 GPU1 Temp', '0-0040')
+_add_hsc_temperature_sensor(HWMON_SENSOR_CONFIG, 4, 0x2a, 'HSC4 GPU2 Temp', '0-0041')
+_add_hsc_temperature_sensor(HWMON_SENSOR_CONFIG, 5, 0x2c, 'HSC5 GPU3 Temp', '0-0042')
+_add_hsc_temperature_sensor(HWMON_SENSOR_CONFIG, 6, 0x2e, 'HSC6 GPU4 Temp', '0-0043')
+_add_hsc_temperature_sensor(HWMON_SENSOR_CONFIG, 7, 0x30, 'HSC7 GPU5 Temp', '0-0044')
+_add_hsc_temperature_sensor(HWMON_SENSOR_CONFIG, 8, 0x32, 'HSC8 GPU6 Temp', '0-0045')
+_add_hsc_temperature_sensor(HWMON_SENSOR_CONFIG, 9, 0x34, 'HSC9 GPU7 Temp', '0-0046')
+_add_hsc_temperature_sensor(HWMON_SENSOR_CONFIG, 10, 0x36, 'HSC10 GPU8 Temp', '0-0047')
+_add_hsc_voltage_sensor(HWMON_SENSOR_CONFIG, 1, 0x23, 'HSC1 VOUT', '0-0010')
+_add_hsc_voltage_sensor(HWMON_SENSOR_CONFIG, 2, 0x25, 'HSC2 STBY VOUT', '0-0010')
+_add_hsc_voltage_sensor(HWMON_SENSOR_CONFIG, 3, 0x27, 'HSC3 GPU1 VOUT', '0-0040')
+_add_hsc_voltage_sensor(HWMON_SENSOR_CONFIG, 4, 0x29, 'HSC4 GPU2 VOUT', '0-0041')
+_add_hsc_voltage_sensor(HWMON_SENSOR_CONFIG, 5, 0x2b, 'HSC5 GPU3 VOUT', '0-0042')
+_add_hsc_voltage_sensor(HWMON_SENSOR_CONFIG, 6, 0x2d, 'HSC6 GPU4 VOUT', '0-0043')
+_add_hsc_voltage_sensor(HWMON_SENSOR_CONFIG, 7, 0x2f, 'HSC7 GPU5 VOUT', '0-0044')
+_add_hsc_voltage_sensor(HWMON_SENSOR_CONFIG, 8, 0x31, 'HSC8 GPU6 VOUT', '0-0045')
+_add_hsc_voltage_sensor(HWMON_SENSOR_CONFIG, 9, 0x33, 'HSC9 GPU7 VOUT', '0-0046')
+_add_hsc_voltage_sensor(HWMON_SENSOR_CONFIG, 10, 0x35, 'HSC10 GPU8 VOUT', '0-0047')
+_add_gpu_temperature_sensor(HWMON_SENSOR_CONFIG, 1, 0x41)
+_add_gpu_temperature_sensor(HWMON_SENSOR_CONFIG, 2, 0x42)
+_add_gpu_temperature_sensor(HWMON_SENSOR_CONFIG, 3, 0x43)
+_add_gpu_temperature_sensor(HWMON_SENSOR_CONFIG, 4, 0x44)
+_add_gpu_temperature_sensor(HWMON_SENSOR_CONFIG, 5, 0x45)
+_add_gpu_temperature_sensor(HWMON_SENSOR_CONFIG, 6, 0x46)
+_add_gpu_temperature_sensor(HWMON_SENSOR_CONFIG, 7, 0x47)
+_add_gpu_temperature_sensor(HWMON_SENSOR_CONFIG, 8, 0x48)
+_add_fan_pwm_sensor(HWMON_SENSOR_CONFIG, 1, 0x1D)
+_add_fan_pwm_sensor(HWMON_SENSOR_CONFIG, 2, 0x1E)
+_add_fan_pwm_sensor(HWMON_SENSOR_CONFIG, 3, 0x1F)
+_add_fan_pwm_sensor(HWMON_SENSOR_CONFIG, 4, 0x20)
+_add_fan_pwm_sensor(HWMON_SENSOR_CONFIG, 5, 0x21)
+_add_fan_pwm_sensor(HWMON_SENSOR_CONFIG, 6, 0x22)
+_add_fan_tach_sensor(HWMON_SENSOR_CONFIG, 1, 0x11)
+_add_fan_tach_sensor(HWMON_SENSOR_CONFIG, 2, 0x12)
+_add_fan_tach_sensor(HWMON_SENSOR_CONFIG, 3, 0x13)
+_add_fan_tach_sensor(HWMON_SENSOR_CONFIG, 4, 0x14)
+_add_fan_tach_sensor(HWMON_SENSOR_CONFIG, 5, 0x15)
+_add_fan_tach_sensor(HWMON_SENSOR_CONFIG, 6, 0x16)
+_add_fan_tach_sensor(HWMON_SENSOR_CONFIG, 7, 0x17)
+_add_fan_tach_sensor(HWMON_SENSOR_CONFIG, 8, 0x18)
+_add_fan_tach_sensor(HWMON_SENSOR_CONFIG, 9, 0x19)
+_add_fan_tach_sensor(HWMON_SENSOR_CONFIG, 10, 0x1A)
+_add_fan_tach_sensor(HWMON_SENSOR_CONFIG, 11, 0x1B)
+_add_fan_tach_sensor(HWMON_SENSOR_CONFIG, 12, 0x1C)
+_add_psu_temperature_sensor(HWMON_SENSOR_CONFIG, 1, 0x52, '8-0058')
+_add_psu_voltage_sensor(HWMON_SENSOR_CONFIG, 1, 0x51, '8-0058')
+_add_psu_power_sensor(HWMON_SENSOR_CONFIG, 1, 0x50, '8-0058')
+_add_psu_temperature_sensor(HWMON_SENSOR_CONFIG, 2, 0x55, '9-0058')
+_add_psu_voltage_sensor(HWMON_SENSOR_CONFIG, 2, 0x54, '9-0058')
+_add_psu_power_sensor(HWMON_SENSOR_CONFIG, 2, 0x53, '9-0058')
+_add_psu_temperature_sensor(HWMON_SENSOR_CONFIG, 3, 0x58, '10-0058')
+_add_psu_voltage_sensor(HWMON_SENSOR_CONFIG, 3, 0x57, '10-0058')
+_add_psu_power_sensor(HWMON_SENSOR_CONFIG, 3, 0x56, '10-0058')
+_add_psu_temperature_sensor(HWMON_SENSOR_CONFIG, 4, 0x5B, '11-0058')
+_add_psu_voltage_sensor(HWMON_SENSOR_CONFIG, 4, 0x5A, '11-0058')
+_add_psu_power_sensor(HWMON_SENSOR_CONFIG, 4, 0x59, '11-0058')
+_add_psu_temperature_sensor(HWMON_SENSOR_CONFIG, 5, 0x5E, '12-0058')
+_add_psu_voltage_sensor(HWMON_SENSOR_CONFIG, 5, 0x5D, '12-0058')
+_add_psu_power_sensor(HWMON_SENSOR_CONFIG, 5, 0x5C, '12-0058')
+_add_psu_temperature_sensor(HWMON_SENSOR_CONFIG, 6, 0x61, '13-0058')
+_add_psu_voltage_sensor(HWMON_SENSOR_CONFIG, 6, 0x60, '13-0058')
+_add_psu_power_sensor(HWMON_SENSOR_CONFIG, 6, 0x5F, '13-0058')
+_add_psu_status_sensor(HWMON_SENSOR_CONFIG, 1, 0x83, '8-0058')
+_add_psu_status_sensor(HWMON_SENSOR_CONFIG, 2, 0x84, '9-0058')
+_add_psu_status_sensor(HWMON_SENSOR_CONFIG, 3, 0x85, '10-0058')
+_add_psu_status_sensor(HWMON_SENSOR_CONFIG, 4, 0x86, '11-0058')
+_add_psu_status_sensor(HWMON_SENSOR_CONFIG, 5, 0x87, '12-0058')
+_add_psu_status_sensor(HWMON_SENSOR_CONFIG, 6, 0x88, '13-0058')
+_add_pex9797(HWMON_SENSOR_CONFIG, 0, 0x37)
+_add_pex9797(HWMON_SENSOR_CONFIG, 1, 0x38)
+_add_pex9797(HWMON_SENSOR_CONFIG, 2, 0x39)
+_add_pex9797(HWMON_SENSOR_CONFIG, 3, 0x3A)
+
 _add_cable_led(SENSOR_MONITOR_CONFIG, 0, 279)
 _add_cable_led(SENSOR_MONITOR_CONFIG, 1, 283)
 _add_cable_led(SENSOR_MONITOR_CONFIG, 2, 287)
@@ -705,19 +871,9 @@ _add_cable_led(SENSOR_MONITOR_CONFIG, 4, 263)
 _add_cable_led(SENSOR_MONITOR_CONFIG, 5, 267)
 _add_cable_led(SENSOR_MONITOR_CONFIG, 6, 271)
 _add_cable_led(SENSOR_MONITOR_CONFIG, 7, 275)
-_add_pex9797(SENSOR_MONITOR_CONFIG, 0, 0x37)
-_add_pex9797(SENSOR_MONITOR_CONFIG, 1, 0x38)
-_add_pex9797(SENSOR_MONITOR_CONFIG, 2, 0x39)
-_add_pex9797(SENSOR_MONITOR_CONFIG, 3, 0x3A)
 _add_event_log_sensor(SENSOR_MONITOR_CONFIG, 0x80)
 _add_ntp_status_sensor(SENSOR_MONITOR_CONFIG, 0x81)
 _add_bmc_health_sensor(SENSOR_MONITOR_CONFIG, 0x82)
-_add_psu_status_sensor(SENSOR_MONITOR_CONFIG, 1, 0x83, '8-0058')
-_add_psu_status_sensor(SENSOR_MONITOR_CONFIG, 2, 0x84, '9-0058')
-_add_psu_status_sensor(SENSOR_MONITOR_CONFIG, 3, 0x85, '10-0058')
-_add_psu_status_sensor(SENSOR_MONITOR_CONFIG, 4, 0x86, '11-0058')
-_add_psu_status_sensor(SENSOR_MONITOR_CONFIG, 5, 0x87, '12-0058')
-_add_psu_status_sensor(SENSOR_MONITOR_CONFIG, 6, 0x88, '13-0058')
 _add_entity_presence(SENSOR_MONITOR_CONFIG, 0x8A)
 _add_management_subsystem_health(SENSOR_MONITOR_CONFIG, 0x89)
 _add_pcie_slot(SENSOR_MONITOR_CONFIG, 1, 252)
@@ -751,418 +907,8 @@ _add_thermal_gpio(SENSOR_MONITOR_CONFIG, 8, 251)
 _add_sys_throttle_gpio(SENSOR_MONITOR_CONFIG, 0x8B, 388)
 _add_session_audit(SENSOR_MONITOR_CONFIG, 0x8C)
 
+
 HWMON_CONFIG = {
-    '0-0010' :  {
-        'names' : {
-            'in3_input' : {
-                'object_path' : 'sensors/HSC/HSC1_VOUT',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'V',
-                'sensor_type' : '0x02',
-                'sensornumber' : 0x23,
-                'critical_lower':10.6,
-                'critical_upper':13.8,
-                'sensor_name':'HSC1 VOUT',
-                'reading_type' : 0x01,
-                'emergency_enabled' : False,
-                'min_reading':'0',
-                'max_reading':'20',
-                'standby_monitor': False,
-                },
-            'temp1_input' : {
-                'object_path' : 'sensors/HSC/HSC1_TMP',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'C',
-                'sensor_type' : '0x01',
-                'sensornumber' : 0x24,
-                'critical_upper':125,
-                'positive_hysteresis': 2,
-                'sensor_name':'HSC1 Temp',
-                'reading_type' : 0x01,
-                'emergency_enabled' : False,
-                'min_reading':'0',
-                'max_reading':'20',
-                'standby_monitor': False,
-                },
-        }
-    },
-    '0-0011' :  {
-        'names' : {
-            'in3_input' : {
-                'object_path' : 'sensors/HSC/HSC2_STBY_VOUT',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'V',
-                'sensor_type' : '0x02',
-                'sensornumber' : 0x25,
-                'critical_lower':10.6,
-                'critical_upper':13.8,
-                'sensor_name':'HSC2 STBY VOUT',
-                'reading_type' : 0x01,
-                'emergency_enabled' : False,
-                'min_reading':'0',
-                'max_reading':'20',
-                'standby_monitor': True,
-                },
-            'temp1_input' : {
-                'object_path' : 'sensors/HSC/HSC2_STBY_TMP',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'C',
-                'sensor_type' : '0x01',
-                'sensornumber' : 0x26,
-                'critical_upper':125,
-                'positive_hysteresis': 2,
-                'sensor_name':'HSC2 STBY Temp',
-                'reading_type' : 0x01,
-                'emergency_enabled' : False,
-                'min_reading':'0',
-                'max_reading':'20',
-                'standby_monitor': True,
-                },
-        }
-    },
-    '0-0040' :  {
-        'names' : {
-            'in3_input' : {
-                'object_path' : 'sensors/HSC/HSC3_GPU1_VOUT',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'V',
-                'sensor_type' : '0x02',
-                'sensornumber' : 0x27,
-                'critical_lower':10.6,
-                'critical_upper':13.8,
-                'sensor_name':'HSC3 GPU1 VOUT',
-                'reading_type' : 0x01,
-                'emergency_enabled' : False,
-                'min_reading':'0',
-                'max_reading':'20',
-                'standby_monitor': False,
-                },
-            'temp1_input' : {
-                'object_path' : 'sensors/HSC/HSC3_GPU1_TMP',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'C',
-                'sensor_type' : '0x01',
-                'sensornumber' : 0x28,
-                'critical_upper':125,
-                'positive_hysteresis': 2,
-                'sensor_name':'HSC3 GPU1 Temp',
-                'reading_type' : 0x01,
-                'emergency_enabled' : False,
-                'min_reading':'0',
-                'max_reading':'20',
-                'standby_monitor': False,
-                },
-        }
-    },
-    '0-0041' :  {
-        'names' : {
-            'in3_input' : {
-                'object_path' : 'sensors/HSC/HSC4_GPU2_VOUT',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'V',
-                'sensor_type' : '0x02',
-                'sensornumber' : 0x29,
-                'critical_lower':10.6,
-                'critical_upper':13.8,
-                'sensor_name':'HSC4 GPU2 VOUT',
-                'reading_type' : 0x01,
-                'emergency_enabled' : False,
-                'min_reading':'0',
-                'max_reading':'20',
-                'standby_monitor': False,
-                },
-            'temp1_input' : {
-                'object_path' : 'sensors/HSC/HSC4_GPU2_TMP',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'C',
-                'sensor_type' : '0x01',
-                'sensornumber' : 0x2A,
-                'critical_upper':125,
-                'positive_hysteresis': 2,
-                'sensor_name':'HSC4 GPU2 Temp',
-                'reading_type' : 0x01,
-                'emergency_enabled' : False,
-                'min_reading':'0',
-                'max_reading':'20',
-                'standby_monitor': False,
-                },
-        }
-    },
-    '0-0042' :  {
-        'names' : {
-            'in3_input' : {
-                'object_path' : 'sensors/HSC/HSC5_GPU3_VOUT',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'V',
-                'sensor_type' : '0x02',
-                'sensornumber' : 0x2B,
-                'critical_lower':10.6,
-                'critical_upper':13.8,
-                'sensor_name':'HSC5 GPU3 VOUT',
-                'reading_type' : 0x01,
-                'emergency_enabled' : False,
-                'min_reading':'0',
-                'max_reading':'20',
-                'standby_monitor': False,
-                },
-            'temp1_input' : {
-                'object_path' : 'sensors/HSC/HSC5_GPU3_TMP',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'C',
-                'sensor_type' : '0x01',
-                'sensornumber' : 0x2C,
-                'critical_upper':125,
-                'positive_hysteresis': 2,
-                'sensor_name':'HSC5 GPU3 Temp',
-                'reading_type' : 0x01,
-                'emergency_enabled' : False,
-                'min_reading':'0',
-                'max_reading':'20',
-                'standby_monitor': False,
-                },
-        }
-    },
-    '0-0043' :  {
-        'names' : {
-            'in3_input' : {
-                'object_path' : 'sensors/HSC/HSC6_GPU4_VOUT',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'V',
-                'sensor_type' : '0x02',
-                'sensornumber' : 0x2D,
-                'critical_lower':10.6,
-                'critical_upper':13.8,
-                'sensor_name':'HSC6 GPU4 VOUT',
-                'reading_type' : 0x01,
-                'emergency_enabled' : False,
-                'min_reading':'0',
-                'max_reading':'20',
-                'standby_monitor': False,
-                },
-            'temp1_input' : {
-                'object_path' : 'sensors/HSC/HSC6_GPU4_TMP',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'C',
-                'sensor_type' : '0x01',
-                'sensornumber' : 0x2E,
-                'critical_upper':125,
-                'positive_hysteresis': 2,
-                'sensor_name':'HSC6 GPU4 Temp',
-                'reading_type' : 0x01,
-                'emergency_enabled' : False,
-                'min_reading':'0',
-                'max_reading':'20',
-                'standby_monitor': False,
-                },
-        }
-    },
-    '0-0044' :  {
-        'names' : {
-            'in3_input' : {
-                'object_path' : 'sensors/HSC/HSC7_GPU5_VOUT',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'V',
-                'sensor_type' : '0x02',
-                'sensornumber' : 0x2F,
-                'critical_lower':10.6,
-                'critical_upper':13.8,
-                'sensor_name':'HSC7 GPU5 VOUT',
-                'reading_type' : 0x01,
-                'emergency_enabled' : False,
-                'min_reading':'0',
-                'max_reading':'20',
-                'standby_monitor': False,
-                },
-            'temp1_input' : {
-                'object_path' : 'sensors/HSC/HSC7_GPU5_TMP',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'C',
-                'sensor_type' : '0x01',
-                'sensornumber' : 0x30,
-                'critical_upper':125,
-                'positive_hysteresis': 2,
-                'sensor_name':'HSC7 GPU5 Temp',
-                'reading_type' : 0x01,
-                'emergency_enabled' : False,
-                'min_reading':'0',
-                'max_reading':'20',
-                'standby_monitor': False,
-                },
-        }
-    },
-    '0-0045' :  {
-        'names' : {
-            'in3_input' : {
-                'object_path' : 'sensors/HSC/HSC8_GPU6_VOUT',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'V',
-                'sensor_type' : '0x02',
-                'sensornumber' : 0x31,
-                'critical_lower':10.6,
-                'critical_upper':13.8,
-                'sensor_name':'HSC8 GPU6 VOUT',
-                'reading_type' : 0x01,
-                'emergency_enabled' : False,
-                'min_reading':'0',
-                'max_reading':'20',
-                'standby_monitor': False,
-                },
-            'temp1_input' : {
-                'object_path' : 'sensors/HSC/HSC8_GPU6_TMP',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'C',
-                'sensor_type' : '0x01',
-                'sensornumber' : 0x32,
-                'critical_upper':125,
-                'positive_hysteresis': 2,
-                'sensor_name':'HSC8 GPU6 Temp',
-                'reading_type' : 0x01,
-                'emergency_enabled' : False,
-                'min_reading':'0',
-                'max_reading':'20',
-                'standby_monitor': False,
-                },
-        }
-    },
-    '0-0046' :  {
-        'names' : {
-            'in3_input' : {
-                'object_path' : 'sensors/HSC/HSC9_GPU7_VOUT',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'V',
-                'sensor_type' : '0x02',
-                'sensornumber' : 0x33,
-                'critical_lower':10.6,
-                'critical_upper':13.8,
-                'sensor_name':'HSC9 GPU7 VOUT',
-                'reading_type' : 0x01,
-                'emergency_enabled' : False,
-                'min_reading':'0',
-                'max_reading':'20',
-                'standby_monitor': False,
-                },
-            'temp1_input' : {
-                'object_path' : 'sensors/HSC/HSC9_GPU7_TMP',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'C',
-                'sensor_type' : '0x01',
-                'sensornumber' : 0x34,
-                'critical_upper':125,
-                'positive_hysteresis': 2,
-                'sensor_name':'HSC9 GPU7 Temp',
-                'reading_type' : 0x01,
-                'emergency_enabled' : False,
-                'min_reading':'0',
-                'max_reading':'20',
-                'standby_monitor': False,
-                },
-        }
-    },
-    '0-0047' :  {
-        'names' : {
-            'in3_input' : {
-                'object_path' : 'sensors/HSC/HSC10_GPU8_VOUT',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'V',
-                'sensor_type' : '0x02',
-                'sensornumber' : 0x35,
-                'critical_lower':10.6,
-                'critical_upper':13.8,
-                'sensor_name':'HSC10 GPU8 VOUT',
-                'reading_type' : 0x01,
-                'emergency_enabled' : False,
-                'min_reading':'0',
-                'max_reading':'20',
-                'standby_monitor': False,
-                },
-            'temp1_input' : {
-                'object_path' : 'sensors/HSC/HSC10_GPU8_TMP',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'C',
-                'sensor_type' : '0x01',
-                'sensornumber' : 0x36,
-                'critical_upper':125,
-                'positive_hysteresis': 2,
-                'sensor_name':'HSC10 GPU8 Temp',
-                'reading_type' : 0x01,
-                'emergency_enabled' : False,
-                'min_reading':'0',
-                'max_reading':'20',
-                'standby_monitor': False,
-                },
-        }
-    },
-    # FIO Temperature sensor for inlet, add by pvt
-    '0-0049' :  {
-        'names' : {
-            'temp1_input' : {
-                'object_path' : 'sensors/temperature/TMP9',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'C',
-                'sensor_type' : '0x01',
-                'sensornumber' : 0x5,
-                'sensor_name':'FIO Inlet Temp 1',
-                'reading_type' : 0x01,
-                'emergency_enabled' : True,
-                'standby_monitor': False,
-                },
-        }
-    },
-    # FIO Temperature sensor for inlet, add by pvt
-    '0-004a' :  {
-        'names' : {
-            'temp1_input' : {
-                'object_path' : 'sensors/temperature/TMP10',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'C',
-                'sensor_type' : '0x01',
-                'sensornumber' : 0x6,
-                'sensor_name':'FIO Inlet Temp 2',
-                'reading_type' : 0x01,
-                'emergency_enabled' : True,
-                'standby_monitor': False,
-                },
-        }
-    },
-    # CM Temperature sensor for inlet, add by pvt
-    '0-004b' :  {
-        'names' : {
-            'temp1_input' : {
-                'object_path' : 'sensors/temperature/TMP11',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'C',
-                'sensor_type' : '0x01',
-                'sensornumber' : 0x7,
-                'sensor_name':'CM Outlet Temp 1',
-                'reading_type' : 0x01,
-                'emergency_enabled' : True,
-                'standby_monitor': False,
-                },
-        }
-    },
     '21-0037' :  {
         'names' : {
             'temp1_input' : {
@@ -1226,78 +972,6 @@ HWMON_CONFIG = {
                 'offset':-7,
                 'standby_monitor': False,
                 }, #Thermal team suggest temp4 (-7) offset
-        }
-    },
-    '21-004c' :  {
-        'names' : {
-            'temp1_input' : {
-                'object_path' : 'sensors/temperature/TMP5',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'C',
-                'sensor_type' : '0x01',
-                'sensornumber' : 0x01,
-                'sensor_name':'Inlet Temp 5',
-                'reading_type' : 0x01,
-                'critical_upper' : 37,
-                'positive_hysteresis': 2,
-                'emergency_enabled' : True,
-                'standby_monitor': False,
-                },
-        }
-    },
-    '21-004d' :  {
-        'names' : {
-            'temp1_input' : {
-                'object_path' : 'sensors/temperature/TMP6',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'C',
-                'sensor_type' : '0x01',
-                'sensornumber' : 0x02,
-                'sensor_name':'Inlet Temp 6',
-                'reading_type' : 0x01,
-                'critical_upper' : 37,
-                'positive_hysteresis': 2,
-                'emergency_enabled' : True,
-                'standby_monitor': False,
-                },
-        }
-    },
-    '21-004e' :  {
-        'names' : {
-            'temp1_input' : {
-                'object_path' : 'sensors/temperature/TMP7',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'C',
-                'sensor_type' : '0x01',
-                'sensornumber' : 0x03,
-                'sensor_name':'Inlet Temp 7',
-                'reading_type' : 0x01,
-                'critical_upper' : 37,
-                'positive_hysteresis': 2,
-                'emergency_enabled' : True,
-                'standby_monitor': False,
-                },
-        }
-    },
-    '21-004f' :  {
-        'names' : {
-            'temp1_input' : {
-                'object_path' : 'sensors/temperature/TMP8',
-                'poll_interval' : 5000,
-                'scale' : 1000,
-                'units' : 'C',
-                'sensor_type' : '0x01',
-                'sensornumber' : 0x04,
-                'sensor_name':'Inlet Temp 8',
-                'reading_type' : 0x01,
-                'critical_upper' : 37,
-                'positive_hysteresis': 2,
-                'emergency_enabled' : True,
-                'standby_monitor': False,
-                },
         }
     },
 }
