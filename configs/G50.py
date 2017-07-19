@@ -349,7 +349,8 @@ def _add_gpu_temperature_sensor(configs, index, sensornumber):
         'standby_monitor': False,
         'units': 'C',
         'index': index,
-        'value': -1
+        'value': -1,
+        'mapping': '/org/openbmc/control/gpu/slot%d' % index,
         }
     if objpath in configs:
         configs[objpath].append(config)

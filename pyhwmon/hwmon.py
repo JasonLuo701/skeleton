@@ -92,6 +92,7 @@ class Hwmons():
 		self.check_entity_presence = {}
 		self.check_subsystem_health = {}
 		self.retry_subsystem_health = {}
+		self.check_entity_mapping =  {}
 		self.scanDirectory()
 		self.pmbus1_hwmon = ""
 		self.pmbus2_hwmon = ""
@@ -175,23 +176,30 @@ class Hwmons():
 		if objpath not in self.check_entity_presence:
 			self.check_entity_presence[objpath] = 1
 		if hwmon.has_key('entity'):
+			if objpath not in self.check_entity_mapping:
+				self.check_entity_mapping[objpath] = 0
 			if raw_value == hwmon['inverse'] and self.check_entity_presence[objpath] == 1:
 				bmclogevent_ctl.BmcLogEventMessages(entity_presence_obj_path, \
 						"Entity Presence" ,"Asserted", "Entity Presence" , \
 						data={'entity_device':hwmon['entity'], 'entity_index':hwmon['index']})
 				bmclogevent_ctl.bmclogevent_set_value(entity_presence_obj_path ,1)
 				self.check_entity_presence[objpath] = 0
+				self.check_entity_mapping[objpath] = 1
 			elif raw_value != hwmon['inverse']:
 				if self.check_entity_presence[objpath] == 0:
 					bmclogevent_ctl.BmcLogEventMessages(entity_presence_obj_path, \
 						"Entity Presence" ,"Deasserted", "Entity Presence" , \
 						data={'entity_device':hwmon['entity'], 'entity_index':hwmon['index']})
 					bmclogevent_ctl.bmclogevent_set_value(entity_presence_obj_path, 0)
+					self.check_entity_mapping[objpath] = 0
 				self.check_entity_presence[objpath] = 1
 		return True
 
 	def subsystem_health_check(self,hwmon,raw_value):
 		check_subsystem_health_obj_path = "/org/openbmc/sensors/management_subsystem_health"
+		if hwmon.has_key('mapping'):
+			if self.check_entity_mapping[hwmon['mapping']] == 1:
+				return True
 		if hwmon.has_key('sensornumber'):
 			if hwmon['sensornumber'] not in self.check_subsystem_health:
 				self.check_subsystem_health[hwmon['sensornumber']] = 1
