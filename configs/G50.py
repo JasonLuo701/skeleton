@@ -370,7 +370,7 @@ def _add_fan_pwm_sensor(configs, index, sensornumber):
         'device_node':
             '/sys/devices/platform/ast_pwm_tacho.0/pwm%d_falling' % index,
         'object_path': 'control/fan/pwm',
-        'warning_lower': 18,
+        'critical_lower': 18,
         'poll_interval': 10000,
         'reading_type': 0x01,
         'scale': 1,
