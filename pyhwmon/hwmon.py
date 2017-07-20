@@ -99,6 +99,7 @@ class Hwmons():
 		self.pmbus4_hwmon = ""
 		self.pmbus5_hwmon = ""
 		self.pmbus6_hwmon = ""
+		self.record_pgood = 0
 		gobject.timeout_add(DIR_POLL_INTERVAL, self.scanDirectory)
 
 	def readAttribute(self,filename):
@@ -363,6 +364,23 @@ class Hwmons():
 				print str(e)
 		return True
 
+	def check_system_event(self, current_pgood):
+		try:
+			system_event_objpath = "/org/openbmc/sensors/system_event"
+			if self.record_pgood != current_pgood:
+				result = {'logid':0}
+				if current_pgood == 1: #current poweroff->poweron condition
+					result = bmclogevent_ctl.BmcLogEventMessages(system_event_objpath, "System Event", \
+						"Asserted",  "System Event PowerOn", "System Event PowerOn")
+				elif current_pgood == 0: #current poweron->poweroff condition
+					result = bmclogevent_ctl.BmcLogEventMessages(system_event_objpath, "System Event", \
+						"Asserted",  "System Event PowerOff", "System Event PowerOff")
+
+				if (result['logid'] !=0):
+					self.record_pgood = current_pgood
+		except:
+			pass
+
 	def sensor_polling(self, objpath, hwmons):
 		obj = bus.get_object(SENSOR_BUS,objpath,introspect=False)
 		intf = dbus.Interface(obj, dbus.PROPERTIES_IFACE)
@@ -373,8 +391,9 @@ class Hwmons():
 				if hwmon.has_key('standby_monitor'):
 					standby_monitor = hwmon['standby_monitor']
 				# Skip monitor while DC power off if stand by monitor is False
+				current_pgood = self.pgood_intf.Get('org.openbmc.control.Power', 'pgood')
+				self.check_system_event(current_pgood)
 				if not standby_monitor:
-					current_pgood = self.pgood_intf.Get('org.openbmc.control.Power', 'pgood')
 					if  current_pgood == 0:
 						intf.Set(SensorValue.IFACE_NAME, 'value_'+str(hwmon['sensornumber']), -1)
 						continue
@@ -455,8 +474,9 @@ class Hwmons():
 			obj = bus.get_object(SENSOR_BUS,objpath,introspect=False)
 			intf_p = dbus.Interface(obj, dbus.PROPERTIES_IFACE)
 			intf = dbus.Interface(obj,HwmonSensor.IFACE_NAME)
+			current_pgood = self.pgood_intf.Get('org.openbmc.control.Power', 'pgood')
+			self.check_system_event(current_pgood)
 			if not standby_monitor:
-				current_pgood = self.pgood_intf.Get('org.openbmc.control.Power', 'pgood')
 				if  current_pgood == 0:
 					rtn = intf.setByPoll(-1)
 					if (rtn[0] == True):
