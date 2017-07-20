@@ -270,10 +270,10 @@ def bmchealth_check_i2c(NUM_BUS):
                         if (i2c_sts & event) == event:
                             LogEventBmcHealthMessages("Asserted", "I2C bus hang", data={'i2c_bus_id':bus_id, 'i2c_error_code':i2c_recovery_event_map[event]})
                             g_i2c_recovery[i2c_recovery_path] = 1
-            else:
+            if ((i2c_sts&0x1) == 0x1) or ((i2c_sts& (1<<6)) == (1<<6)):
                 if g_i2c_recovery[i2c_recovery_path] == 1:
                      LogEventBmcHealthMessages("Deasserted", "I2C bus hang", data={'i2c_bus_id':bus_id, 'i2c_error_code':0})
-                     g_i2c_recovery[i2c_recovery_path] == 0
+                     g_i2c_recovery[i2c_recovery_path] = 0
         except:
             print "[bmchealth_check_i2c]exception !!!"
     return True
