@@ -11,8 +11,9 @@ import obmc_system_config as System
 SENSOR_BUS = 'org.openbmc.Sensors'
 SENSORS_OBJPATH = '/org/openbmc'
 SENSOR_PATH = '/org/openbmc/sensors'
-threshold_types = ['critical_lower', 'critical_upper', \
-                    'warning_lower', 'warning_upper']
+READING_VALUE = 'reading_value'
+configure_types = ['critical_lower', 'critical_upper', \
+                    'warning_lower', 'warning_upper', READING_VALUE]
 
 def get_objpath(sensor_number):
     found = False
@@ -62,15 +63,29 @@ def set_threshold(sensor_number, threshold_type, threshold_value):
     print "Set sensor {0} {1} to {2}".format(sensor_number, threshold_type, \
                                                 threshold_value)
 
+def set_reading_value(sensor_number, value):
+    try:
+        bus = dbus.SystemBus()
+        obj_path = get_objpath(sensor_number)
+        if not obj_path:
+            print "obj_path not found"
+            exit(1)
+        obj = bus.get_object(SENSOR_BUS, obj_path,introspect=False)
+        intf = dbus.Interface(obj,dbus.PROPERTIES_IFACE)
+        intf.Set(SensorThresholds.IFACE_NAME, READING_VALUE+'_'+str(sensor_number), value)
+    except:
+        print 'Set reading failed'
+    print "Set sensor {0} {1} to {2}".format(sensor_number, READING_VALUE, value)
+
 if __name__ == '__main__':
     if len(sys.argv) != 4 or sys.argv[1] == "-h":
         print "Usage:"
         print "\tobmc_err_injection" \
-                "[sensor_number] [threshold_type] [threshold_value]\n"
+                " [sensor_number] [configure_type] [value]\n"
         print "\tsensor_number: decimal or hex"
-        print "\tthreshold_type: critical_lower, critical_upper," \
-                "warning_lower or warning_upper"
-        print "\tthreshold_value: new threshold value to be set"
+        print "\tconfigure_type: critical_lower, critical_upper," \
+                " warning_lower, warning_upper or reading_value"
+        print "\tvalue: new value to be set"
         exit(0)
 
     sys.argv.pop(0)
@@ -79,13 +94,16 @@ if __name__ == '__main__':
     except:
         print "Invalid sensor number"
         exit(1)
-    threshold_type = sys.argv.pop(0)
-    if not threshold_type in threshold_types:
+    configure_type = sys.argv.pop(0)
+    if not configure_type in configure_types:
         print "Incorrect threshold type"
         exit(1)
     try:
-        threshold_value = int(sys.argv.pop(0))
+        value = int(sys.argv.pop(0))
     except:
         print "Invalid threshold value"
 
-    set_threshold(sensor_number, threshold_type, threshold_value)
+    if configure_type == READING_VALUE:
+        set_reading_value(sensor_number, value)
+    else:
+        set_threshold(sensor_number, configure_type, value)
