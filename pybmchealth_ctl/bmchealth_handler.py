@@ -22,7 +22,7 @@ DBUS_INTERFACE = 'org.freedesktop.DBus.Properties'
 SENSOR_VALUE_INTERFACE = 'org.openbmc.SensorValue'
 
 g_bmchealth_obj_path = "/org/openbmc/sensors/bmc_health"
-g_event_count = [0,0,0,0,0,0,0,0]
+g_i2c_recovery = {}
 g_reboot_flag = 0
 g_watchdog_reset = 0
 g_previous_log_rollover = -1
@@ -245,30 +245,40 @@ def bmchealth_check_watchdog():
         g_watchdog_reset = 1
     return True
 
-def bmchealth_check_i2c():
-    i2c_recovery_check_path = ["/proc/i2c_recovery_bus0","/proc/i2c_recovery_bus1","/proc/i2c_recovery_bus2","/proc/i2c_recovery_bus3","/proc/i2c_recovery_bus4","/proc/i2c_recovery_bus5","/proc/i2c_recovery_bus6","/proc/i2c_recovery_bus7"]
-    global g_event_count
+def bmchealth_check_i2c(NUM_BUS):
+    global g_i2c_recovery
+    i2c_recovery_event_map = {
+        1: 0, # recover done
+        2: 5, #0101b-Bus Busy
+        4: 3, #0011b-Abnormal Start/Stop condition
+        8: 4, #0100b-Aribitration Lost
+        16:2, #0010b-SCL low timed out
+        32:1, #0001b-Recovery Performed
+    }
 
-    for num in range(len(i2c_recovery_check_path)):
-        if os.path.exists(i2c_recovery_check_path[num]):
-            try:
-                with open(i2c_recovery_check_path[num], 'r') as f:
-                    bus_id = int(f.readline())
-                    error_code = int(f.readline(), 16)
-                    current_event_count = int(f.readline())
-                    state = int(f.readline())
-                    if current_event_count > g_event_count[num]:
-                        if state == 1:
-                            print "Log i2c hang event"
-                            LogEventBmcHealthMessages("Asserted", "I2C bus hang", data={'i2c_bus_id':bus_id, 'i2c_error_code':0x1})
-                            g_event_count[num] = current_event_count
-                        if state == 0:
-                            print "Log i2c recovery event"
-                            LogEventBmcHealthMessages("Deasserted", "I2C bus hang", data={'i2c_bus_id':bus_id, 'i2c_error_code':0})
-                            g_event_count[num] = current_event_count
-            except:
-                print "[bmchealth_check_i2c]exception !!!"
+    i2c_recovery_base = "/proc/i2c_recovery_bus"
+    for bus_id in range(NUM_BUS):
+        i2c_recovery_path = i2c_recovery_base + str(bus_id)
+        try:
+            if i2c_recovery_path not in g_i2c_recovery:
+                g_i2c_recovery[i2c_recovery_path]  = 0
+            with open(i2c_recovery_path, 'r') as f:
+                i2c_sts = int(f.readline())
+            if (i2c_sts == 0) or (i2c_sts == (1<<6)):
+                continue
 
+            if ((i2c_sts&0x1) != 0x1) and ((i2c_sts& (1<<6)) != (1<<6)):
+                if g_i2c_recovery[i2c_recovery_path] == 0: #i2c recovery assert
+                    for event in i2c_recovery_event_map:
+                        if (i2c_sts & event) == event:
+                            LogEventBmcHealthMessages("Asserted", "I2C bus hang", data={'i2c_bus_id':bus_id, 'i2c_error_code':i2c_recovery_event_map[event]})
+                            g_i2c_recovery[i2c_recovery_path] = 1
+            if ((i2c_sts&0x1) == 0x1) or ((i2c_sts& (1<<6)) == (1<<6)):
+                if g_i2c_recovery[i2c_recovery_path] == 1:
+                     LogEventBmcHealthMessages("Deasserted", "I2C bus hang", data={'i2c_bus_id':bus_id, 'i2c_error_code':0})
+                     g_i2c_recovery[i2c_recovery_path] = 0
+        except:
+            print "[bmchealth_check_i2c]exception !!!"
     return True
 
 def bmchealth_check_fw_update_start():
@@ -508,7 +518,7 @@ if __name__ == '__main__':
     bmchealth_check_fw_update_complete()
     gobject.timeout_add(1000,bmchealth_check_network)
     gobject.timeout_add(1000,bmchealth_check_fw_update_start)
-    gobject.timeout_add(1000,bmchealth_check_i2c)
+    gobject.timeout_add(1000,bmchealth_check_i2c, 14)
     gobject.timeout_add(1000,bmchealth_check_status_led)
     gobject.timeout_add(1000,bmchealth_check_log_rollover)
     gobject.timeout_add(1000,bmchealth_check_memory_utilization)
