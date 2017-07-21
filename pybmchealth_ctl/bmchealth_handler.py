@@ -238,11 +238,12 @@ def bmchealth_check_watchdog():
         return False
 
     if watchdog1_timeout_counter > 0 or watchdog2_timeout_counter > 0:
-        print "Log watchdog expired event"
-        LogEventBmcHealthMessages("Asserted", "Hardware WDT expired")
+        if g_reboot_flag == 0:
+            print "Log watchdog expired event"
+            LogEventBmcHealthMessages("Asserted", "Hardware WDT expired")
+            g_watchdog_reset = 1
         subprocess.check_output(clear_watchdog1_command, shell=True)
         subprocess.check_output(clear_watchdog2_command, shell=True)
-        g_watchdog_reset = 1
     return True
 
 def bmchealth_check_i2c(NUM_BUS):
