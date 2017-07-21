@@ -1045,27 +1045,17 @@ FAN_ALGORITHM_CONFIG = {
     'CHASSIS_POWER_STATE': ['/org/openbmc/control/chassis0'],
     'FAN_INPUT_OBJ':
         [
-            "/org/openbmc/sensors/fan/fan_tacho1", "pwm1",
-            "/org/openbmc/sensors/fan/fan_tacho2", "pwm2",
-            "/org/openbmc/sensors/fan/fan_tacho3", "pwm3",
-            "/org/openbmc/sensors/fan/fan_tacho4", "pwm4",
-            "/org/openbmc/sensors/fan/fan_tacho5", "pwm5",
-            "/org/openbmc/sensors/fan/fan_tacho6", "pwm6",
-            "/org/openbmc/sensors/fan/fan_tacho7", "pwm1",
-            "/org/openbmc/sensors/fan/fan_tacho8", "pwm2",
-            "/org/openbmc/sensors/fan/fan_tacho9", "pwm3",
-            "/org/openbmc/sensors/fan/fan_tacho10", "pwm4",
-            "/org/openbmc/sensors/fan/fan_tacho11", "pwm5",
-            "/org/openbmc/sensors/fan/fan_tacho12", "pwm6",
+            "/org/openbmc/sensors/fan/fan_tacho",
+            "SensorNumberList", #notfity following setting about SensorNumberList
+            "0x11", #base sensor number
+            "12", #releate sensor list size
         ],
     'FAN_OUTPUT_OBJ':
         [
-            "/org/openbmc/control/fan/pwm1",
-            "/org/openbmc/control/fan/pwm2",
-            "/org/openbmc/control/fan/pwm3",
-            "/org/openbmc/control/fan/pwm4",
-            "/org/openbmc/control/fan/pwm5",
-            "/org/openbmc/control/fan/pwm6",
+            "/org/openbmc/control/fan/pwm",
+            "SensorNumberList", #notfity following setting about SensorNumberList
+            "0x1D", #base sensor number
+            "6", #releate sensor list size
         ],
     'OPEN_LOOP_PARAM':
         [
@@ -1092,14 +1082,10 @@ FAN_ALGORITHM_CONFIG = {
         ],
     'CLOSE_LOOP_GROUPS_1':
         [
-            "/org/openbmc/sensors/gpu/gpu1_temp",
-            "/org/openbmc/sensors/gpu/gpu2_temp",
-            "/org/openbmc/sensors/gpu/gpu3_temp",
-            "/org/openbmc/sensors/gpu/gpu4_temp",
-            "/org/openbmc/sensors/gpu/gpu5_temp",
-            "/org/openbmc/sensors/gpu/gpu6_temp",
-            "/org/openbmc/sensors/gpu/gpu7_temp",
-            "/org/openbmc/sensors/gpu/gpu8_temp",
+            "/org/openbmc/sensors/gpu/gpu_temp",
+            "SensorNumberList", #notfity following setting about SensorNumberList
+            "0x41", #base sensor number
+            "8", #releate sensor list size
         ],
     'CLOSE_LOOP_PARAM_2' :
         [
@@ -1111,10 +1097,10 @@ FAN_ALGORITHM_CONFIG = {
         ],
     'CLOSE_LOOP_GROUPS_2':
         [
-            "/org/openbmc/sensors/pex/pex0",
-            "/org/openbmc/sensors/pex/pex1",
-            "/org/openbmc/sensors/pex/pex2",
-            "/org/openbmc/sensors/pex/pex3",
+            "/org/openbmc/sensors/pex/pex",
+            "SensorNumberList", #notfity following setting about SensorNumberList
+            "0x37", #base sensor number
+            "4", #releate sensor list size
         ],
 
     'FAN_LED_OFF': ["0xFF"],
