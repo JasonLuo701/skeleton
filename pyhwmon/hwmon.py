@@ -433,11 +433,7 @@ class Hwmons():
 				# do not check threshold while not reading
 				if raw_value == -1:
 					continue
-<<<<<<< HEAD
 				reading_value = raw_value / scale
-=======
-				reading_value = raw_value / hwmon['scale']
->>>>>>> remotes/vsts/master
 				origin_threshold_state = hwmon['threshold_state']
 				if origin_threshold_state != self.check_thresholds(threshold_props, reading_value, hwmon):
 					intf.Set(SensorThresholds.IFACE_NAME, \
