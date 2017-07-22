@@ -64,16 +64,18 @@ typedef struct {
 
 	__u8 device_index;
 
+	__u8 sensor_number;
+
 	__u8 smbus_slave;
 	pex_device_serial serial;
 	pex_device_udid  udid;
 } pex_device_mapping;
 
 pex_device_mapping pex_device_bus[MAX_PEX_NUM] = {
-	{16, 0x5d, EM_PEX_DEVICE_1, 0x61, {0, {0}}, {0, {0}} },
-	{17, 0x5d, EM_PEX_DEVICE_2, 0x61, {0, {0}}, {0, {0}} },
-	{18, 0x5d, EM_PEX_DEVICE_3, 0x61, {0, {0}}, {0, {0}} },
-	{19, 0x5d, EM_PEX_DEVICE_4, 0x61, {0, {0}}, {0, {0}} },
+	{16, 0x5d, EM_PEX_DEVICE_1, 0x37, 0x61, {0, {0}}, {0, {0}} },
+	{17, 0x5d, EM_PEX_DEVICE_2, 0x38, 0x61, {0, {0}}, {0, {0}} },
+	{18, 0x5d, EM_PEX_DEVICE_3, 0x39, 0x61, {0, {0}}, {0, {0}} },
+	{19, 0x5d, EM_PEX_DEVICE_4, 0x3A, 0x61, {0, {0}}, {0, {0}} },
 };
 
 typedef struct {
@@ -138,7 +140,7 @@ pex_device_i2c_cmd pex_device_cmd_tab[EM_PEX_CMD_MAX] = {
 
 static int g_use_pec = 0;
 
-static int i2c_io(int fd, int slave_addr, int write_len , __u8 *write_data_bytes, int read_len, __u8 *read_data_bytes)
+static int i2c_io(int fd, int slave_addr, int write_len, __u8 *write_data_bytes, int read_len, __u8 *read_data_bytes)
 {
 	struct i2c_rdwr_ioctl_data data;
 	struct i2c_msg msg[2];
@@ -181,7 +183,7 @@ static int i2c_io(int fd, int slave_addr, int write_len , __u8 *write_data_bytes
 	return 0;
 }
 
-static i2c_raw_access(int i2c_bus, int i2c_addr ,int write_len , __u8 *write_data_bytes, int read_len, __u8 *read_data_bytes)
+static i2c_raw_access(int i2c_bus, int i2c_addr,int write_len, __u8 *write_data_bytes, int read_len, __u8 *read_data_bytes)
 {
 	int fd;
 	char filename[MAX_I2C_DEV_LEN] = {0};
@@ -288,7 +290,7 @@ void write_file_pex(int pex_idx, double data, char *sub_name)
 	char f_path[128];
 	char sys_cmd[256];
 
-	sprintf(f_path , "%s/pex%d_%s", PEX_TEMP_PATH, pex_idx, sub_name);
+	sprintf(f_path, "%s/pex%d_%s", PEX_TEMP_PATH, pex_idx, sub_name);
 	sprintf(sys_cmd, "echo %d > %s", (int)data, f_path);
 	system(sys_cmd);
 }
@@ -362,8 +364,10 @@ int pex_set_dbus_property(int pex_idx, char *property_name, char *property_value
 		fprintf(stderr,"Error opening system bus.\n");
 		return rc;
 	}
-	snprintf(pex_info_node, sizeof(pex_info_node), "/org/openbmc/sensors/pex/pex%d", pex_idx);
-	rc = set_dbus_property(bus, pex_info_node , property_name, "s", (void *) property_value);
+
+	strcpy(pex_info_node, "/org/openbmc/sensors/pex/pex");
+
+	rc = set_dbus_property(bus, pex_info_node, property_name, "s", (void *) property_value, pex_device_bus[pex_idx].sensor_number);
 	sd_bus_flush_close_unref(bus);
 	return rc;
 }
@@ -481,7 +485,7 @@ int  init_data_folder(int index)
 {
 	char f_path[128];
 	FILE *fp;
-	sprintf(f_path , "%s/pex%d_temp", PEX_TEMP_PATH, index);
+	sprintf(f_path, "%s/pex%d_temp", PEX_TEMP_PATH, index);
 	if( access( f_path, F_OK ) != -1 )
 		return 1;
 	else {
