@@ -415,8 +415,16 @@ class Hwmons():
 				dc_on_off = self.pgood_intf.Get('org.openbmc.control.Power', 'dc_on_off')
 				if dc_on_off == 1:
 					continue
-				raw_value = int(self.readAttribute(hwmon['device_node']))
-				intf.Set(SensorValue.IFACE_NAME, 'value_'+str(hwmon['sensornumber']), raw_value / hwmon['scale'])
+				READING_VALUE = 'reading_value_'+str(hwmon['sensornumber'])
+				scale = hwmon['scale']
+				if READING_VALUE in threshold_props and \
+						threshold_props[READING_VALUE] != -1:
+					raw_value = threshold_props[READING_VALUE]
+					scale = 1
+				else:
+					raw_value = int(self.readAttribute(hwmon['device_node']))
+
+				intf.Set(SensorValue.IFACE_NAME, 'value_'+str(hwmon['sensornumber']), raw_value / scale)
 
 				if hwmon['sensornumber'] != '':
 					self.entity_presence_check(objpath,hwmon,raw_value)
@@ -425,7 +433,11 @@ class Hwmons():
 				# do not check threshold while not reading
 				if raw_value == -1:
 					continue
+<<<<<<< HEAD
+				reading_value = raw_value / scale
+=======
 				reading_value = raw_value / hwmon['scale']
+>>>>>>> remotes/vsts/master
 				origin_threshold_state = hwmon['threshold_state']
 				if origin_threshold_state != self.check_thresholds(threshold_props, reading_value, hwmon):
 					intf.Set(SensorThresholds.IFACE_NAME, \
