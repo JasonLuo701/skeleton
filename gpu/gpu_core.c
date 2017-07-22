@@ -80,17 +80,19 @@ typedef struct {
 
 	__u8 device_index;
 
+	__u8 sensor_number;
+
 } gpu_device_mapping;
 
 gpu_device_mapping gpu_device_bus[MAX_GPU_NUM] = {
-	{28, 0x4d, EM_GPU_DEVICE_1},
-	{29, 0x4d, EM_GPU_DEVICE_2},
-	{30, 0x4d, EM_GPU_DEVICE_3},
-	{31, 0x4d, EM_GPU_DEVICE_4},
-	{32, 0x4d, EM_GPU_DEVICE_5},
-	{33, 0x4d, EM_GPU_DEVICE_6},
-	{34, 0x4d, EM_GPU_DEVICE_7},
-	{35, 0x4d, EM_GPU_DEVICE_8},
+	{28, 0x4d, EM_GPU_DEVICE_1, 0x41},
+	{29, 0x4d, EM_GPU_DEVICE_2, 0x42},
+	{30, 0x4d, EM_GPU_DEVICE_3, 0x43},
+	{31, 0x4d, EM_GPU_DEVICE_4, 0x44},
+	{32, 0x4d, EM_GPU_DEVICE_5, 0x45},
+	{33, 0x4d, EM_GPU_DEVICE_6, 0x46},
+	{34, 0x4d, EM_GPU_DEVICE_7, 0x47},
+	{35, 0x4d, EM_GPU_DEVICE_8, 0x48},
 };
 
 static int internal_gpu_access(int bus, __u8 slave,__u8 *write_buf, __u8 *read_buf, int flag)
@@ -134,12 +136,12 @@ static int internal_gpu_access(int bus, __u8 slave,__u8 *write_buf, __u8 *read_b
 				return 0;
 			}
 		} else {
-			if (flag == 1) { 
+			if (flag == 1) {
 				close(fd);
 				PMBUS_DELAY;
 				return -2;
 			} else
-			    printf("read bus %d return 0x%x 0x%x 0x%x 0x%x, not in success state\n",bus ,cmd_reg[0], cmd_reg[1], cmd_reg[2], cmd_reg[3]);
+				printf("read bus %d return 0x%x 0x%x 0x%x 0x%x, not in success state\n",bus,cmd_reg[0], cmd_reg[1], cmd_reg[2], cmd_reg[3]);
 		}
 		retry_gpu--;
 		PMBUS_DELAY;
@@ -209,16 +211,14 @@ int function_get_gpu_data(int index)
 	FILE *fp;
 	/*get gpu temp data*/
 	int retry_temp = 5;
-	while(retry_temp >= 0)
-	{
+	while(retry_temp >= 0) {
 		int flag_temp = 1;
 		if (retry_temp == 0)
 			flag_temp = 0;
 		rc = internal_gpu_access(gpu_device_bus[index].bus_no,gpu_device_bus[index].slave,temp_writebuf,readbuf, flag_temp);
 		if (rc >=0)
 			break;
-		else if (rc == -2)
-		{
+		else if (rc == -2) {
 			unsigned char temp_nop_writebuf[4] = {0x00,0x0,0x0,0x80};
 			unsigned char readbuf_nop[4];
 			internal_gpu_access(gpu_device_bus[index].bus_no,gpu_device_bus[index].slave,temp_nop_writebuf,readbuf_nop, 0);
@@ -229,12 +229,12 @@ int function_get_gpu_data(int index)
 		G_gpu_data[gpu_device_bus[index].device_index].temp_ready = 1;
 		G_gpu_data[gpu_device_bus[index].device_index].temp = readbuf[1];
 		/* write data to file */
-		sprintf(gpu_path , "%s%s%d%s", GPU_TEMP_PATH, "/gpu", gpu_device_bus[index].device_index+1,"_temp");
+		sprintf(gpu_path, "%s%s%d%s", GPU_TEMP_PATH, "/gpu", gpu_device_bus[index].device_index+1,"_temp");
 		sprintf(sys_cmd, "echo %d > %s", readbuf[1], gpu_path);
 		system(sys_cmd);
 	} else {
 		if(G_gpu_data[gpu_device_bus[index].device_index].temp_ready) { /*if previous is ok*/
-			sprintf(gpu_path , "%s%s%d%s", GPU_TEMP_PATH, "/gpu", gpu_device_bus[index].device_index+1,"_temp");
+			sprintf(gpu_path, "%s%s%d%s", GPU_TEMP_PATH, "/gpu", gpu_device_bus[index].device_index+1,"_temp");
 			sprintf(sys_cmd, "echo %d > %s", rc, gpu_path);
 			system(sys_cmd);
 		}
@@ -245,8 +245,7 @@ int function_get_gpu_data(int index)
 	if(!G_gpu_data[gpu_device_bus[index].device_index].info_ready) {
 		rc=function_get_gpu_info(index);
 		if(rc==0) {
-			len = snprintf(gpu_info_node, sizeof(gpu_info_node), "%s%d%s",
-				       "/org/openbmc/sensors/gpu/gpu",gpu_device_bus[index].device_index+1,"_temp");
+			strcpy(gpu_info_node, "/org/openbmc/sensors/gpu/gpu_temp");
 
 			sd_bus *bus = NULL;
 			rc = sd_bus_open_system(&bus);
@@ -254,19 +253,22 @@ int function_get_gpu_data(int index)
 				fprintf(stderr,"Error opening system bus.\n");
 				return rc;
 			}
-			rc = set_dbus_property(bus, gpu_info_node , "Board Part Number", "s", (void *) G_gpu_data[gpu_device_bus[index].device_index].info_data[TYPE_BOARD_PART_NUMBER]);
-			if (rc<0)
-				G_gpu_data[gpu_device_bus[index].device_index].info_ready = 0;
-			rc = set_dbus_property(bus, gpu_info_node , "Serial Number", "s", (void *)G_gpu_data[gpu_device_bus[index].device_index].info_data[TYPE_SERIAL_NUMBER]);
-			if (rc<0)
-				G_gpu_data[gpu_device_bus[index].device_index].info_ready = 0;
-			rc = set_dbus_property(bus, gpu_info_node , "Marketing Name", "s", (void *)G_gpu_data[gpu_device_bus[index].device_index].info_data[TYPE_MARKETING_NAME]);
-			if (rc<0)
-				G_gpu_data[gpu_device_bus[index].device_index].info_ready = 0;
-			rc = set_dbus_property(bus, gpu_info_node , "PartNumber", "s", (void *)G_gpu_data[gpu_device_bus[index].device_index].info_data[TYPE_PART_NUMBER]);
-			if (rc<0)
-				G_gpu_data[gpu_device_bus[index].device_index].info_ready = 0;
-			rc = set_dbus_property(bus, gpu_info_node , "FirmwareVersion", "s", (void *)G_gpu_data[gpu_device_bus[index].device_index].info_data[TYPE_FIRMWARE_VERSION]);
+			rc = set_dbus_property(bus, gpu_info_node, "Board Part Number", "s",
+					       (void *) G_gpu_data[gpu_device_bus[index].device_index].info_data[TYPE_BOARD_PART_NUMBER],
+					       gpu_device_bus[index].sensor_number);
+			rc += set_dbus_property(bus, gpu_info_node, "Serial Number", "s",
+						(void *)G_gpu_data[gpu_device_bus[index].device_index].info_data[TYPE_SERIAL_NUMBER],
+						gpu_device_bus[index].sensor_number);
+			rc += set_dbus_property(bus, gpu_info_node, "Marketing Name", "s",
+						(void *)G_gpu_data[gpu_device_bus[index].device_index].info_data[TYPE_MARKETING_NAME],
+						gpu_device_bus[index].sensor_number);
+			rc += set_dbus_property(bus, gpu_info_node, "PartNumber", "s",
+						(void *)G_gpu_data[gpu_device_bus[index].device_index].info_data[TYPE_PART_NUMBER],
+						gpu_device_bus[index].sensor_number);
+			rc += set_dbus_property(bus, gpu_info_node, "FirmwareVersion", "s",
+						(void *)G_gpu_data[gpu_device_bus[index].device_index].info_data[TYPE_FIRMWARE_VERSION],
+						gpu_device_bus[index].sensor_number);
+
 			if (rc<0)
 				G_gpu_data[gpu_device_bus[index].device_index].info_ready = 0;
 			sd_bus_flush_close_unref(bus);
@@ -290,7 +292,7 @@ void gpu_data_scan()
 		mkdir(GPU_TEMP_PATH, 0777);
 	}
 	for(i=0; i<MAX_GPU_NUM; i++) {
-		sprintf(gpu_path , "%s%s%d%s", GPU_TEMP_PATH, "/gpu", i+1,"_temp");
+		sprintf(gpu_path, "%s%s%d%s", GPU_TEMP_PATH, "/gpu", i+1,"_temp");
 		if( access( gpu_path, F_OK ) != -1 ) {
 			fprintf(stderr,"Error:[%s] opening:[%s] , existed \n",gpu_path);
 			break;

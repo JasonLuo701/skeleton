@@ -5,8 +5,8 @@
 #include <dirent.h>
 #include <systemd/sd-bus.h>
 
-int
-set_dbus_property(sd_bus *bus, char *objpath, char *property_name, char *property_type, void *property_value)
+static int
+__set_dbus_property(sd_bus *bus, char *objpath, char *property_name, char *property_type, void *property_value)
 {
 	sd_bus_error bus_error = SD_BUS_ERROR_NULL;
 	sd_bus_message *response = NULL;
@@ -54,3 +54,13 @@ set_dbus_property(sd_bus *bus, char *objpath, char *property_name, char *propert
 	}
 	return rc;
 }
+
+//param: property_identify: it maybe be "sensor number" or "index" for identifing property_name
+int
+set_dbus_property(sd_bus *bus, char *objpath, char *property_name, char *property_type, void *property_value, int property_identify)
+{
+	char temp_property_name[100];
+	sprintf(temp_property_name, "%s_%d", property_name, property_identify);
+	return __set_dbus_property(bus, objpath, temp_property_name, property_type, property_value);
+}
+
