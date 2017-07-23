@@ -786,6 +786,19 @@ def _add_session_audit(configs, sensornumber):
         }]
     configs.append(config)
 
+def _add_system_event(configs, sensornumber):
+    config = ['/org/openbmc/sensors/system_event', {
+        'device_node': '',
+        'object_path': 'sensors/system_event',
+        'reading_type': 0x72,
+        'sensor_name': 'System Event',
+        'sensor_type': '0x12',
+        'sensornumber': sensornumber,
+        'standby_monitor': True,
+        'value': 0,
+        }]
+    configs.append(config)
+
 HWMON_SENSOR_CONFIG = {}
 SENSOR_MONITOR_CONFIG = []
 _add_temp_sensor(HWMON_SENSOR_CONFIG, 5, 0x01, 'Inlet Temp 5', '21-004c')
@@ -913,6 +926,9 @@ _add_thermal_gpio(SENSOR_MONITOR_CONFIG, 7, 250)
 _add_thermal_gpio(SENSOR_MONITOR_CONFIG, 8, 251)
 _add_sys_throttle_gpio(SENSOR_MONITOR_CONFIG, 0x8B, 388)
 _add_session_audit(SENSOR_MONITOR_CONFIG, 0x8C)
+_add_system_event(SENSOR_MONITOR_CONFIG, 0x8D)
+
+
 
 
 HWMON_CONFIG = {
@@ -1235,6 +1251,28 @@ BMC_LOGEVENT_CONFIG = {
 				'Severity': 'Critical',
 				'Event Data Information': {
 					'Management Subsystem Health':	['event_status', 'sensor_number', 0xFF],
+				},
+			},
+		},
+	},
+	'System Event': {
+		'Record ID': 0,
+		'Record Type': 0x2,
+		'Timestamp': 0,
+		'Generator Id': 0x20,
+		'Evm Rev': 0x04,
+		'Event Type': 0x72,
+		'Event Data Table': {
+			'System Event PowerOn': {
+				'Severity': 'Ok',
+				'Event Data Information': {
+					'System Event PowerOn':	[0x00, None, None],
+				},
+			},
+			'System Event PowerOff': {
+				'Severity': 'Critical',
+				'Event Data Information': {
+					'System Event PowerOff': [0x01, None, None],
 				},
 			},
 		},
