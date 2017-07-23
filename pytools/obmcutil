@@ -13,6 +13,19 @@ import fcntl
 import signal
 
 
+sensor_props = [
+	'lower_critical_threshold',
+	'upper_critical_threshold',
+	'sensor_name',
+	'sensor_number',
+	'standby_monitor',
+	'lower_warning_threshold',
+	'upper_warning_threshold',
+	'value',
+	'state',
+	'health'
+]
+
 locked_file_descriptor = None
 bus = get_dbus()
 pgood_obj = bus.get_object('org.openbmc.control.Power', '/org/openbmc/control/power0', introspect=False)
@@ -51,6 +64,27 @@ def printDict(name,data):
 			printDict(p,data[p])
 	else:
 		print name+" = "+str(data)
+
+def printSensors(data, sensor_filter):
+    for sensor in data:
+		if sensor_filter[0] == 'sensor_number':
+			if sensor['sensor_number'] != sensor_filter[1]:
+				continue
+		elif sensor_filter[0] == 'sensor_name':
+			if sensor['sensor_name'] != sensor_filter[1]:
+				continue
+		print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+		print sensor['sensor_name']
+		for prop in sensor_props:
+			if prop in sensor:
+				if prop == 'sensor_numbre' or (prop == 'value' \
+						and sensor['sensor_number'] >= 0x83 and sensor['sensor_number'] <= 0x88 \
+						and isinstance(sensor[prop], int)):
+					print prop+" = "+hex(sensor[prop])
+				else:
+					print prop+" = "+str(sensor[prop])
+			else:
+				print prop +" = N/A"
 
 def introspect(bus_name,obj_path,intf_name,method_name):
 	obj = bus.get_object(bus_name,obj_path)
@@ -240,7 +274,21 @@ obj_path = objinfo['object_name']
 intf_name = objinfo['interface_name']
 obj = bus.get_object(bus_name,obj_path)
 
-if (method_name != ""):
+if obj_name == 'getsensors':
+	get_sensor_filter = (None, None)
+	if getsensors_param == "-num":
+		get_sensor_filter = ('sensor_number', int(getsensors_value, 0))
+	elif getsensors_param == "-name":
+		get_sensor_filter = ('sensor_name', getsensors_value)
+	sys.path.append('/usr/lib/redfish/controls')
+	import chassis_system_sensors as get_sensor
+	r = {'sensor_list': []}
+	if get_sensor_filter[0] == 'sensor_number':
+		r = get_sensor.get_chassis_sensors(get_sensor_filter[1])
+	else:
+		r = get_sensor.get_chassis_sensors()
+	printSensors(r['sensor_list'], get_sensor_filter)
+elif (method_name != ""):
 	signal.signal(signal.SIGINT, handler)
 	methd = obj.get_dbus_method(method_name,intf_name)
 	try:
