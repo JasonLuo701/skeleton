@@ -231,6 +231,12 @@ APPS = {
         'monitor_process' : True,
         'process_name'    : 'pex_core.exe',
     },
+    'pmbus_scanner' : {
+        'system_state'    : 'BMC_READY',
+        'start_process'   : True,
+        'monitor_process' : True,
+        'process_name'    : 'pmbus_scanner.exe',
+    },
 }
 
 CACHED_INTERFACES = {

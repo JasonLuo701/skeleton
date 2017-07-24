@@ -10,6 +10,7 @@ GDBUS_APPS = bmcctl \
 SDBUS_APPS = gpu \
 	     pex9797_ctl \
 	     pmbus \
+	     pmbus_scanner \
 	     psu_fwupdate_ctl
 
 SUBDIRS = hacks \
