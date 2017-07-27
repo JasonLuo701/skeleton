@@ -237,6 +237,12 @@ APPS = {
         'monitor_process' : True,
         'process_name'    : 'pmbus_scanner.exe',
     },
+    'pcie-device-temperature' : {
+        'system_state'	  : 'BMC_READY',
+        'start_process'   : True,
+        'monitor_process' : True,
+        'process_name'	  : 'pcie-device-temperature.exe',
+    },
 }
 
 CACHED_INTERFACES = {
@@ -363,6 +369,29 @@ def _add_gpu_temperature_sensor(configs, index, sensornumber):
         'index': index,
         'value': -1,
         'mapping': '/org/openbmc/control/gpu/slot%d' % index,
+        }
+    if objpath in configs:
+        configs[objpath].append(config)
+    else:
+        configs[objpath] = []
+        configs[objpath].append(config)
+
+def _add_m2_temperature_sensor(configs, index, sensornumber):
+    objpath = '/org/openbmc/sensors/M2/M2_TMP'
+    config = {
+        'critical_upper': 85,
+        'positive_hysteresis': 2,
+        'device_node': '/tmp/pcie/mdot2_%d_temp' % index,
+        'poll_interval': 5000,
+        'reading_type': 0x01,
+        'scale': 1,
+        'sensor_name': 'M.2 %d Temp' % index,
+        'sensor_type': '0x01',
+        'sensornumber': sensornumber,
+        'standby_monitor': False,
+        'units': 'C',
+        'index': index,
+        'value': -1,
         }
     if objpath in configs:
         configs[objpath].append(config)
@@ -842,6 +871,10 @@ _add_gpu_temperature_sensor(HWMON_SENSOR_CONFIG, 5, 0x45)
 _add_gpu_temperature_sensor(HWMON_SENSOR_CONFIG, 6, 0x46)
 _add_gpu_temperature_sensor(HWMON_SENSOR_CONFIG, 7, 0x47)
 _add_gpu_temperature_sensor(HWMON_SENSOR_CONFIG, 8, 0x48)
+_add_m2_temperature_sensor(HWMON_SENSOR_CONFIG, 1, 0x70)
+_add_m2_temperature_sensor(HWMON_SENSOR_CONFIG, 2, 0x71)
+_add_m2_temperature_sensor(HWMON_SENSOR_CONFIG, 3, 0x72)
+_add_m2_temperature_sensor(HWMON_SENSOR_CONFIG, 4, 0x73)
 _add_fan_pwm_sensor(HWMON_SENSOR_CONFIG, 1, 0x1D)
 _add_fan_pwm_sensor(HWMON_SENSOR_CONFIG, 2, 0x1E)
 _add_fan_pwm_sensor(HWMON_SENSOR_CONFIG, 3, 0x1F)
