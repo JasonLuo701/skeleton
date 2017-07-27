@@ -371,9 +371,11 @@ class Hwmons():
 					severity = Event.SEVERITY_CRIT
 					self.LogThresholdEventMessages(hwmon, severity, event_dir, evd1|0x04, raw_value>>8, raw_value&0xF)
 				if deassertion_failure:
+					severity = Event.SEVERITY_OKAY
 					event_dir = 0x80
 					self.LogThresholdEventMessages(hwmon, severity, event_dir, evd1|0x01, raw_value>>8, raw_value&0xF)
 				if deassertion_power_lost:
+					severity = Event.SEVERITY_OKAY
 					event_dir = 0x80
 					self.LogThresholdEventMessages(hwmon, severity, event_dir, evd1|0x04, raw_value>>8, raw_value&0xF)
 				self.psu_state[hwmon['sensornumber']] = raw_value
