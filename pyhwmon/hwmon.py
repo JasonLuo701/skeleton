@@ -331,14 +331,14 @@ class Hwmons():
 					if (firmware_update_status & (1 << (hwmon['index'] - 1))) > 0:
 						return True
 				raw_value = int(self.readAttribute(attribute), 16)
+				if raw_value < -1 or raw_value > 0xFFFF:
+					continue
 				self.entity_presence_check(objpath,hwmon,raw_value)
 				self.subsystem_health_check(hwmon,raw_value)
 				intf.Set(SensorValue.IFACE_NAME, 'value_'+str(hwmon['sensornumber']), raw_value)
 				if raw_value == -1:
 					continue
 
-				if raw_value < 0 or raw_value > 0xFFFF:
-					continue
 				severity = Event.SEVERITY_OKAY
 				event_dir = 0x0
 				assertion_failure = False
