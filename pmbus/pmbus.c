@@ -261,13 +261,18 @@ int read_dev_node_string(char *path) {
     FILE *fp;
     char buf[100] = {0};
     float result;
+    int rc;
 
     fp = fopen(path, "r");
     if(fp == NULL) {
         return -1;
     }
-    fread(buf, sizeof(char), 100, fp);
+    rc = fread(buf, sizeof(char), 100, fp);
     fclose(fp);
+    if (rc == 0) {
+        printf("PSU not found on bus: %d, slave address: 0x%x\n", bus, slave_addr);
+        return -1;
+    }
     print_result(buf);
 
     return 0;
@@ -277,12 +282,17 @@ int read_dev_node_decimal(char *path, int scale) {
     FILE *fp;
     char buf[100] = {0};
     float result;
+    int rc;
 
     fp = fopen(path, "r");
     if(fp == NULL) {
         return -1;
     }
-    fread(buf, sizeof(char), 100, fp);
+    rc = fread(buf, sizeof(char), 100, fp);
+    if (rc == 0) {
+        printf("PSU not found on bus: %d, slave address: 0x%x\n", bus, slave_addr);
+        return -1;
+    }
     fclose(fp);
     sscanf(buf, "%f", &result);
     result = result / scale;

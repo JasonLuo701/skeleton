@@ -23,7 +23,7 @@ SENSOR_BUS = 'org.openbmc.Sensors'
 # sensors include /org/openbmc/sensors and /org/openbmc/control
 SENSORS_OBJPATH = '/org/openbmc'
 SENSOR_PATH = '/org/openbmc/sensors'
-DIR_POLL_INTERVAL = 300000
+DIR_POLL_INTERVAL = 30000
 HWMON_PATH = '/sys/class/hwmon'
 
 ## static define which interface each property is under
@@ -319,7 +319,12 @@ class Hwmons():
 		intf = dbus.Interface(obj,dbus.PROPERTIES_IFACE)
 		for hwmon in hwmons:
 			try:
-				attribute = hwmon['device_node']
+				if 'bus_number' in hwmon:
+					if hwmon['bus_number'] in self.path_mapping:
+						hwmon_path = self.path_mapping[hwmon['bus_number']] + hwmon['device_node']
+					else:
+						hwmon_path = None
+				attribute = hwmon_path
 				evd1 = 0xA0
 				if 'firmware_update' in hwmon:
 					firmware_update_status = intf.Get(HwmonSensor.IFACE_NAME,'firmware_update')
@@ -417,12 +422,19 @@ class Hwmons():
 					continue
 				READING_VALUE = 'reading_value_'+str(hwmon['sensornumber'])
 				scale = hwmon['scale']
+				hwmon_path = None
+				if 'bus_number' in hwmon:
+					if hwmon['bus_number'] in self.path_mapping:
+						hwmon_path = self.path_mapping[hwmon['bus_number']] + hwmon['device_node']
 				if READING_VALUE in threshold_props and \
 						threshold_props[READING_VALUE] != -1:
 					raw_value = threshold_props[READING_VALUE]
 					scale = 1
 				else:
-					raw_value = int(self.readAttribute(hwmon['device_node']))
+					if hwmon_path:
+						raw_value = int(self.readAttribute(hwmon_path))
+					else:
+						raw_value = int(self.readAttribute(hwmon['device_node']))
 
 				intf.Set(SensorValue.IFACE_NAME, 'value_'+str(hwmon['sensornumber']), raw_value / scale)
 
@@ -687,13 +699,6 @@ class Hwmons():
 						print "Warnning[addSensorMonitorObject]: Not correct set [device_node]"
 						continue
 
-					if 'bus_number' in hwmon and \
-							(self.sensors.has_key(hwmon['sensornumber']) == False):
-						if hwmon['bus_number'] in self.path_mapping:
-							hwmon_path = self.path_mapping[hwmon['bus_number']] + hwmon['device_node']
-						else:
-							hwmon_path = 'N/A'
-						hwmon['device_node'] = hwmon_path
 					if (self.sensors.has_key(objpath) == False):
 						## register object with sensor manager
 						sensor_obj = bus.get_object(SENSOR_BUS,SENSOR_PATH,introspect=False)
