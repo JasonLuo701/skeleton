@@ -345,6 +345,11 @@ class Hwmons():
 				deassertion_failure = False
 				assertion_power_lost = False
 				deassertion_power_lost = False
+				if raw_value != self.psu_state[hwmon['sensornumber']]:
+					hwmon['status_change_count']+=1
+					if hwmon['status_change_count'] <= 3:
+						continue
+				hwmon['status_change_count'] = 0
 
 				for bitmap, event_type in PMBUS_STATUS_BYTES.iteritems():
 					if bitmap & (raw_value) & ((self.psu_state[hwmon['sensornumber']]) ^ 0xFFFF):
@@ -447,7 +452,15 @@ class Hwmons():
 					continue
 				reading_value = raw_value / scale
 				origin_threshold_state = hwmon['threshold_state']
-				if origin_threshold_state != self.check_thresholds(threshold_props, reading_value, hwmon):
+				status_change = origin_threshold_state != self.check_thresholds(threshold_props, reading_value, hwmon)
+				if status_change:
+					if 'status_change_count' not in hwmon:
+						hwmon['status_change_count'] = 0
+					hwmon['status_change_count']+=1
+					if hwmon['status_change_count'] < 3:
+						hwmon['threshold_state'] = origin_threshold_state
+						continue
+					hwmon['status_change_count'] = 0
 					intf.Set(SensorThresholds.IFACE_NAME, \
 							'threshold_state_'+str(hwmon['sensornumber']), hwmon['threshold_state'])
 					severity = Event.SEVERITY_INFO
@@ -487,6 +500,9 @@ class Hwmons():
 						event_dir = 0x0
 					self.LogThresholdEventMessages(hwmon, severity, event_dir,
 											evd1, evd2, evd3)
+				else:
+					hwmon['status_change_count'] = 0
+
 			except:
 				traceback.print_exc()
 				print "HWMON: Attibute no longer exists: "+hwmon['object_path']
