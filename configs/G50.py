@@ -588,7 +588,7 @@ def _add_psu_status_sensor(configs, index, sensornumber, bus_number):
         'index': index,
         'standby_monitor': True,
         'units': '',
-        'value': 0,
+        'value': -1,
         'firmware_update': 0, # 0: normal, 1:firmware_update working
         }
     if objpath in configs:
