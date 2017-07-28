@@ -631,7 +631,6 @@ def _add_hsc_voltage_sensor(configs, index, sensornumber, sensor_name, bus_numbe
         'bus_number': bus_number,
         'critical_lower':10.6,
         'critical_upper':13.8,
-        'positive_hysteresis': 2,
         'device_node': 'in3_input',
         'object_path' : 'sensors/HSC/HSC_VOUT',
         'poll_interval' : 5000,
