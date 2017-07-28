@@ -456,8 +456,6 @@ class Hwmons():
 				origin_threshold_state = hwmon['threshold_state']
 				status_change = origin_threshold_state != self.check_thresholds(threshold_props, reading_value, hwmon)
 				if status_change:
-					if 'status_change_count' not in hwmon:
-						hwmon['status_change_count'] = 0
 					hwmon['status_change_count']+=1
 					if hwmon['status_change_count'] < 3:
 						hwmon['threshold_state'] = origin_threshold_state
