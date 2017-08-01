@@ -505,7 +505,7 @@ def _add_cable_led(configs, index, gpio):
         'standby_monitor': True,
         'units': '',
         'entity': 0x1F,
-        'index': index,
+        'index': index+1,
         'inverse': 0,
         }]
     configs.append(config)
