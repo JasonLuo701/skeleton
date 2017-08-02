@@ -214,6 +214,7 @@ static int read_gpu_temp(int gpu_no, int show_message)
 	unsigned long slaveaddr;
 	int ret;
 	int gpu_index;
+	int retry = 5;
 
 	gpu_index = find_gpu_index(gpu_no);
 
@@ -225,17 +226,24 @@ static int read_gpu_temp(int gpu_no, int show_message)
 
 	i2c_bus = gpu_device_bus[gpu_index].bus_no;
 	slaveaddr = gpu_device_bus[gpu_index].slave;
-	
-	ret = internal_gpu_access(i2c_bus, slaveaddr, temp_writebuf, readbuf);
-	if (ret != 0)
-	{
+
+	while(retry > 0){
+		ret = internal_gpu_access(i2c_bus, slaveaddr, temp_writebuf, readbuf);
+		if (ret != 0)
+		{
+			retry--;
+			usleep(100);
+
+			if(retry == 0)
+				return -1;
+			continue;
+		}
+
 		if (show_message == 1)
-			printf("Fail to get GPU[%d - %d 0x%x] Temp: 0x%x 0x%x 0x%x 0x%x\n", gpu_index, i2c_bus, slaveaddr, readbuf[0], readbuf[1], readbuf[2], readbuf[3]);
-		return -1;
+			printf("GPU Temp:%d  C\n",readbuf[1]);
+
+		break;
 	}
-	
-	if (show_message == 1)
-		printf("GPU Temp:%d  C\n",readbuf[1]);
 	return 0;
 }
 
