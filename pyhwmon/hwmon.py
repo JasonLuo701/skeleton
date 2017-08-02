@@ -330,7 +330,10 @@ class Hwmons():
 					firmware_update_status = intf.Get(HwmonSensor.IFACE_NAME,'firmware_update')
 					if (firmware_update_status & (1 << (hwmon['index'] - 1))) > 0:
 						return True
-				raw_value = int(self.readAttribute(attribute), 16)
+				if attribute:
+					raw_value = int(self.readAttribute(attribute), 16)
+				else:
+					raw_value = -1
 				if raw_value < -1 or raw_value > 0xFFFF:
 					continue
 				self.entity_presence_check(objpath,hwmon,raw_value)
