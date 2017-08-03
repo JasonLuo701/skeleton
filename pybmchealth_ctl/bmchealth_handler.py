@@ -289,7 +289,7 @@ def bmchealth_check_fw_update_start():
     #check BMC fw update start
     if os.path.exists(fw_update_start_check):
         print "Log BMC FW update start"
-        LogEventBmcHealthMessages("Asserted", "Firmware Update Started","BMC Firmware Update Started",data={'index':0x1})
+        LogEventBmcHealthMessages("Asserted", "Firmware Update Started","BMC Firmware Update Started",data={'index':0})
         os.rename(fw_update_start_check, "/var/lib/obmc/fw_update_complete")
     #check PSU fw update start
     if os.path.exists(psu_fw_update_start_check):
