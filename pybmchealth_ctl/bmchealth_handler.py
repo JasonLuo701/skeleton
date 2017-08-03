@@ -520,14 +520,15 @@ def bmchealth_check_alignment_traps():
             #parse user faults
             fault_state = int(sp_line[7].split(":")[1].lstrip()[0])
             #parse system NO.
-            number_of_system = int(sp_line[0].split(":")[1].lstrip())
+            number_of_system = sp_line[0].split(":")[1].lstrip()
             number_of_system_lsb = ( int(number_of_system, 16) >> 8) & 0xff
             number_of_system_msb = int(number_of_system, 16) & 0xff
+            alignment_traps_count = int(number_of_system)
             #log event if fault states and process id change
-            if fault_state != 0 and number_of_system != g_number_of_system:
+            if fault_state != 0 and alignment_traps_count > g_number_of_system:
                 print "Log alignment traps event"
                 LogEventBmcHealthMessages("Asserted", "Alignment Traps",data={'alignment_msb':number_of_system_msb, 'alignment_lsb':number_of_system_lsb})
-                g_number_of_system = number_of_system
+                g_number_of_system = alignment_traps_count
     except:
             print "[bmchealth_check_alignment_traps]exception !!!"
     return True
