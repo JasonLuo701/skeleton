@@ -101,6 +101,12 @@ main(int argc, char *argv[])
     /* Init pmbus node */
     for(i=1; i<=PSU_NUM; i++)
     {
+	/* Liteon PS-2162-1F Solution */
+	sprintf(buff_path, "i2craw.exe %d 0x58 -w \"0x05 0x04 0x01 0x1b 0x7c 0xff\"", PHYSICAL_I2C+i);
+	printf("%s\n", buff_path);
+	system(buff_path);
+
+	/* Add new pmbus device */
         sprintf(buff_path, "echo pmbus 0x58 > /sys/bus/i2c/devices/i2c-%d/new_device", PHYSICAL_I2C+i);
         printf("%s\n", buff_path);
         system(buff_path);
