@@ -24,10 +24,10 @@ typedef struct
 } pcie_dev_mapping;
 
 pcie_dev_mapping Mdot2[MAX_MDOT2_NUM] = {
+    {26, 0x6a},
     {27, 0x6a},
     {28, 0x6a},
     {29, 0x6a},
-    {30, 0x6a},
 };
 
 int get_Mdot2_data(int index)
