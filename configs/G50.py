@@ -392,6 +392,8 @@ def _add_m2_temperature_sensor(configs, index, sensornumber):
         'units': 'C',
         'index': index,
         'value': -1,
+        'status_change_count': 0,
+        'reading_error_count': 0,
         }
     if objpath in configs:
         configs[objpath].append(config)
