@@ -364,6 +364,7 @@ def _add_gpu_temperature_sensor(configs, index, sensornumber):
         'value': -1,
         'mapping': '/org/openbmc/control/gpu/slot%d' % index,
         'status_change_count': 0,
+        'reading_error_count': 0,
         }
     if objpath in configs:
         configs[objpath].append(config)
@@ -388,6 +389,7 @@ def _add_fan_pwm_sensor(configs, index, sensornumber):
         'units': '%',
         'value': -1,
         'status_change_count': 0,
+        'reading_error_count': 0,
         }
     if objpath in configs:
         configs[objpath].append(config)
@@ -412,6 +414,7 @@ def _add_fan_tach_sensor(configs, index, sensornumber):
         'units': 'rpm',
         'value': -1,
         'status_change_count': 0,
+        'reading_error_count': 0,
         }
     if objpath in configs:
         configs[objpath].append(config)
@@ -439,6 +442,7 @@ def _add_psu_temperature_sensor(configs, index, sensornumber, bus_number):
         'value': -1,
         'firmware_update': 0, # 0: normal, 1:firmware_update working
         'status_change_count': 0,
+        'reading_error_count': 0,
         }
     if objpath in configs:
         configs[objpath].append(config)
@@ -469,6 +473,7 @@ def _add_psu_voltage_sensor(configs, index, sensornumber, bus_number):
         'index': index,
         'firmware_update': 0, # 0: normal, 1:firmware_update working
         'status_change_count': 0,
+        'reading_error_count': 0,
         }
     if objpath in configs:
         configs[objpath].append(config)
@@ -495,6 +500,7 @@ def _add_psu_power_sensor(configs, index, sensornumber, bus_number):
         'value': -1,
         'firmware_update': 0, # 0: normal, 1:firmware_update working
         'status_change_count': 0,
+        'reading_error_count': 0,
         }
     if objpath in configs:
         configs[objpath].append(config)
@@ -533,6 +539,7 @@ def _add_pex9797(configs, index, sensornumber):
         'units': 'C',
         'index': index,
         'status_change_count': 0,
+        'reading_error_count': 0,
         }
     if objpath in configs:
         configs[objpath].append(config)
@@ -598,6 +605,7 @@ def _add_psu_status_sensor(configs, index, sensornumber, bus_number):
         'value': -1,
         'firmware_update': 0, # 0: normal, 1:firmware_update working
         'status_change_count': 0,
+        'reading_error_count': 0,
         }
     if objpath in configs:
         configs[objpath].append(config)
@@ -627,6 +635,7 @@ def _add_hsc_temperature_sensor(configs, index, sensornumber, sensor_name, bus_n
         'min_reading':'0',
         'max_reading':'20',
         'status_change_count': 0,
+        'reading_error_count': 0,
         }
     if objpath in configs:
         configs[objpath].append(config)
@@ -657,6 +666,7 @@ def _add_hsc_voltage_sensor(configs, index, sensornumber, sensor_name, bus_numbe
         'min_reading':'0',
         'max_reading':'20',
         'status_change_count': 0,
+        'reading_error_count': 0,
         }
     if objpath in configs:
         configs[objpath].append(config)
@@ -684,6 +694,7 @@ def _add_temp_sensor(configs, index, sensornumber, sensor_name, bus_number):
         'units' : 'C',
         'value': -1,
         'status_change_count': 0,
+        'reading_error_count': 0,
         }
     if objpath in configs:
         configs[objpath].append(config)

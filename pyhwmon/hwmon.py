@@ -204,15 +204,12 @@ class Hwmons():
 		if hwmon.has_key('sensornumber'):
 			if hwmon['sensornumber'] not in self.check_subsystem_health:
 				self.check_subsystem_health[hwmon['sensornumber']] = 1
-				self.retry_subsystem_health[hwmon['sensornumber']] = 0
 			if raw_value == -1 and self.check_subsystem_health[hwmon['sensornumber']] == 1:
-				self.retry_subsystem_health[hwmon['sensornumber']]+=1
-				if self.retry_subsystem_health[hwmon['sensornumber']] >=10:
-					bmclogevent_ctl.BmcLogEventMessages(check_subsystem_health_obj_path, \
-							"Management Subsystem Health" ,"Asserted", "Management Subsystem Health" , \
-							data={'event_status':0xC4, 'sensor_number':hwmon['sensornumber']})
-					bmclogevent_ctl.bmclogevent_set_value(check_subsystem_health_obj_path , 1)
-					self.check_subsystem_health[hwmon['sensornumber']] = 0
+				bmclogevent_ctl.BmcLogEventMessages(check_subsystem_health_obj_path, \
+						"Management Subsystem Health" ,"Asserted", "Management Subsystem Health" , \
+						data={'event_status':0xC4, 'sensor_number':hwmon['sensornumber']})
+				bmclogevent_ctl.bmclogevent_set_value(check_subsystem_health_obj_path , 1)
+				self.check_subsystem_health[hwmon['sensornumber']] = 0
 			elif raw_value >= 0:
 				if self.check_subsystem_health[hwmon['sensornumber']] == 0:
 					bmclogevent_ctl.BmcLogEventMessages(check_subsystem_health_obj_path, \
@@ -220,7 +217,6 @@ class Hwmons():
 						data={'event_status':0xC4, 'sensor_number':hwmon['sensornumber']})
 					bmclogevent_ctl.bmclogevent_set_value(check_subsystem_health_obj_path, 0)
 				self.check_subsystem_health[hwmon['sensornumber']] = 1
-				self.retry_subsystem_health[hwmon['sensornumber']] = 0
 		return True
 
 	def check_throttle_state(self, objpath, attribute, hwmon):
@@ -336,6 +332,11 @@ class Hwmons():
 					raw_value = -1
 				if raw_value < -1 or raw_value > 0xFFFF:
 					continue
+				if raw_value == -1:
+					hwmon['reading_error_count']+=1
+					if hwmon['reading_error_count'] < 3:
+						continue
+				hwmon['reading_error_count'] = 0
 				self.entity_presence_check(objpath,hwmon,raw_value)
 				self.subsystem_health_check(hwmon,raw_value)
 				intf.Set(SensorValue.IFACE_NAME, 'value_'+str(hwmon['sensornumber']), raw_value)
@@ -447,9 +448,13 @@ class Hwmons():
 						raw_value = int(self.readAttribute(hwmon['device_node']))
 
 				if raw_value == -1:
+					hwmon['reading_error_count']+=1
+					if hwmon['reading_error_count'] < 3:
+						continue
 					intf.Set(SensorValue.IFACE_NAME, 'value_'+str(hwmon['sensornumber']), -1)
 				else:
 					intf.Set(SensorValue.IFACE_NAME, 'value_'+str(hwmon['sensornumber']), raw_value / scale)
+				hwmon['reading_error_count'] = 0
 
 
 				if hwmon['sensornumber'] != '':
