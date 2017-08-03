@@ -312,14 +312,13 @@ start_fan_services()
 	get_dbus_fan_parameters(bus_type, "FAN_INPUT_OBJ", &reponse_len, reponse_data, &size_sensor_list, &base_sensor_number);
 	for (i = 0; i<reponse_len; i++) {
 		if (i%2 == 0) {
-			//Enable fan tach
 			fan_index = i+1;
-			sys_pwm_write(fan_index, EM_FAN_CMD_EN, 1, "tacho");
 		} else {
 			int pwm_source = (i%6)+1;
 			sys_pwm_write(fan_index, EM_TACH_CMD_SOURCE, pwm_source, "tacho");
-
 		}
+		//Enable fan tach
+		sys_pwm_write(i+1, EM_FAN_CMD_EN, 1, "tacho");
 	}
 
 	get_dbus_fan_parameters(bus_type, "FAN_OUTPUT_OBJ", &reponse_len, reponse_data, &size_sensor_list, &base_sensor_number);
