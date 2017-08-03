@@ -443,7 +443,11 @@ class Hwmons():
 					else:
 						raw_value = int(self.readAttribute(hwmon['device_node']))
 
-				intf.Set(SensorValue.IFACE_NAME, 'value_'+str(hwmon['sensornumber']), raw_value / scale)
+				if raw_value == -1:
+					intf.Set(SensorValue.IFACE_NAME, 'value_'+str(hwmon['sensornumber']), -1)
+				else:
+					intf.Set(SensorValue.IFACE_NAME, 'value_'+str(hwmon['sensornumber']), raw_value / scale)
+
 
 				if hwmon['sensornumber'] != '':
 					self.entity_presence_check(objpath,hwmon,raw_value)
