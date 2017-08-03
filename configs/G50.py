@@ -1168,6 +1168,12 @@ BMC_LOGEVENT_CONFIG = {
 					'Hardware WDT expired':	[0xA3, None, None],
 				},
 			},
+			'Alignment Traps': {
+				'Severity': 'Critical',
+				'Event Data Information': {
+					'Alignment Traps':	[0xA5, 'alignment_msb', 'alignment_lsb'],
+				},
+			},
 			'BMC CPU utilization': {
 				'Severity': 'Warning',
 				'Event Data Information': {

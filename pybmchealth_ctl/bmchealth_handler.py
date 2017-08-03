@@ -32,6 +32,7 @@ g_record_bmchealth_severity={}
 g_CPU_utilization = -1
 g_previous_total = 0
 g_previous_idle_cpu = 0
+g_number_of_system = -1
 
 #light: 1, light on; 0:light off
 def bmchealth_set_status_led(light):
@@ -507,6 +508,30 @@ def bmchealth_check_empty_invalid_fru():
                 g_record_fru_status[fur_item] = 0
     return True
 
+def bmchealth_check_alignment_traps():
+    alignment_traps_check_path = "/proc/cpu/alignment"
+    global g_number_of_system
+
+    #read alignment proc file content
+    try:
+        with open(alignment_traps_check_path, 'r') as f:
+            content = file.read()
+            sp_line = content.split("\n")
+            #parse user faults
+            fault_state = int(sp_line[7].split(":")[1].lstrip()[0])
+            #parse system NO.
+            number_of_system = int(sp_line[0].split(":")[1].lstrip())
+            number_of_system_lsb = ( int(number_of_system, 16) >> 8) & 0xff
+            number_of_system_msb = int(number_of_system, 16) & 0xff
+            #log event if fault states and process id change
+            if fault_state != 0 and number_of_system != g_number_of_system:
+                print "Log alignment traps event"
+                LogEventBmcHealthMessages("Asserted", "Alignment Traps",data={'alignment_msb':number_of_system_msb, 'alignment_lsb':number_of_system_lsb})
+                g_number_of_system = number_of_system
+    except:
+            print "[bmchealth_check_alignment_traps]exception !!!"
+    return True
+
 if __name__ == '__main__':
     mainloop = gobject.MainLoop()
     #set bmchealth default value
@@ -525,6 +550,7 @@ if __name__ == '__main__':
     gobject.timeout_add(1000,bmchealth_check_memory_utilization)
     gobject.timeout_add(20000,bmchealth_check_empty_invalid_fru)
     gobject.timeout_add(1000,bmchealth_check_CPU_utilization)
+    gobject.timeout_add(1000,bmchealth_check_alignment_traps)
     print "bmchealth_handler control starting"
     mainloop.run()
 
