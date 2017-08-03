@@ -11,7 +11,8 @@ SDBUS_APPS = gpu \
 	     pex9797_ctl \
 	     pmbus \
 	     pmbus_scanner \
-	     psu_fwupdate_ctl
+	     psu_fwupdate_ctl \
+	     pcie-device-temperature
 
 SUBDIRS = hacks \
 	  libopenbmc_intf \
