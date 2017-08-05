@@ -72,10 +72,10 @@ typedef struct {
 } pex_device_mapping;
 
 pex_device_mapping pex_device_bus[MAX_PEX_NUM] = {
-	{16, 0x5d, EM_PEX_DEVICE_1, 0x37, 0x61, {0, {0}}, {0, {0}} },
-	{17, 0x5d, EM_PEX_DEVICE_2, 0x38, 0x61, {0, {0}}, {0, {0}} },
-	{18, 0x5d, EM_PEX_DEVICE_3, 0x39, 0x61, {0, {0}}, {0, {0}} },
-	{19, 0x5d, EM_PEX_DEVICE_4, 0x3A, 0x61, {0, {0}}, {0, {0}} },
+	{24, 0x5d, EM_PEX_DEVICE_1, 0x37, 0x61, {0, {0}}, {0, {0}} },
+	{25, 0x5d, EM_PEX_DEVICE_2, 0x38, 0x61, {0, {0}}, {0, {0}} },
+	{26, 0x5d, EM_PEX_DEVICE_3, 0x39, 0x61, {0, {0}}, {0, {0}} },
+	{27, 0x5d, EM_PEX_DEVICE_4, 0x3A, 0x61, {0, {0}}, {0, {0}} },
 };
 
 typedef struct {
