@@ -295,7 +295,7 @@ void write_file_pex(int pex_idx, double data, char *sub_name)
 	system(sys_cmd);
 }
 
-void function_get_pex_temp_data(int pex_idx)
+int function_get_pex_temp_data(int pex_idx)
 {
 	pex_device_i2c_cmd *i2c_cmd;
 	int i2c_bus;
@@ -306,6 +306,7 @@ void function_get_pex_temp_data(int pex_idx)
 	int rx_len = 0;
 	unsigned int temp_sensor_data = 0;
 	double real_temp_data = 0.0;
+	int rc=-1;
 
 	i2c_bus = pex_device_bus[pex_idx].bus_no;
 	i2c_addr = pex_device_bus[pex_idx].slave;
@@ -349,9 +350,12 @@ void function_get_pex_temp_data(int pex_idx)
 	real_temp_data = calculate_pex_temp(temp_sensor_data);
 	write_file_pex(pex_idx, real_temp_data, "temp");
 
+	if ((int) real_temp_data < 0)
+		rc = 0;
+
 error_i2c_access:
 	write_file_pex(pex_idx, real_temp_data, "temp");
-	return ;
+	return rc ;
 }
 
 int pex_set_dbus_property(int pex_idx, char *property_name, char *property_value)
@@ -537,6 +541,7 @@ void pex_data_scan()
 {
 	/* init the global data */
 	int i = 0;
+	int rc;
 
 	/* create the file patch for dbus usage*/
 	/* check if directory is existed */
@@ -553,7 +558,9 @@ void pex_data_scan()
 	while(1) {
                 create_pex_notify();
 		for(i=0; i<MAX_PEX_NUM; i++) {
-			function_get_pex_temp_data(i);
+			rc =  function_get_pex_temp_data(i);
+			if (rc < 0)
+				continue;
 			function_get_pex_serial_data(i);
 			function_get_pex_udid_data(i);
 		}
