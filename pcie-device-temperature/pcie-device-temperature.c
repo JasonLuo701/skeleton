@@ -38,21 +38,49 @@ int get_Mdot2_data(int index)
     uint8_t g_read_bytes[4];
     int fd = -1;
     char filename[32] = {0};
+	int retry = 20;
+	int rc = 0;
+	unsigned long funcs;
 
     sprintf(filename,"/dev/i2c-%d", Mdot2[index].bus);
     /* open i2c device*/
-    fd = open(filename, O_RDWR);
-    if (fd == -1) {
-        return -1;
-    }
+    fd = open(filename,O_RDWR);
+	if (fd > 0) {
+		if (ioctl(fd, I2C_FUNCS, &funcs) < 0)
+			fd = -1;
+		else
+			rc = ioctl(fd,I2C_SLAVE,  Mdot2[index].slave_addr);
+			
+	}
 
+	while (retry >0 && fd>0)
+	{
+		rc = i2c_smbus_write_quick(fd, I2C_SMBUS_WRITE);
+		printf("==> Doyle== %s, %d, %d\n", __FUNCTION__, __LINE__, rc);
+		if (rc>=0)
+			break;
+		usleep(500*1000);
+	}
+	#if 0
+	printf("==> Doyle= %s, %d\n", __FUNCTION__, __LINE__);
+
+	if (retry > 0)
+		system("i2cdetect -y 2");
+
+	ioctl(fd, I2C_FUNCS, &funcs);
+	close(fd);
+	
+
+	fd = open(filename,O_RDWR);
     /* open slave address */
     if(ioctl(fd, I2C_SLAVE, Mdot2[index].slave_addr) < 0) {
         close(fd);
         return -1;
     }
+	#endif
 
     memset(&msg, 0, sizeof(msg));
+	 
 
     /* do write 1 byte */
     write_bytes[0] = MDOT2_WRITE_CMD;
@@ -131,6 +159,7 @@ void pcie_data_scan()
                 continue;
             sprintf(pcie_path , "%s%s%d%s", PCIE_TEMP_PATH, "/mdot2_", i+1,"_temp");
             sprintf(sys_cmd, "echo %d > %s", get_Mdot2_data(i), pcie_path);
+			printf("==> Doyle== %s, %d, i:%d, cm:%s\n", __FUNCTION__, __LINE__, i,sys_cmd);
             system(sys_cmd);
             sleep(1);
         }
