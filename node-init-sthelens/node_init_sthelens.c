@@ -98,6 +98,8 @@ main(int argc, char *argv[])
     sprintf(buff_path, "ln -s /usr/lib/python2.7/site-packages/subprocess32.py /usr/lib/python2.7/site-packages/subprocess.py");
     system(buff_path);
 
+    system("echo pca9539 0x74 > /sys/bus/i2c/devices/i2c-30/new_device");
+    system("echo pca9539 0x77 > /sys/bus/i2c/devices/i2c-30/new_device");
     /* Init pmbus node */
     for(i=1; i<=PSU_NUM; i++)
     {
