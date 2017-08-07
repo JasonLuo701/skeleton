@@ -227,7 +227,7 @@ APPS = {
     },
     'pex_service' : {
         'system_state'    : 'BMC_READY',
-        'start_process'   : False,
+        'start_process'   : True,
         'monitor_process' : False,
         'process_name'    : 'pex_core.exe',
     },
@@ -239,7 +239,7 @@ APPS = {
     },
     'pcie-device-temperature' : {
         'system_state'	  : 'BMC_READY',
-        'start_process'   : False,
+        'start_process'   : True,
         'monitor_process' : False,
         'process_name'	  : 'pcie-device-temperature.exe',
     },
