@@ -88,6 +88,13 @@ int get_Mdot2_data(int index)
     }
 }
 
+static int check_pex_notify()
+{
+    if( access( "/tmp/pex_lock/pex_scanning", F_OK ) != -1 )
+        return 1;
+    return 0;
+}
+
 void pcie_data_scan()
 {
     int i;
@@ -120,6 +127,8 @@ void pcie_data_scan()
     {
         for(i=0; i<MAX_MDOT2_NUM; i++)
         {
+            if (check_pex_notify() == 1)
+                continue;
             sprintf(pcie_path , "%s%s%d%s", PCIE_TEMP_PATH, "/mdot2_", i+1,"_temp");
             sprintf(sys_cmd, "echo %d > %s", get_Mdot2_data(i), pcie_path);
             system(sys_cmd);
