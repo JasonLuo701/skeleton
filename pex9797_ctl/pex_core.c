@@ -501,6 +501,38 @@ int  init_data_folder(int index)
 
 }
 
+#define PEX_PATH "/tmp/pex_lock"
+static void create_pex_notify()
+{
+	FILE *fPtr;
+	char pex_path[128];
+	struct stat st = {0};
+
+	if (stat(PEX_PATH, & st) == -1) {
+		mkdir(PEX_PATH, 0777);
+	}
+
+	sprintf(pex_path, "%s/pex_scanning", PEX_PATH);
+	if( access( pex_path, F_OK ) == -1 ) {
+		fPtr = fopen(pex_path,"w");
+		fprintf(fPtr, "scanning");
+		fclose(fPtr);
+	}
+}
+
+static void delete_pex_notify()
+{
+	FILE *fPtr;
+	char pex_path[128];
+	char cmd[128];
+
+	sprintf(pex_path, "%s/pex_scanning", PEX_PATH);
+	if( access( pex_path, F_OK ) != -1 ) {
+		sprintf(cmd, "rm -rf %s", pex_path);
+		system(cmd);
+	}
+}
+
 void pex_data_scan()
 {
 	/* init the global data */
@@ -519,12 +551,14 @@ void pex_data_scan()
 
 	printf("pex9797 control starting!!!\n");
 	while(1) {
+                create_pex_notify();
 		for(i=0; i<MAX_PEX_NUM; i++) {
 			function_get_pex_temp_data(i);
 			function_get_pex_serial_data(i);
 			function_get_pex_udid_data(i);
 		}
-		sleep(1);
+                delete_pex_notify();
+		sleep(3);
 	}
 }
 
