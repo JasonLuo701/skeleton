@@ -135,8 +135,8 @@ main(int argc, char *argv[])
 
     /* Init GPU present & PWR GOOD & thermal GPIO*/
     
-    system("echo pca9539 0x74 > /sys/bus/i2c/devices/i2c-30/new_device");
-    system("echo pca9539 0x77 > /sys/bus/i2c/devices/i2c-30/new_device");
+    //system("echo pca9539 0x74 > /sys/bus/i2c/devices/i2c-30/new_device");
+    //system("echo pca9539 0x77 > /sys/bus/i2c/devices/i2c-30/new_device");
     init_gpu_gpio();
     init_power_good_gpio();
     init_therm_overt_gpio();
