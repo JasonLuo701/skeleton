@@ -561,8 +561,8 @@ void pex_data_scan()
 			rc =  function_get_pex_temp_data(i);
 			if (rc < 0)
 				continue;
-			function_get_pex_serial_data(i);
-			function_get_pex_udid_data(i);
+			//function_get_pex_serial_data(i);
+			//function_get_pex_udid_data(i);
 		}
                 delete_pex_notify();
 		sleep(3);
